@@ -48,3 +48,10 @@ error_symbol = "[ ❯](bold red)"
 status_bg = '#005fdf'    # Azul vibrante (SRE/Linux)
 python_bg = '#ffd700'    # Amarillo oro (Python)
 git_bg = '#444444'       # Gris carbón (Git)
+
+[username]
+style_user = "white bold"
+style_root = "black bold"
+format = "[$user]($style) "
+disabled = false
+show_always = true
