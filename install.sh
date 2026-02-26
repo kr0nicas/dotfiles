@@ -1,91 +1,47 @@
 #!/bin/bash
 
 # ==============================================================================
-# INSTALLER SRE 2026 - MULTI-PLATFORM (BASH)
+# INSTALLER SRE 2026 - Jorge Ochoa
 # ==============================================================================
 
-set -e # Salir si algo falla
+set -e
 
-# Definición de colores para la salida
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-echo -e "${BLUE}🚀 Iniciando instalación de entorno SRE 2026...${NC}"
+echo -e "${BLUE}🚀 Sincronizando entorno SRE...${NC}"
 
-# 1. Validar que se use Bash
-if [ -z "$BASH_VERSION" ]; then
-    echo -e "${RED}❌ Error: Este script requiere bash. Usa: bash install.sh${NC}"
-    exit 1
-fi
-
-# 2. Detección de Sistema Operativo
+# 1. Detección de Sistema
 OS_TYPE="$(uname)"
 
+# 2. Instalación de Herramientas
 if [ "$OS_TYPE" = "Darwin" ]; then
-    echo -e "${BLUE}🍎 Detectado macOS. Verificando Homebrew...${NC}"
-    if ! command -v brew &> /dev/null; then
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    echo -e "🍎 Procesando Brewfile en Mac..."
+    if [ -f "$HOME/dotfiles/Brewfile" ]; then
+        brew bundle --file="$HOME/dotfiles/Brewfile" || true
     fi
-    PACKAGE_MANAGER="brew install"
 else
-    echo -e "${BLUE}🐧 Detectado Linux. Actualizando APT...${NC}"
-    sudo apt update
-    PACKAGE_MANAGER="sudo apt install -y"
+    echo -e "🐧 Instalando dependencias en Linux..."
+    sudo apt update && sudo apt install -y zsh tmux git curl fzf eza bat
 fi
 
-# 3. Lista de herramientas esenciales (Incluyendo TMUX para sesiones SSH)
-TOOLS=(zsh starship zoxide eza bat fzf fd git curl tmux)
+# 3. Gestión de Enlaces Simbólicos (Symlinks)
+echo -e "${BLUE}🔗 Creando Symlinks...${NC}"
 
-echo -e "${BLUE}📦 Instalando herramientas...${NC}"
-for tool in "${TOOLS[@]}"; do
-    install_name=$tool
-    check_name=$tool
+# Reparar ZSH
+rm -f "$HOME/.zshrc"
+ln -sf "$HOME/dotfiles/zshrc" "$HOME/.zshrc"
 
-    # Ajustes específicos para Linux (Ubuntu/Debian)
-    if [ "$OS_TYPE" = "Linux" ]; then
-        if [ "$tool" = "bat" ]; then
-            install_name="batcat"; check_name="batcat"
-        elif [ "$tool" = "fd" ]; then
-            install_name="fd-find"; check_name="fdfind"
-        fi
-    fi
-    
-    if ! command -v "$check_name" &> /dev/null; then
-        echo -e "Instalando $install_name..."
-        $PACKAGE_MANAGER "$install_name" || echo -e "${RED}⚠️ No se pudo instalar $install_name${NC}"
-    else
-        echo -e "${GREEN}✔ $check_name ya está instalado.${NC}"
-    fi
-done
+# Reparar TMUX
+rm -f "$HOME/.tmux.conf"
+ln -sf "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
 
-# 4. Configuración de Enlaces Simbólicos (Symlinks)
-echo -e "${BLUE}🔗 Enlazando configuraciones...${NC}"
+# Reparar Starship
+mkdir -p "$HOME/.config/starship"
+ln -sf "$HOME/dotfiles/config/starship/starship.toml" "$HOME/.config/starship/starship.toml"
 
-# Reparar .zshrc
-if [ -L "$HOME/.zshrc" ] || [ -f "$HOME/.zshrc" ]; then
-    rm -f "$HOME/.zshrc"
-fi
-
-ln -sf "$HOME/dotfiles/.zshrc" "$HOME/.zshrc"
-echo -e "${GREEN}✔ ~/.zshrc -> ~/dotfiles/.zshrc${NC}"
-
-# Configuración de Starship
-mkdir -p "$HOME/.config"
-if [ -f "$HOME/dotfiles/starship.toml" ]; then
-    ln -sf "$HOME/dotfiles/starship.toml" "$HOME/.config/starship.toml"
-fi
-
-# 5. Instalación de FZF desde fuente (Evita errores de versión)
-if [ ! -d "$HOME/.fzf" ]; then
-    echo -e "${BLUE}📥 Clonando FZF...${NC}"
-    git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
-    "$HOME/.fzf/install" --all --no-bash --no-fish
-else
-    echo -e "${GREEN}✔ FZF ya está en ~/.fzf. Actualizando...${NC}"
-    (cd "$HOME/.fzf" && ./install --all --no-bash --no-fish > /dev/null)
-fi
-
-echo -e "${GREEN}✨ ¡Instalación completada!${NC}"
-echo -e "${BLUE}Ejecuta: source ~/.zshrc${NC}"
+# 4. Finalización
+echo -e "${GREEN}✨ ¡Configuración terminada con éxito!${NC}"
+echo -e "${BLUE}Recuerda ejecutar: source ~/.zshrc${NC}"
