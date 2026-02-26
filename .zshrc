@@ -84,3 +84,5 @@ alias fp='fzf --preview "batcat --color=always --style=numbers --line-range=:500
 HISTSIZE=5000
 SAVEHIST=5000
 setopt SHARE_HISTORY
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
