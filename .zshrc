@@ -129,10 +129,11 @@ fi
 
 # Homebrew Management (Solo Mac)
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    alias blist='cat ~/dotfiles/Brewfile' # Lista el contenido del archivo
-    alias bcheck='brew bundle list --file=~/dotfiles/Brewfile' # Lista lo que brew reconoce
-    alias bclean='brew bundle cleanup --file=~/dotfiles/Brewfile' # MUESTRA qué tienes instalado que NO está en el Brewfile
-    alias bdump='brew bundle dump --force --file=~/dotfiles/Brewfile' # Actualiza el Brewfile con lo que tienes ahora
+    # Verificamos si el archivo existe antes de intentar cat
+    alias blist='[ -f ~/dotfiles/Brewfile ] && cat ~/dotfiles/Brewfile || echo "Brewfile no encontrado en ~/dotfiles/"'
+    alias bcheck='brew bundle list --file=~/dotfiles/Brewfile'
+    alias bclean='brew bundle cleanup --file=~/dotfiles/Brewfile'
+    alias bdump='brew bundle dump --force --file=~/dotfiles/Brewfile'
 fi
 
 # Git Aliases
@@ -144,10 +145,8 @@ alias gl="git log --oneline --graph --all"
 alias gcb='git branch -a | fzf | xargs git checkout'
 
 # SSH & TMUX Workflow
-# Selector maestro de servidores (Usa FZF para elegir del config)
 alias s='grep -iE "^host " ~/.ssh/config | awk "{print \$2}" | fzf --reverse | xargs -o ssh'
 
-# Función para conexión persistente
 ssht() {
     ssh -t "$1" "tmux attach || tmux new"
 }
@@ -165,12 +164,14 @@ HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 
-# Fix para evitar desconexiones de VPS
 export TMOUT=0              
-setopt AUTO_CD              # Entrar a carpetas sin 'cd'
-setopt NO_HUP               # Mantener procesos vivos
+setopt AUTO_CD              
+setopt NO_HUP               
 setopt INC_APPEND_HISTORY   
 setopt SHARE_HISTORY 
 
 # Carga de entornos locales (Edwin / Partnertech)
 [[ -s "$HOME/.autoenv/activate.sh" ]] && source "$HOME/.autoenv/activate.sh"
+
+# Mensaje de confirmación de carga de Alias (Opcional, ayuda a debuggear)
+# echo "SRE Environment Loaded 🚀"
