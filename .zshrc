@@ -1,3 +1,16 @@
+export PATH="$HOME/.local/bin:$PATH"
+
+# --- Detectar Sistema Operativo ---
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # Configuración específica para macOS (MacBook)
+    alias brew-up='brew update && brew upgrade'
+    # El path de Homebrew suele ser diferente en Apple Silicon
+    export PATH="/opt/homebrew/bin:$PATH"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Configuración específica para Linux (VPS)
+    alias apt-up='sudo apt update && sudo apt upgrade -y'
+fi
+
 # --- 1. PLUGINS DE SISTEMA ---
 source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
@@ -7,6 +20,22 @@ eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 
 # --- 3. ALIASES DE PRODUCTIVIDAD (PYTHON & SISTEMA) ---
+
+# El reemplazo básico (con iconos y carpetas primero)
+alias ls='eza --icons --group-directories-first'
+
+# El "Listado Largo" (reemplaza a 'ls -lh')
+# Muestra tamaño de archivos, permisos y cabeceras
+alias ll='eza -lh --icons --group-directories-first'
+
+# El "Listado Maestro" (reemplaza a 'ls -la')
+# Muestra archivos ocultos y detalles de Git (si estás en un repo)
+alias la='eza -lah --icons --git --group-directories-first'
+
+# Extra: Ver carpetas como un árbol (reemplaza al comando 'tree')
+alias lt='eza --tree --level=2 --icons'
+
+
 
 # Atajos para Python (indispensables)
 alias py='python3'

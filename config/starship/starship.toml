@@ -29,3 +29,11 @@ format = '[ $symbol ($version) (\($virtualenv\)) ]($style)'
 status_bg = '#3B4252'
 python_bg = '#FFE873'
 git_bg = '#4C566A'
+
+[palettes.mi_tema]
+status_bg = '#3B4252'
+python_bg = '#FFE873'
+git_bg = '#4C566A'
+# 2. Le decimos a Starship que USE esa paleta
+palette = "mi_tema"
+
