@@ -7,8 +7,9 @@ export COLORTERM="truecolor"
 export CLICOLOR=1
 
 # ------------------------------------------------------------------------------
-# 2. DETECCIÓN DE ICONO SEGÚN SISTEMA (NUEVO)
+# 2. DETECCIÓN DE ICONO PARA EL PROMPT (SRE 2026)
 # ------------------------------------------------------------------------------
+# Esta sección detecta el sistema y exporta el icono para que Starship lo use
 if [[ "$OSTYPE" == "darwin"* ]]; then
     export OS_ICON="🍎"
     export OS_NAME="Mac OS"
@@ -17,11 +18,11 @@ elif [[ -f /etc/os-release ]]; then
     os_id=$(grep -i '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
     case "$os_id" in
         ubuntu)
-            export OS_ICON="" # Icono de Ubuntu (requiere Nerd Font)
+            export OS_ICON="" # Icono de Ubuntu (Nerd Font)
             export OS_NAME="Ubuntu"
             ;;
         debian)
-            export OS_ICON="" # Icono de Debian (requiere Nerd Font)
+            export OS_ICON="" # Icono de Debian (Nerd Font)
             export OS_NAME="Debian"
             ;;
         *)
@@ -42,7 +43,7 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # ------------------------------------------------------------------------------
-# 4. PATHS Y ENTORNO UNIVERSAL (SRE 2026)
+# 4. PATHS Y ENTORNO UNIVERSAL
 # ------------------------------------------------------------------------------
 typeset -gU path
 path=(
@@ -71,14 +72,14 @@ fi
 # ------------------------------------------------------------------------------
 # 5. INICIALIZACIÓN DE HERRAMIENTAS (STARSHIP FIX)
 # ------------------------------------------------------------------------------
-# Forzamos la ruta de configuración para que Starship no use la de por defecto
+# Forzamos la ruta de configuración para que Starship lea los iconos del .toml
 export STARSHIP_CONFIG="$HOME/.config/starship.toml"
 
 if command -v starship >/dev/null; then
     eval "$(starship init zsh)"
 fi
 
-# Zoxide
+# Zoxide (Navegación inteligente)
 if command -v zoxide >/dev/null; then
     eval "$(zoxide init zsh)"
 fi
@@ -104,19 +105,19 @@ node() { nvm >/dev/null; node "$@" }
 npm() { nvm >/dev/null; npm "$@" }
 
 # ------------------------------------------------------------------------------
-# 7. ALIASES Y PLUGINS (RESCATE DE COLORES)
+# 7. ALIASES Y PLUGINS
 # ------------------------------------------------------------------------------
 PLUGIN_UBUNTU="/usr/share"
 PLUGIN_MAC="/opt/homebrew/share"
 
-# Syntax Highlighting
+# Resaltado de sintaxis
 if [ -f "$PLUGIN_UBUNTU/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
     source "$PLUGIN_UBUNTU/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 elif [ -f "$PLUGIN_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
     source "$PLUGIN_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 fi
 
-# Autosuggestions
+# Sugerencias automáticas
 if [ -f "$PLUGIN_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
     source "$PLUGIN_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh"
 elif [ -f "$PLUGIN_MAC/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
@@ -134,7 +135,7 @@ elif command -v fzf >/dev/null; then
     fi
 fi
 
-# Navegación con Eza
+# Aliases de navegación (Eza/LS)
 if command -v eza >/dev/null; then
     alias ls='eza --icons --group-directories-first'
     alias ll='eza -lh --icons --git'
@@ -143,19 +144,11 @@ else
     alias ll='ls -lAh --color=auto'
 fi
 
-# Visualización con Bat
-if command -v batcat >/dev/null; then
-    alias cat='batcat --paging=never'
-    alias bat='batcat'
-elif command -v bat >/dev/null; then
-    alias cat='bat --paging=never'
-fi
-
-# Git y Gestión de Dotfiles
+# Git y Dotfiles
 alias gs="git status -sb"
 alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots" && git push && cd -'
 
-# Atajo para múltiples sesiones SSH con FZF
+# SSH Selector con FZF
 alias s='grep -iE "^host " ~/.ssh/config | awk "{print \$2}" | fzf --reverse | xargs -o ssh'
 
 # ------------------------------------------------------------------------------
@@ -173,5 +166,7 @@ setopt NO_HUP
 # Entorno de Edwin / Partnertech
 [[ -s "$HOME/.autoenv/activate.sh" ]] && source "$HOME/.autoenv/activate.sh"
 
-# Mensaje de bienvenida con el icono detectado
-echo -e "Estás en: ${OS_ICON}  ${OS_NAME}"
+# Limpiamos la pantalla y mostramos el contexto actual brevemente
+# Esto confirma que la detección de icono funcionó antes de mostrar el prompt
+clear
+echo -e "${OS_ICON}  Bienvenido a tu entorno ${OS_NAME}, Jorge."
