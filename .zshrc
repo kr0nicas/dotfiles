@@ -1,7 +1,6 @@
 # ------------------------------------------------------------------------------
 # 0. DIAGNÓSTICO DE CARGA (SRE-DEBUG)
 # ------------------------------------------------------------------------------
-# Definido al inicio para confirmar que Zsh está leyendo este archivo.
 alias sre-debug='echo "✅ Entorno Cargado | OS: $OSTYPE | DOTFILES: $DOTFILES | User: $USER"'
 
 # ------------------------------------------------------------------------------
@@ -16,7 +15,14 @@ fi
 # ------------------------------------------------------------------------------
 typeset -gU path # Evita duplicados en el PATH
 export DOTFILES="$HOME/dotfiles"
-export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+
+path=(
+    $HOME/.fzf/bin
+    $HOME/.local/bin
+    /usr/local/bin
+    $path
+)
+export PATH
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     export CLOUDSDK_PYTHON="python3"
@@ -63,7 +69,7 @@ nvm() {
 }
 
 # ------------------------------------------------------------------------------
-# 5. PLUGINS & COMPLETIONS
+# 5. PLUGINS & COMPLETIONS (CARGA SEGURA DE FZF)
 # ------------------------------------------------------------------------------
 PLUGIN_DIR_UBUNTU="/usr/share"
 PLUGIN_DIR_MAC="/opt/homebrew/share"
@@ -76,7 +82,15 @@ else
     [[ -f "$PLUGIN_DIR_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] && source "$PLUGIN_DIR_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh"
 fi
 
-[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+if [[ -x "$HOME/.fzf/bin/fzf" ]]; then
+    [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+elif command -v fzf > /dev/null; then
+    if fzf --help | grep -q "\-\-zsh"; then
+        eval "$(fzf --zsh)"
+    else
+        [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+    fi
+fi
 
 # ------------------------------------------------------------------------------
 # 6. ALIASES (PRODUCTIVIDAD SRE)
@@ -88,9 +102,9 @@ else
     alias ll="ls -lAh"
 fi
 
-# Homebrew Aliases (Detección robusta)
+# Homebrew Aliases
 if command -v brew > /dev/null; then
-    alias blist='cat "$DOTFILES/Brewfile"' # Corregido: Ahora apunta al Brewfile
+    alias blist='cat "$DOTFILES/Brewfile"'
     alias bcheck='brew bundle list --file="$DOTFILES/Brewfile"'
     alias bclean='brew bundle cleanup --file="$DOTFILES/Brewfile"'
     alias bdump='brew bundle dump --force --file="$DOTFILES/Brewfile"'
@@ -98,10 +112,25 @@ fi
 
 # SSH & TMUX
 alias s='grep -iE "^host " ~/.ssh/config | awk "{print \$2}" | fzf --reverse | xargs -o ssh'
+ssht() { ssh -t "$1" "tmux attach || tmux new"; }
 
-ssht() {
-    ssh -t "$1" "tmux attach || tmux new"
-}
+# Gestión de Servicios (SRE Essentials)
+alias sc='sudo systemctl'
+alias sl='sudo journalctl -u' 
+alias st='sudo systemctl status'
+
+# Alias específicos para OpenClaw (Partnertech)
+alias claw-log='sl openclaw -f'
+alias gateway-log='sl openclaw-gateway -f'
+alias claw-restart='sc restart openclaw openclaw-gateway'
+
+# Auditoría de Root
+# Lista procesos corriendo como root ignorando hilos del kernel
+alias check-root='ps -U root -u root u | grep -v "\["'
+
+# Privilegios Elevados
+alias root='sudo -i'
+alias god='sudo -s'
 
 alias gs="git status -sb"
 alias dots='cd "$DOTFILES" && git add . && git commit -m "Update dots: $(date)" && git push && cd -'
