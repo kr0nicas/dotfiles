@@ -6,7 +6,7 @@ Configuración de terminal ultra-rápida optimizada para **Ubuntu (VPS)** y **ma
 ```bash
 git clone [https://github.com/TU_USUARIO/dotfiles.git](https://github.com/TU_USUARIO/dotfiles.git) ~/dotfiles
 cd ~/dotfiles && ./install.sh
-```bash
+```
 ---
 
 ##⚡️ Atajos de Productividad (Cheat Sheet)
