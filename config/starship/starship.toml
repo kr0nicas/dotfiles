@@ -1,0 +1,31 @@
+# Un formato limpio y profesional
+format = """
+[░▒▓](status_bg)\
+$os\
+$directory\
+[](fg:status_bg bg:python_bg)\
+$python\
+[](fg:python_bg bg:git_bg)\
+$git_branch\
+$git_status\
+[](fg:git_bg)\
+$character"""
+
+[os]
+disabled = false
+style = "bg:status_bg fg:white"
+
+[directory]
+style = "bg:status_bg fg:white"
+format = "[ $path ]($style)"
+truncation_length = 3
+
+[python]
+symbol = "🐍 "
+style = "bg:python_bg fg:black"
+format = '[ $symbol ($version) (\($virtualenv\)) ]($style)'
+
+[palette]
+status_bg = '#3B4252'
+python_bg = '#FFE873'
+git_bg = '#4C566A'
