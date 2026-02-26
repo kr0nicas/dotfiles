@@ -1,5 +1,6 @@
 export PATH="$HOME/.local/bin:$PATH"
-
+# Colorear el comando 'ls' (eza) con la misma paleta
+export EZA_COLORS="di=38;5;111:ln=38;5;115:so=38;5;109:pi=38;5;108:ex=38;5;121:bd=38;5;231:cd=38;5;231:su=0:sg=0:tw=0:ow=0"
 # --- Detectar Sistema Operativo ---
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # Configuración específica para macOS (MacBook)

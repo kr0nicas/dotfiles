@@ -1,38 +1,37 @@
-# Indicamos la paleta de alto contraste
-palette = "p10k_style"
+palette = "cyberpunk_sre"
 
-# Estructura de segmentos con flechas (el look p10k)
 format = """
-[](status_bg)\
-$os\
+[](dir_bg)\
 $directory\
-[](fg:status_bg bg:python_bg)\
+[](fg:dir_bg bg:python_bg)\
 $python\
 [](fg:python_bg bg:git_bg)\
 $git_branch\
 $git_status\
-[](fg:git_bg)\
+[](fg:git_bg bg:status_bg)\
+$os\
+[](fg:status_bg)\
 $character"""
+
+[directory]
+style = "bg:dir_bg fg:white bold"
+format = "[  $path ]($style)"
+truncation_length = 3
+fish_style_pwd_dir_length = 1
 
 [os]
 disabled = false
 style = "bg:status_bg fg:white"
-format = "[$symbol]($style)"
-
-[directory]
-style = "bg:status_bg fg:white"
-format = "[ $path ]($style)"
-truncation_length = 3
-fish_style_pwd_dir_length = 1
+format = "[ $symbol ]($style)"
 
 [python]
 symbol = "🐍 "
-style = "bg:python_bg fg:black"
+style = "bg:python_bg fg:black bold"
 format = '[ $symbol($version) ]($style)'
 
 [git_branch]
 symbol = " "
-style = "bg:git_bg fg:white"
+style = "bg:git_bg fg:white bold"
 format = '[ $symbol$branch ]($style)'
 
 [git_status]
@@ -40,18 +39,12 @@ style = "bg:git_bg fg:white"
 format = '([\[$all_status$ahead_behind\]]($style))'
 
 [character]
-success_symbol = "[ ❯](bold green)"
-error_symbol = "[ ❯](bold red)"
+success_symbol = "[ ❯](bold #89b4fa)"
+error_symbol = "[ ❯](bold #f38ba8)"
 
-# --- PALETA DE COLORES P10K (Azul SRE / Amarillo Python / Gris Git) ---
-[palettes.p10k_style]
-status_bg = '#005fdf'    # Azul vibrante (SRE/Linux)
-python_bg = '#ffd700'    # Amarillo oro (Python)
-git_bg = '#444444'       # Gris carbón (Git)
-
-[username]
-style_user = "white bold"
-style_root = "black bold"
-format = "[$user]($style) "
-disabled = false
-show_always = true
+# --- PALETA CYBERPUNK SRE (Contraste Máximo) ---
+[palettes.cyberpunk_sre]
+dir_bg = '#89b4fa'     # Azul zafiro brillante (Directorio)
+python_bg = '#fab387'  # Naranja melocotón (Python)
+git_bg = '#45475a'     # Gris superficie (Git)
+status_bg = '#313244'  # Gris oscuro (OS/Info)
