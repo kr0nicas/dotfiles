@@ -50,7 +50,7 @@ alias la='eza -lah --icons --git --group-directories-first'
 # Extra: Ver carpetas como un árbol (reemplaza al comando 'tree')
 alias lt='eza --tree --level=2 --icons'
 
-alias dots='cd ~/dotfiles && git add . && git commit -m "Update config $(date +%Y-%m-%d)" && git push && cd -'
+alias dots='cd ~/dotfiles && git add . && git commit -m "Update config $(date +%Y-%m-%d)" && git push origin main && cd -'
 
 # Atajos para Python (indispensables)
 alias py='python3'
