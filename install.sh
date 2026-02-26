@@ -1,51 +1,85 @@
 #!/bin/bash
 
-# Colores para la terminal
+# ==============================================================================
+# INSTALLER SRE 2026 - MULTI-PLATFORM (BASH)
+# ==============================================================================
+
 set -e # Salir si algo falla
+
+# Definición de colores para la salida
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-NC='\033[0m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 Iniciando instalación de entorno SRE 2026...${NC}"
 
-# 1. Detectar Sistema Operativo
+# 1. Validar que se use Bash
+if [ -z "$BASH_VERSION" ]; then
+    echo -e "${RED}❌ Error: Este script requiere bash. Usa: bash install.sh${NC}"
+    exit 1
+fi
+
+# 2. Detección de Sistema Operativo
 OS_TYPE="$(uname)"
 
-if [ "$OS_TYPE" == "Darwin" ]; then
-    echo -e "${BLUE}🍎 Detectado macOS. Usando Homebrew...${NC}"
+if [ "$OS_TYPE" = "Darwin" ]; then
+    echo -e "${BLUE}🍎 Detectado macOS. Verificando Homebrew...${NC}"
     if ! command -v brew &> /dev/null; then
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
     PACKAGE_MANAGER="brew install"
-elif [ -f /etc/debian_version ]; then
-    echo -e "${BLUE}🐧 Detectado Debian/Ubuntu. Usando APT...${NC}"
+else
+    echo -e "${BLUE}🐧 Detectado Linux. Actualizando APT...${NC}"
     sudo apt update
     PACKAGE_MANAGER="sudo apt install -y"
 fi
 
-# 2. Lista de herramientas esenciales
+# 3. Lista de herramientas esenciales
 TOOLS=(zsh starship zoxide eza bat fzf fd-find git curl)
 
-echo -e "${BLUE}📦 Instalando herramientas: ${TOOLS[*]}...${NC}"
+echo -e "${BLUE}📦 Instalando herramientas...${NC}"
 for tool in "${TOOLS[@]}"; do
-    if ! command -v "$tool" &> /dev/null && ! command -v "${tool/cat/}" &> /dev/null; then
-        $PACKAGE_MANAGER "$tool"
+    actual_tool=$tool
+    # Ajuste para bat en Ubuntu
+    if [ "$tool" = "bat" ] && [ "$OS_TYPE" = "Linux" ]; then 
+        actual_tool="batcat"
+    fi
+    
+    if ! command -v "$actual_tool" &> /dev/null; then
+        echo -e "Instalando $actual_tool..."
+        $PACKAGE_MANAGER "$actual_tool" || echo -e "${RED}⚠️ No se pudo instalar $actual_tool${NC}"
     else
-        echo -e "${GREEN}✔ $tool ya está instalado.${NC}"
+        echo -e "${GREEN}✔ $actual_tool ya está instalado.${NC}"
     fi
 done
 
-# 3. Crear Enlaces Simbólicos (Symlinks)
-echo -e "${BLUE}🔗 Enlazando archivos de configuración...${NC}"
-mkdir -p ~/.config/starship
-ln -sf ~/dotfiles/.zshrc ~/.zshrc
-ln -sf ~/dotfiles/config/starship/starship.toml ~/.config/starship.toml
-ln -sf ~/dotfiles/.gitconfig ~/.gitconfig
+# 4. Configuración de Enlaces Simbólicos (Symlinks)
+echo -e "${BLUE}🔗 Enlazando configuraciones...${NC}"
 
-# 4. Configuración especial para FZF (solo si no existe)
-if [ ! -d ~/.fzf ]; then
-    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-    ~/.fzf/install --all
+# Reparar .zshrc
+if [ -L "$HOME/.zshrc" ] || [ -f "$HOME/.zshrc" ]; then
+    rm -f "$HOME/.zshrc"
 fi
 
-echo -e "${GREEN}✨ ¡Entorno configurado con éxito! Reinicia tu terminal.${NC}"
+ln -sf "$HOME/dotfiles/.zshrc" "$HOME/.zshrc"
+echo -e "${GREEN}✔ ~/.zshrc -> ~/dotfiles/.zshrc${NC}"
+
+# Configuración de Starship
+mkdir -p "$HOME/.config"
+if [ -f "$HOME/dotfiles/starship.toml" ]; then
+    ln -sf "$HOME/dotfiles/starship.toml" "$HOME/.config/starship.toml"
+fi
+
+# 5. Instalación de FZF desde fuente (Evita errores de versión)
+if [ ! -d "$HOME/.fzf" ]; then
+    echo -e "${BLUE}📥 Clonando FZF...${NC}"
+    git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
+    "$HOME/.fzf/install" --all --no-bash --no-fish
+else
+    echo -e "${GREEN}✔ FZF ya está en ~/.fzf. Actualizando...${NC}"
+    (cd "$HOME/.fzf" && ./install --all --no-bash --no-fish > /dev/null)
+fi
+
+echo -e "${GREEN}✨ ¡Instalación completada!${NC}"
+echo -e "${BLUE}Ejecuta: source ~/.zshrc${NC}"
