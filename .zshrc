@@ -1,15 +1,22 @@
 # ------------------------------------------------------------------------------
-# 1. OPTIMIZACIÓN DE ARRANQUE (INSTANT PROMPT)
+# 1. COLORES Y ESTÉTICA (FIX PRIORITARIO PARA MAC OS)
+# ------------------------------------------------------------------------------
+# Forzamos el soporte de 256 colores y True Color antes de cualquier otra cosa
+export TERM="xterm-256color"
+export COLORTERM="truecolor"
+export CLICOLOR=1
+
+# ------------------------------------------------------------------------------
+# 2. OPTIMIZACIÓN DE ARRANQUE (INSTANT PROMPT)
 # ------------------------------------------------------------------------------
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 # ------------------------------------------------------------------------------
-# 2. PATHS Y ENTORNO UNIVERSAL (SRE 2026)
+# 3. PATHS Y ENTORNO UNIVERSAL (SRE 2026)
 # ------------------------------------------------------------------------------
 typeset -gU path
-# Priorizamos binarios de fzf y locales para evitar el error "unknown option --zsh"
 path=(
     $HOME/.fzf/bin
     $HOME/.local/bin
@@ -18,7 +25,6 @@ path=(
 )
 export PATH
 
-# Configuración específica para macOS (Jorge Ochoa)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     export CLOUDSDK_PYTHON="python3"
     export NVM_DIR="$HOME/.nvm"
@@ -35,18 +41,23 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 # ------------------------------------------------------------------------------
-# 3. INICIALIZACIÓN DE HERRAMIENTAS
+# 4. INICIALIZACIÓN DE HERRAMIENTAS (STARSHIP FIX)
 # ------------------------------------------------------------------------------
-# Starship Prompt (Estética y contexto)
-command -v starship >/dev/null && eval "$(starship init zsh)"
+# Forzamos la ruta de configuración para que Starship no use la de por defecto
+export STARSHIP_CONFIG="$HOME/.config/starship.toml"
 
-# Zoxide (Smart CD con memoria)
-command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+if command -v starship >/dev/null; then
+    eval "$(starship init zsh)"
+fi
+
+# Zoxide
+if command -v zoxide >/dev/null; then
+    eval "$(zoxide init zsh)"
+fi
 
 # ------------------------------------------------------------------------------
-# 4. CARGA DIFERIDA (LAZY LOADING) - OPTIMIZACIÓN
+# 5. CARGA DIFERIDA (LAZY LOADING) - OPTIMIZACIÓN
 # ------------------------------------------------------------------------------
-# Google Cloud SDK (Para servicios de partnertech)
 gcloud() {
     unset -f gcloud gsutil bq
     local GCLOUD_PATH_MAC="/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"
@@ -55,7 +66,6 @@ gcloud() {
     gcloud "$@"
 }
 
-# NVM (Node Version Manager)
 nvm() {
     unset -f nvm node npm npx
     [ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh"
@@ -66,29 +76,43 @@ node() { nvm >/dev/null; node "$@" }
 npm() { nvm >/dev/null; npm "$@" }
 
 # ------------------------------------------------------------------------------
-# 5. ALIASES Y PLUGINS
+# 6. ALIASES Y PLUGINS (RESCATE DE COLORES)
 # ------------------------------------------------------------------------------
-# Carga SEGURA de FZF: Evita el error "unknown option --zsh"
+PLUGIN_UBUNTU="/usr/share"
+PLUGIN_MAC="/opt/homebrew/share"
+
+# Syntax Highlighting
+if [ -f "$PLUGIN_UBUNTU/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+    source "$PLUGIN_UBUNTU/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+elif [ -f "$PLUGIN_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+    source "$PLUGIN_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
+
+# Autosuggestions
+if [ -f "$PLUGIN_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+    source "$PLUGIN_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh"
+elif [ -f "$PLUGIN_MAC/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+    source "$PLUGIN_MAC/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
+
+# Carga SEGURA de FZF
 if [[ -x "$HOME/.fzf/bin/fzf" ]]; then
-    # Si tenemos el binario moderno en .fzf, lo usamos para la carga
     [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
 elif command -v fzf >/dev/null; then
-    # Si usamos el del sistema, verificamos si soporta el flag moderno
     if fzf --help | grep -q "\-\-zsh"; then
         eval "$(fzf --zsh)"
     else
-        # Carga tradicional para versiones antiguas (v0.24 o menores)
         [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
     fi
 fi
 
-# Navegación con Eza (LS moderno)
+# Navegación con Eza
 if command -v eza >/dev/null; then
     alias ls='eza --icons --group-directories-first'
     alias ll='eza -lh --icons --git'
     alias la='eza -lah --icons'
 else
-    alias ll='ls -lAh'
+    alias ll='ls -lAh --color=auto'
 fi
 
 # Visualización con Bat
@@ -107,16 +131,16 @@ alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots" && git pus
 alias s='grep -iE "^host " ~/.ssh/config | awk "{print \$2}" | fzf --reverse | xargs -o ssh'
 
 # ------------------------------------------------------------------------------
-# 6. SRE FIXES Y ESTABILIDAD
+# 7. SRE FIXES Y ESTABILIDAD
 # ------------------------------------------------------------------------------
-export TMOUT=0              # Evitar desconexión por inactividad
+export TMOUT=0
 HISTSIZE=10000
 SAVEHIST=10000
 
-setopt AUTO_CD              # cd automático al escribir una ruta
-setopt SHARE_HISTORY        # Compartir historial entre terminales
-setopt INC_APPEND_HISTORY   # Guardar historial al instante
-setopt NO_HUP               # Mantener procesos al cerrar sesión
+setopt AUTO_CD
+setopt SHARE_HISTORY
+setopt INC_APPEND_HISTORY
+setopt NO_HUP
 
 # Entorno de Edwin / Partnertech
 [[ -s "$HOME/.autoenv/activate.sh" ]] && source "$HOME/.autoenv/activate.sh"
