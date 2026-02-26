@@ -35,22 +35,30 @@ else
     PACKAGE_MANAGER="sudo apt install -y"
 fi
 
-# 3. Lista de herramientas esenciales
-TOOLS=(zsh starship zoxide eza bat fzf fd-find git curl)
+# 3. Lista de herramientas esenciales (usamos nombres base)
+TOOLS=(zsh starship zoxide eza bat fzf fd git curl)
 
 echo -e "${BLUE}📦 Instalando herramientas...${NC}"
 for tool in "${TOOLS[@]}"; do
-    actual_tool=$tool
-    # Ajuste para bat en Ubuntu
-    if [ "$tool" = "bat" ] && [ "$OS_TYPE" = "Linux" ]; then 
-        actual_tool="batcat"
+    install_name=$tool
+    check_name=$tool
+
+    # Ajustes específicos para Linux (Ubuntu/Debian)
+    if [ "$OS_TYPE" = "Linux" ]; then
+        if [ "$tool" = "bat" ]; then
+            install_name="batcat"; check_name="batcat"
+        elif [ "$tool" = "fd" ]; then
+            install_name="fd-find"; check_name="fdfind"
+        fi
     fi
     
-    if ! command -v "$actual_tool" &> /dev/null; then
-        echo -e "Instalando $actual_tool..."
-        $PACKAGE_MANAGER "$actual_tool" || echo -e "${RED}⚠️ No se pudo instalar $actual_tool${NC}"
+    # En macOS 'fd' y 'bat' se llaman igual que el paquete
+    
+    if ! command -v "$check_name" &> /dev/null; then
+        echo -e "Instalando $install_name..."
+        $PACKAGE_MANAGER "$install_name" || echo -e "${RED}⚠️ No se pudo instalar $install_name${NC}"
     else
-        echo -e "${GREEN}✔ $actual_tool ya está instalado.${NC}"
+        echo -e "${GREEN}✔ $check_name ya está instalado.${NC}"
     fi
 done
 
