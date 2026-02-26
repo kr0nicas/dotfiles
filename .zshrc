@@ -7,14 +7,42 @@ export COLORTERM="truecolor"
 export CLICOLOR=1
 
 # ------------------------------------------------------------------------------
-# 2. OPTIMIZACIÓN DE ARRANQUE (INSTANT PROMPT)
+# 2. DETECCIÓN DE ICONO SEGÚN SISTEMA (NUEVO)
+# ------------------------------------------------------------------------------
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export OS_ICON="🍎"
+    export OS_NAME="Mac OS"
+elif [[ -f /etc/os-release ]]; then
+    # Extraemos el ID de la distribución en Linux
+    os_id=$(grep -i '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
+    case "$os_id" in
+        ubuntu)
+            export OS_ICON="" # Icono de Ubuntu (requiere Nerd Font)
+            export OS_NAME="Ubuntu"
+            ;;
+        debian)
+            export OS_ICON="" # Icono de Debian (requiere Nerd Font)
+            export OS_NAME="Debian"
+            ;;
+        *)
+            export OS_ICON="🐧"
+            export OS_NAME="Linux"
+            ;;
+    esac
+else
+    export OS_ICON="💻"
+    export OS_NAME="Terminal"
+fi
+
+# ------------------------------------------------------------------------------
+# 3. OPTIMIZACIÓN DE ARRANQUE (INSTANT PROMPT)
 # ------------------------------------------------------------------------------
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 # ------------------------------------------------------------------------------
-# 3. PATHS Y ENTORNO UNIVERSAL (SRE 2026)
+# 4. PATHS Y ENTORNO UNIVERSAL (SRE 2026)
 # ------------------------------------------------------------------------------
 typeset -gU path
 path=(
@@ -41,7 +69,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 # ------------------------------------------------------------------------------
-# 4. INICIALIZACIÓN DE HERRAMIENTAS (STARSHIP FIX)
+# 5. INICIALIZACIÓN DE HERRAMIENTAS (STARSHIP FIX)
 # ------------------------------------------------------------------------------
 # Forzamos la ruta de configuración para que Starship no use la de por defecto
 export STARSHIP_CONFIG="$HOME/.config/starship.toml"
@@ -56,7 +84,7 @@ if command -v zoxide >/dev/null; then
 fi
 
 # ------------------------------------------------------------------------------
-# 5. CARGA DIFERIDA (LAZY LOADING) - OPTIMIZACIÓN
+# 6. CARGA DIFERIDA (LAZY LOADING) - OPTIMIZACIÓN
 # ------------------------------------------------------------------------------
 gcloud() {
     unset -f gcloud gsutil bq
@@ -76,7 +104,7 @@ node() { nvm >/dev/null; node "$@" }
 npm() { nvm >/dev/null; npm "$@" }
 
 # ------------------------------------------------------------------------------
-# 6. ALIASES Y PLUGINS (RESCATE DE COLORES)
+# 7. ALIASES Y PLUGINS (RESCATE DE COLORES)
 # ------------------------------------------------------------------------------
 PLUGIN_UBUNTU="/usr/share"
 PLUGIN_MAC="/opt/homebrew/share"
@@ -131,7 +159,7 @@ alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots" && git pus
 alias s='grep -iE "^host " ~/.ssh/config | awk "{print \$2}" | fzf --reverse | xargs -o ssh'
 
 # ------------------------------------------------------------------------------
-# 7. SRE FIXES Y ESTABILIDAD
+# 8. SRE FIXES Y ESTABILIDAD
 # ------------------------------------------------------------------------------
 export TMOUT=0
 HISTSIZE=10000
@@ -144,3 +172,6 @@ setopt NO_HUP
 
 # Entorno de Edwin / Partnertech
 [[ -s "$HOME/.autoenv/activate.sh" ]] && source "$HOME/.autoenv/activate.sh"
+
+# Mensaje de bienvenida con el icono detectado
+echo -e "Estás en: ${OS_ICON}  ${OS_NAME}"
