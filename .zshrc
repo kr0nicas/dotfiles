@@ -1,88 +1,173 @@
-export PATH="$HOME/.local/bin:$PATH"
-# Colorear el comando 'ls' (eza) con la misma paleta
-export EZA_COLORS="di=38;5;111:ln=38;5;115:so=38;5;109:pi=38;5;108:ex=38;5;121:bd=38;5;231:cd=38;5;231:su=0:sg=0:tw=0:ow=0"
-
-# Añadir a tu .zshrc para que FZF sea un rayo
-export FZF_DEFAULT_COMMAND='fdfind --type f --strip-cwd-prefix --exclude .git'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-
-# --- Detectar Sistema Operativo ---
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # Configuración específica para macOS (MacBook)
-    alias brew-up='brew update && brew upgrade'
-    # El path de Homebrew suele ser diferente en Apple Silicon
-    export PATH="/opt/homebrew/bin:$PATH"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Configuración específica para Linux (VPS)
-    alias apt-up='sudo apt update && sudo apt upgrade -y'
-fi
-
-# ZSH Instant Prompt (evita el lag visual al abrir pestañas)
+# ------------------------------------------------------------------------------
+# 1. OPTIMIZACIÓN DE ARRANQUE (INSTANT PROMPT)
+# ------------------------------------------------------------------------------
+# Nota: Powerlevel10k usaba esto, Starship es rápido por defecto, 
+# pero mantenemos la lógica de cache para plugins pesados.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# --- 1. PLUGINS DE SISTEMA ---
-source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# ------------------------------------------------------------------------------
+# 2. DETECCIÓN DE ENTORNO & PATHS
+# ------------------------------------------------------------------------------
+typeset -gU path # Evita duplicados en el PATH
 
-# --- 2. INICIALIZACIÓN DE HERRAMIENTAS ---
+# Configuraciones específicas para macOS (Jorge Ochoa)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export CLOUDSDK_PYTHON="python3"
+    export NVM_DIR="$HOME/.nvm"
+    export ANDROID_HOME=$HOME/Library/Android/sdk
+    export GOPATH=$HOME/go
+    
+    # Paths específicos de tu Mac
+    path=(
+        $path
+        $HOME/.krew/bin
+        /usr/local/opt/openvpn/sbin
+        /usr/local/opt/ruby/bin
+        /usr/local/opt/mongodb-community/bin
+        $HOME/.poetry/bin
+        $HOME/.jenv/bin
+        $ANDROID_HOME/cmdline-tools/latest/bin
+        $ANDROID_HOME/platform-tools
+        $GOPATH/bin
+        $HOME/.opencode/bin
+        /opt/homebrew/bin # Soporte para Apple Silicon
+    )
+    
+    # Path para opencode
+    export PATH="/Users/jorgeochoa/.opencode/bin:$PATH"
+fi
+
+# Path general para herramientas locales
+export PATH="$HOME/.local/bin:$PATH"
+
+# ------------------------------------------------------------------------------
+# 3. INICIALIZACIÓN DE HERRAMIENTAS MODERNAS
+# ------------------------------------------------------------------------------
+# Starship: El prompt ultra rápido
 eval "$(starship init zsh)"
-eval "$(zoxide init zsh)"
 
-# --- 3. ALIASES DE PRODUCTIVIDAD (PYTHON & SISTEMA) ---
+# Zoxide: El reemplazo inteligente de 'cd'
+if command -v zoxide > /dev/null; then
+    eval "$(zoxide init zsh)"
+fi
 
+# ------------------------------------------------------------------------------
+# 4. CARGA DIFERIDA (LAZY LOADING) - OPTIMIZACIÓN DE VELOCIDAD
+# ------------------------------------------------------------------------------
+# Estas funciones evitan que la terminal tarde en abrir cargando SDKs pesados.
 
-# Buscar y cambiar de rama de git interactivamente
+# Google Cloud SDK
+gcloud() {
+    unset -f gcloud gsutil bq
+    local GCLOUD_PATH="$HOME/google-cloud-sdk"
+    [ -f "$GCLOUD_PATH/path.zsh.inc" ] && . "$GCLOUD_PATH/path.zsh.inc"
+    [ -f "$GCLOUD_PATH/completion.zsh.inc" ] && . "$GCLOUD_PATH/completion.zsh.inc"
+    gcloud "$@"
+}
+gsutil() { gcloud "$@"; gsutil "$@" }
+bq() { gcloud "$@"; bq "$@" }
+
+# JEnv (Java Version Manager)
+jenv() {
+    unset -f jenv
+    if command -v jenv > /dev/null; then
+        eval "$(jenv init -)"
+        jenv "$@"
+    fi
+}
+
+# NVM (Node Version Manager)
+nvm() {
+    unset -f nvm node npm npx
+    [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # Linux fallback
+    nvm "$@"
+}
+node() { nvm >/dev/null; node "$@" }
+npm() { nvm >/dev/null; npm "$@" }
+npx() { nvm >/dev/null; npx "$@" }
+
+# ------------------------------------------------------------------------------
+# 5. PLUGINS & COMPLETIONS
+# ------------------------------------------------------------------------------
+# Intentar cargar plugins desde rutas estándar de Ubuntu o Homebrew
+PLUGIN_DIR_UBUNTU="/usr/share"
+PLUGIN_DIR_MAC="/opt/homebrew/share"
+
+# Autosuggestions
+if [ -f "$PLUGIN_DIR_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+    source "$PLUGIN_DIR_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh"
+elif [ -f "$PLUGIN_DIR_MAC/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+    source "$PLUGIN_DIR_MAC/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
+
+# Syntax Highlighting
+if [ -f "$PLUGIN_DIR_UBUNTU/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+    source "$PLUGIN_DIR_UBUNTU/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+elif [ -f "$PLUGIN_DIR_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+    source "$PLUGIN_DIR_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
+
+# Inicializar sistema de completado
+autoload -Uz compinit && compinit -C
+autoload -Uz bashcompinit && bashcompinit
+
+# Terraform completion
+if command -v terraform > /dev/null; then
+    complete -o nospace -C $(which terraform) terraform
+fi
+
+# FZF Integration
+[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+
+# ------------------------------------------------------------------------------
+# 6. ALIASES (FUSIÓN MAESTRA)
+# ------------------------------------------------------------------------------
+# Navegación con Eza (si está instalado)
+if command -v eza > /dev/null; then
+    alias ls='eza --icons --group-directories-first'
+    alias ll='eza -lh --icons --git'
+    alias la='eza -lah --icons'
+    alias lt='eza --tree --level=2 --icons'
+else
+    alias ll="ls -lAh"
+fi
+
+# Visualización con Bat
+if command -v batcat > /dev/null; then
+    alias cat='batcat --paging=never'
+    alias bat='batcat'
+elif command -v bat > /dev/null; then
+    alias cat='bat --paging=never'
+fi
+
+# Git (Tus favoritos + nuevos)
+alias gs="git status -sb"
+alias ga="git add ."
+alias gp="git push"
+alias gpl="git pull"
+alias gl="git log --oneline --graph --all"
 alias gcb='git branch -a | fzf | xargs git checkout'
 
-# El reemplazo básico (con iconos y carpetas primero)
-alias ls='eza --icons --group-directories-first'
-
-# El "Listado Largo" (reemplaza a 'ls -lh')
-# Muestra tamaño de archivos, permisos y cabeceras
-alias ll='eza -lh --icons --group-directories-first'
-
-# El "Listado Maestro" (reemplaza a 'ls -la')
-# Muestra archivos ocultos y detalles de Git (si estás en un repo)
-alias la='eza -lah --icons --git --group-directories-first'
-
-# Extra: Ver carpetas como un árbol (reemplaza al comando 'tree')
-alias lt='eza --tree --level=2 --icons'
-
-alias dots='cd ~/dotfiles && git add . && git commit -m "Update config $(date +%Y-%m-%d)" && git push --set-upstream origin main && cd -'
-
-# Atajos para Python (indispensables)
+# Python (Productividad)
 alias py='python3'
 alias venv='python3 -m venv venv'
 alias va='source venv/bin/activate'
-alias pipir='pip install -r requirements.txt'
 
-# Navegación y archivos con estilo (usando eza/bat si los instalaste)
-alias ls='eza --icons --group-directories-first'
-alias ll='eza -lh --icons --git'
-alias cat='batcat --paging=never'
+# Sincronización de Dotfiles
+alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots: $(date)" && git push && cd -'
 
-# Docker (que mencionaste en tu stack)
-alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
-alias dcu='docker-compose up -d'
-alias dcd='docker-compose down'
+# ------------------------------------------------------------------------------
+# 7. CONFIGURACIÓN DE HISTORIAL & OPCIONES
+# ------------------------------------------------------------------------------
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
 
-# Alias universal (Ubuntu llama al binario batcat, Mac lo llama bat)
-if command -v batcat > /dev/null; then
-  alias cat='batcat --paging=never'
-  alias bat='batcat'
-elif command -v bat > /dev/null; then
-  alias cat='bat --paging=never'
-fi
+setopt NO_HUP AUTO_NAME_DIRS INC_APPEND_HISTORY SHARE_HISTORY
+setopt HIST_IGNORE_DUPS HIST_REDUCE_BLANKS HIST_FIND_NO_DUPS
 
-# Exportar tema por defecto
-export BAT_THEME="Dracula"
-# Buscar archivos y previsualizarlos con colores antes de abrirlos
-alias fp='fzf --preview "batcat --color=always --style=numbers --line-range=:500 {}"'
-# --- 4. CONFIGURACIÓN DE HISTORIAL ---
-HISTSIZE=5000
-SAVEHIST=5000
-setopt SHARE_HISTORY
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# Carga de entornos locales si existen
+[[ -s "$HOME/.autoenv/activate.sh" ]] && source "$HOME/.autoenv/activate.sh"
