@@ -1,4 +1,8 @@
-# Un formato limpio y profesional
+# --- CONFIGURACIÓN GLOBAL ---
+# Indicamos qué paleta usar de las definidas abajo
+palette = "mi_tema"
+
+# --- FORMATO DEL PROMPT ---
 format = """
 [░▒▓](status_bg)\
 $os\
@@ -25,15 +29,13 @@ symbol = "🐍 "
 style = "bg:python_bg fg:black"
 format = '[ $symbol ($version) (\($virtualenv\)) ]($style)'
 
-[palette]
-status_bg = '#3B4252'
-python_bg = '#FFE873'
-git_bg = '#4C566A'
-
+# --- DEFINICIÓN DE COLORES ---
+# Aquí es donde definimos los nombres que usamos arriba (status_bg, python_bg, etc.)
 [palettes.mi_tema]
 status_bg = '#3B4252'
 python_bg = '#FFE873'
 git_bg = '#4C566A'
-# 2. Le decimos a Starship que USE esa paleta
-palette = "mi_tema"
 
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
