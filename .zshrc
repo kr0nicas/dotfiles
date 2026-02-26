@@ -127,6 +127,14 @@ elif command -v bat > /dev/null; then
     alias cat='bat --paging=never'
 fi
 
+# Homebrew Management (Solo Mac)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    alias blist='cat ~/dotfiles/Brewfile' # Lista el contenido del archivo
+    alias bcheck='brew bundle list --file=~/dotfiles/Brewfile' # Lista lo que brew reconoce
+    alias bclean='brew bundle cleanup --file=~/dotfiles/Brewfile' # MUESTRA qué tienes instalado que NO está en el Brewfile
+    alias bdump='brew bundle dump --force --file=~/dotfiles/Brewfile' # Actualiza el Brewfile con lo que tienes ahora
+fi
+
 # Git Aliases
 alias gs="git status -sb"
 alias ga="git add ."
