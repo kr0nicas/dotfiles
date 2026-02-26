@@ -35,8 +35,8 @@ else
     PACKAGE_MANAGER="sudo apt install -y"
 fi
 
-# 3. Lista de herramientas esenciales (usamos nombres base)
-TOOLS=(zsh starship zoxide eza bat fzf fd git curl)
+# 3. Lista de herramientas esenciales (Incluyendo TMUX para sesiones SSH)
+TOOLS=(zsh starship zoxide eza bat fzf fd git curl tmux)
 
 echo -e "${BLUE}📦 Instalando herramientas...${NC}"
 for tool in "${TOOLS[@]}"; do
@@ -51,8 +51,6 @@ for tool in "${TOOLS[@]}"; do
             install_name="fd-find"; check_name="fdfind"
         fi
     fi
-    
-    # En macOS 'fd' y 'bat' se llaman igual que el paquete
     
     if ! command -v "$check_name" &> /dev/null; then
         echo -e "Instalando $install_name..."
