@@ -1,6 +1,11 @@
 export PATH="$HOME/.local/bin:$PATH"
 # Colorear el comando 'ls' (eza) con la misma paleta
 export EZA_COLORS="di=38;5;111:ln=38;5;115:so=38;5;109:pi=38;5;108:ex=38;5;121:bd=38;5;231:cd=38;5;231:su=0:sg=0:tw=0:ow=0"
+
+# Añadir a tu .zshrc para que FZF sea un rayo
+export FZF_DEFAULT_COMMAND='fdfind --type f --strip-cwd-prefix --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
 # --- Detectar Sistema Operativo ---
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # Configuración específica para macOS (MacBook)
@@ -10,6 +15,11 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # Configuración específica para Linux (VPS)
     alias apt-up='sudo apt update && sudo apt upgrade -y'
+fi
+
+# ZSH Instant Prompt (evita el lag visual al abrir pestañas)
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 # --- 1. PLUGINS DE SISTEMA ---
@@ -40,7 +50,7 @@ alias la='eza -lah --icons --git --group-directories-first'
 # Extra: Ver carpetas como un árbol (reemplaza al comando 'tree')
 alias lt='eza --tree --level=2 --icons'
 
-
+alias dots='cd ~/dotfiles && git add . && git commit -m "Update config $(date +%Y-%m-%d)" && git push && cd -'
 
 # Atajos para Python (indispensables)
 alias py='python3'
