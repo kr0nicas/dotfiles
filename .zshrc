@@ -57,6 +57,18 @@ alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
 alias dcu='docker-compose up -d'
 alias dcd='docker-compose down'
 
+# Alias universal (Ubuntu llama al binario batcat, Mac lo llama bat)
+if command -v batcat > /dev/null; then
+  alias cat='batcat --paging=never'
+  alias bat='batcat'
+elif command -v bat > /dev/null; then
+  alias cat='bat --paging=never'
+fi
+
+# Exportar tema por defecto
+export BAT_THEME="Dracula"
+# Buscar archivos y previsualizarlos con colores antes de abrirlos
+alias fp='fzf --preview "batcat --color=always --style=numbers --line-range=:500 {}"'
 # --- 4. CONFIGURACIÓN DE HISTORIAL ---
 HISTSIZE=5000
 SAVEHIST=5000
