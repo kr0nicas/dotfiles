@@ -1,16 +1,18 @@
 # ------------------------------------------------------------------------------
 # 1. OPTIMIZACIÓN DE ARRANQUE (INSTANT PROMPT)
 # ------------------------------------------------------------------------------
-# Nota: Powerlevel10k usaba esto, Starship es rápido por defecto, 
-# pero mantenemos la lógica de cache para plugins pesados.
+# Mantiene la carga visual instantánea mientras se procesan los plugins.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 # ------------------------------------------------------------------------------
-# 2. DETECCIÓN DE ENTORNO & PATHS
+# 2. DETECCIÓN DE ENTORNO & PATHS (ESTABILIDAD SRE)
 # ------------------------------------------------------------------------------
-typeset -gU path # Evita duplicados en el PATH
+typeset -gU path # Evita duplicados en el PATHå
+
+# Path general para herramientas locales (Prioridad para evitar cuelgues)
+export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
 # Configuraciones específicas para macOS (Jorge Ochoa)
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -19,7 +21,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export ANDROID_HOME=$HOME/Library/Android/sdk
     export GOPATH=$HOME/go
     
-    # Paths específicos de tu Mac
     path=(
         $path
         $HOME/.krew/bin
@@ -32,21 +33,19 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         $ANDROID_HOME/platform-tools
         $GOPATH/bin
         $HOME/.opencode/bin
-        /opt/homebrew/bin # Soporte para Apple Silicon
+        /opt/homebrew/bin # Soporte Apple Silicon
     )
-    
-    # Path para opencode
+    # Binarios de opencode específicos para Jorge
     export PATH="/Users/jorgeochoa/.opencode/bin:$PATH"
 fi
 
-# Path general para herramientas locales
-export PATH="$HOME/.local/bin:$PATH"
-
 # ------------------------------------------------------------------------------
-# 3. INICIALIZACIÓN DE HERRAMIENTAS MODERNAS
+# 3. INICIALIZACIÓN DE HERRAMIENTAS (RUST POWERED)
 # ------------------------------------------------------------------------------
-# Starship: El prompt ultra rápido
-eval "$(starship init zsh)"
+# Starship: El prompt ultra rápido (Estética excepcional)
+if command -v starship > /dev/null; then
+    eval "$(starship init zsh)"
+fi
 
 # Zoxide: El reemplazo inteligente de 'cd'
 if command -v zoxide > /dev/null; then
@@ -54,11 +53,9 @@ if command -v zoxide > /dev/null; then
 fi
 
 # ------------------------------------------------------------------------------
-# 4. CARGA DIFERIDA (LAZY LOADING) - OPTIMIZACIÓN DE VELOCIDAD
+# 4. CARGA DIFERIDA (LAZY LOADING) - VELOCIDAD MÁXIMA
 # ------------------------------------------------------------------------------
-# Estas funciones evitan que la terminal tarde en abrir cargando SDKs pesados.
-
-# Google Cloud SDK
+# Google Cloud SDK (Optimizado para partnertech)
 gcloud() {
     unset -f gcloud gsutil bq
     local GCLOUD_PATH="$HOME/google-cloud-sdk"
@@ -69,20 +66,11 @@ gcloud() {
 gsutil() { gcloud "$@"; gsutil "$@" }
 bq() { gcloud "$@"; bq "$@" }
 
-# JEnv (Java Version Manager)
-jenv() {
-    unset -f jenv
-    if command -v jenv > /dev/null; then
-        eval "$(jenv init -)"
-        jenv "$@"
-    fi
-}
-
 # NVM (Node Version Manager)
 nvm() {
     unset -f nvm node npm npx
     [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"
-    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # Linux fallback
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
     nvm "$@"
 }
 node() { nvm >/dev/null; node "$@" }
@@ -92,11 +80,13 @@ npx() { nvm >/dev/null; npx "$@" }
 # ------------------------------------------------------------------------------
 # 5. PLUGINS & COMPLETIONS
 # ------------------------------------------------------------------------------
-# Intentar cargar plugins desde rutas estándar de Ubuntu o Homebrew
 PLUGIN_DIR_UBUNTU="/usr/share"
 PLUGIN_DIR_MAC="/opt/homebrew/share"
 
-# Autosuggestions
+# Autosuggestions (Optimizado para evitar lag en VPS)
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+
 if [ -f "$PLUGIN_DIR_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
     source "$PLUGIN_DIR_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh"
 elif [ -f "$PLUGIN_DIR_MAC/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
@@ -110,22 +100,16 @@ elif [ -f "$PLUGIN_DIR_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" 
     source "$PLUGIN_DIR_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 fi
 
-# Inicializar sistema de completado
 autoload -Uz compinit && compinit -C
 autoload -Uz bashcompinit && bashcompinit
 
-# Terraform completion
-if command -v terraform > /dev/null; then
-    complete -o nospace -C $(which terraform) terraform
-fi
-
-# FZF Integration
+# Integración FZF (Historial y archivos)
 [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
 
 # ------------------------------------------------------------------------------
-# 6. ALIASES (FUSIÓN MAESTRA)
+# 6. ALIASES (PRODUCTIVIDAD SRE)
 # ------------------------------------------------------------------------------
-# Navegación con Eza (si está instalado)
+# Navegación con Eza
 if command -v eza > /dev/null; then
     alias ls='eza --icons --group-directories-first'
     alias ll='eza -lh --icons --git'
@@ -143,7 +127,7 @@ elif command -v bat > /dev/null; then
     alias cat='bat --paging=never'
 fi
 
-# Git (Tus favoritos + nuevos)
+# Git Aliases (Flujo Edwin/Partnertech)
 alias gs="git status -sb"
 alias ga="git add ."
 alias gp="git push"
@@ -151,23 +135,27 @@ alias gpl="git pull"
 alias gl="git log --oneline --graph --all"
 alias gcb='git branch -a | fzf | xargs git checkout'
 
-# Python (Productividad)
+# Python & Infra
 alias py='python3'
 alias venv='python3 -m venv venv'
 alias va='source venv/bin/activate'
 
-# Sincronización de Dotfiles
-alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots: $(date)" && git push && cd -'
+# Sincronización Maestra de Dotfiles
+alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots: $(date +%Y-%m-%d)" && git push && cd -'
 
 # ------------------------------------------------------------------------------
-# 7. CONFIGURACIÓN DE HISTORIAL & OPCIONES
+# 7. CONFIGURACIÓN DE HISTORIAL & ESTABILIDAD
 # ------------------------------------------------------------------------------
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 
-setopt NO_HUP AUTO_NAME_DIRS INC_APPEND_HISTORY SHARE_HISTORY
-setopt HIST_IGNORE_DUPS HIST_REDUCE_BLANKS HIST_FIND_NO_DUPS
+# Fix para evitar desconexiones de VPS y errores de permisos
+export TMOUT=0              # Sin timeout por inactividad
+setopt AUTO_CD              # Entrar a carpetas sin escribir 'cd'
+setopt NO_HUP               # No cerrar procesos al desconectar la sesión
+setopt INC_APPEND_HISTORY   # Escribir historial al instante
+setopt SHARE_HISTORY        # Compartir historial entre pestañas
 
-# Carga de entornos locales si existen
+# Carga de entornos específicos (Partnertech Services)
 [[ -s "$HOME/.autoenv/activate.sh" ]] && source "$HOME/.autoenv/activate.sh"
