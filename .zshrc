@@ -125,7 +125,6 @@ alias gateway-log='sl openclaw-gateway -f'
 alias claw-restart='sc restart openclaw openclaw-gateway'
 
 # Auditoría de Root
-# Lista procesos corriendo como root ignorando hilos del kernel
 alias check-root='ps -U root -u root u | grep -v "\["'
 
 # Privilegios Elevados
