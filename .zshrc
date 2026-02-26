@@ -21,6 +21,10 @@ eval "$(zoxide init zsh)"
 
 # --- 3. ALIASES DE PRODUCTIVIDAD (PYTHON & SISTEMA) ---
 
+
+# Buscar y cambiar de rama de git interactivamente
+alias gcb='git branch -a | fzf | xargs git checkout'
+
 # El reemplazo básico (con iconos y carpetas primero)
 alias ls='eza --icons --group-directories-first'
 
