@@ -34,8 +34,24 @@ esac
 # 2. Instalación de Herramientas Base
 if [ "$OS_TYPE" = "darwin" ]; then
     echo -e "${BLUE}🍎 Sistema detectado: macOS ($ARCH)${NC}"
+    
+    # Validación de Licencia de Xcode (SRE Check)
+    if command -v xcodebuild >/dev/null; then
+        if ! xcodebuild -license check &>/dev/null; then
+            echo -e "${RED}⚠️ Error: No has aceptado la licencia de Xcode.${NC}"
+            echo -e "${YELLOW}Por favor, ejecuta: sudo xcodebuild -license accept${NC}"
+            echo -e "${YELLOW}Luego vuelve a ejecutar este instalador.${NC}"
+            exit 1
+        fi
+    fi
+
     if command -v brew >/dev/null; then
-        [ -f "$DOTFILES_DIR/Brewfile" ] && brew bundle --file="$DOTFILES_DIR/Brewfile" || true
+        if [ -f "$DOTFILES_DIR/Brewfile" ]; then
+            echo -e "📦 Procesando Brewfile..."
+            brew bundle --file="$DOTFILES_DIR/Brewfile" || true
+        fi
+    else
+        echo -e "${RED}⚠️ Homebrew no detectado. Instálalo primero en https://brew.sh${NC}"
     fi
 else
     echo -e "${BLUE}🐧 Sistema detectado: Linux ($ARCH)${NC}"
