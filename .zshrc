@@ -19,9 +19,25 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # ------------------------------------------------------------------------------
-# 2. CONFIGURACIÓN MAESTRA DE PATHS
+# 2. FIX DE AUTOCOMPLETADO (NESTING LEVEL ERROR)
 # ------------------------------------------------------------------------------
-typeset -gU path 
+# Este bloque elimina el error "nesting level too deep" al presionar Tab
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$HOME/.zcompcache"
+
+# Carga segura y silenciosa de compinit
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.m-1) ]]; then
+  compinit -C
+else
+  compinit -i
+fi
+
+# ------------------------------------------------------------------------------
+# 3. CONFIGURACIÓN MAESTRA DE PATHS
+# ------------------------------------------------------------------------------
+typeset -gU path
+export DOTFILES="$HOME/dotfiles"
 
 path=(
     $HOME/.local/bin
@@ -55,19 +71,18 @@ export EDITOR='vim'
 export VISUAL='vim'
 
 # ------------------------------------------------------------------------------
-# 3. INICIALIZACIÓN DE HERRAMIENTAS
+# 4. INICIALIZACIÓN DE HERRAMIENTAS
 # ------------------------------------------------------------------------------
 command -v starship > /dev/null && eval "$(starship init zsh)"
 command -v zoxide > /dev/null && eval "$(zoxide init zsh)"
 
 # ------------------------------------------------------------------------------
-# 4. CARGA DIFERIDA (LAZY LOADING)
+# 5. CARGA DIFERIDA (LAZY LOADING)
 # ------------------------------------------------------------------------------
 _load_gcloud_sdk() {
     unset -f gcloud gsutil bq 2>/dev/null
     local G_PATH="$HOME/google-cloud-sdk"
     [[ ! -d "$G_PATH" ]] && G_PATH="/usr/lib/google-cloud-sdk"
-    
     if [[ -f "$G_PATH/path.zsh.inc" ]]; then
         source "$G_PATH/path.zsh.inc"
         source "$G_PATH/completion.zsh.inc" 2>/dev/null
@@ -88,7 +103,7 @@ nvm() {
 }
 
 # ------------------------------------------------------------------------------
-# 5. PLUGINS & COMPLETIONS (COMPATIBILIDAD FZF)
+# 6. PLUGINS & COMPLETIONS (FZF 0.66.0)
 # ------------------------------------------------------------------------------
 if [[ $IS_MAC -eq 1 ]]; then
     P_DIR="/opt/homebrew/share"
@@ -99,24 +114,21 @@ fi
 [[ -f "$P_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] && source "$P_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 [[ -f "$P_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] && source "$P_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
-# Carga de fzf (Manejo ultra-seguro para versiones antiguas)
+# Carga de fzf (Manejo para v0.66.0)
 if [[ -f ~/.fzf.zsh ]]; then
     source ~/.fzf.zsh
 elif command -v fzf > /dev/null; then
-    # Solo intentamos ejecutar --zsh si el comando no devuelve error al preguntar por esa opción
-    if fzf --help 2>&1 | grep -q "\-\-zsh"; then
+    if fzf --help 2>/dev/null | grep -q "\-\-zsh"; then
         eval "$(fzf --zsh 2>/dev/null)"
     fi
 fi
 
 # ------------------------------------------------------------------------------
-# 6. ALIASES (PRODUCTIVIDAD JORGE OCHOA)
+# 7. ALIASES (PRODUCTIVIDAD JORGE OCHOA)
 # ------------------------------------------------------------------------------
-
-# Limpieza preventiva de alias que puedan chocar con funciones posteriores
 unalias dots 2>/dev/null
 
-# Desarrollo y Editores
+# Desarrollo
 alias python='python3'
 alias pip='pip3'
 alias g='go'
@@ -130,7 +142,7 @@ else
     alias ll="ls -lAh"
 fi
 
-# Gestión de OpenClaw y SRE (Ubuntu Server)
+# OpenClaw SRE
 if [[ $IS_MAC -eq 0 ]]; then
     alias sc='sudo systemctl'
     alias sl='sudo journalctl -u'
@@ -142,16 +154,14 @@ fi
 
 alias myip='curl -s https://ifconfig.me && echo'
 alias ports='[[ $IS_MAC -eq 1 ]] && sudo lsof -i -P -n | grep LISTEN || sudo ss -tulpn | grep LISTEN'
-
-# Diagnóstico de herramientas
-alias fzf-check='fzf --help 2>&1 | grep -q "\-\-zsh" && echo "✅ fzf soporta --zsh" || echo "⚠️ fzf es versión antigua (No soporta --zsh)"'
+alias fzf-check='fzf --version'
 
 # Seguridad
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
 
-# Git Avanzado
+# Git
 alias gs="git status -sb"
 alias gb="git branch -a | fzf --height 40% --reverse --info=inline | sed 's/.* //;s/remotes\/origin\///' | xargs git checkout"
 alias gpl="git pull --rebase"
@@ -161,23 +171,21 @@ alias s='grep -iE "^host " ~/.ssh/config | awk "{print \$2}" | fzf --reverse | x
 alias ezsh='vim ~/.zshrc && source ~/.zshrc'
 
 # ------------------------------------------------------------------------------
-# 7. FUNCIONES SRE (NORMALIZADAS)
+# 8. FUNCIONES SRE (NORMALIZADAS)
 # ------------------------------------------------------------------------------
-
-# Sincronización Segura de Dotfiles
 dots() {
     local c_dir=$(pwd)
     cd "$DOTFILES"
     echo "🔄 Sincronizando dotfiles en $OS_NAME..."
     git add .
-    git commit -m "SRE: Sync dotfiles ($OS_NAME) $(date)" || echo "Sin cambios pendientes."
+    git commit -m "SRE: Sync dotfiles ($OS_NAME) $(date)" || echo "Sin cambios."
     git pull --rebase origin main
     git push origin main
     cd "$c_dir"
 }
 
 # ------------------------------------------------------------------------------
-# 8. HISTORIAL & ENTORNO
+# 9. HISTORIAL & ENTORNO
 # ------------------------------------------------------------------------------
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
