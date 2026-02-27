@@ -29,7 +29,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export NVM_DIR="$HOME/.nvm"
     export ANDROID_HOME="$HOME/Library/Android/sdk"
     export GOPATH="$HOME/go"
-    
+
     path=(
         $path
         $HOME/.krew/bin
@@ -39,7 +39,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         $GOPATH/bin
         $HOME/.opencode/bin
     )
-    
+
     if [[ -f "/opt/homebrew/bin/brew" ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
@@ -116,7 +116,7 @@ ssht() { ssh -t "$1" "tmux attach || tmux new"; }
 
 # Gestión de Servicios (SRE Essentials)
 alias sc='sudo systemctl'
-alias sl='sudo journalctl -u' 
+alias sl='sudo journalctl -u'
 alias st='sudo systemctl status'
 
 # Alias específicos para OpenClaw (Partnertech)
@@ -140,6 +140,6 @@ alias dots='cd "$DOTFILES" && git add . && git commit -m "Update dots: $(date)" 
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
-setopt AUTO_CD NO_HUP INC_APPEND_HISTORY SHARE_HISTORY 
+setopt AUTO_CD NO_HUP INC_APPEND_HISTORY SHARE_HISTORY
 
 [[ -s "$HOME/.autoenv/activate.sh" ]] && source "$HOME/.autoenv/activate.sh"
