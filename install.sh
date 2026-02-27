@@ -103,11 +103,20 @@ safe_link() {
     fi
 }
 
-# Symlinks principales
+# Symlinks principales (ZSH & TMUX)
 [[ -f "$DOTFILES_DIR/.zshrc" ]] && safe_link "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc" || safe_link "$DOTFILES_DIR/zshrc" "$HOME/.zshrc"
 [[ -f "$DOTFILES_DIR/.tmux.conf" ]] && safe_link "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf" || safe_link "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
 
-# Symlink Starship (Validación robusta de ubicación)
+# Symlink Vim (Mejorado para buscar ambas variantes)
+if [ -f "$DOTFILES_DIR/.vimrc" ]; then
+    safe_link "$DOTFILES_DIR/.vimrc" "$HOME/.vimrc"
+elif [ -f "$DOTFILES_DIR/vimrc" ]; then
+    safe_link "$DOTFILES_DIR/vimrc" "$HOME/.vimrc"
+else
+    echo -e "${RED}❌ No se encontró vimrc en el repositorio.${NC}"
+fi
+
+# Symlink Starship
 mkdir -p "$HOME/.config"
 if [ -f "$DOTFILES_DIR/starship.toml" ]; then
     safe_link "$DOTFILES_DIR/starship.toml" "$HOME/.config/starship.toml"
@@ -120,3 +129,4 @@ fi
 # 6. Finalización
 echo -e "${GREEN}✨ ¡Entorno SRE normalizado!${NC}"
 echo -e "${YELLOW}👉 Ejecuta: source ~/.zshrc${NC}"
+
