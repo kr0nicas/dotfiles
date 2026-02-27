@@ -82,14 +82,24 @@ safe_link() {
         rm -f "$dest"
         ln -sf "$src" "$dest"
         echo -e "${GREEN}✅ Linked: $dest${NC}"
+    else
+        echo -e "${RED}⚠️ No se encontró la fuente: $src${NC}"
     fi
 }
 
+# Symlinks principales
 [[ -f "$DOTFILES_DIR/.zshrc" ]] && safe_link "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc" || safe_link "$DOTFILES_DIR/zshrc" "$HOME/.zshrc"
 [[ -f "$DOTFILES_DIR/.tmux.conf" ]] && safe_link "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf" || safe_link "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
 
+# Symlink Starship (Validación robusta de ubicación)
 mkdir -p "$HOME/.config"
-[[ -f "$DOTFILES_DIR/starship.toml" ]] && safe_link "$DOTFILES_DIR/starship.toml" "$HOME/.config/starship.toml"
+if [ -f "$DOTFILES_DIR/starship.toml" ]; then
+    safe_link "$DOTFILES_DIR/starship.toml" "$HOME/.config/starship.toml"
+elif [ -f "$DOTFILES_DIR/config/starship/starship.toml" ]; then
+    safe_link "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml"
+else
+    echo -e "${RED}❌ No se encontró starship.toml en el repositorio.${NC}"
+fi
 
 # 6. Finalización
 echo -e "${GREEN}✨ ¡Entorno SRE normalizado!${NC}"
