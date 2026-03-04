@@ -16,7 +16,7 @@ return {
     },
   },
 
-  -- LSP config
+  -- LSP config (nvim 0.11+ API — sin require('lspconfig')[server].setup())
   {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
@@ -26,26 +26,26 @@ return {
       "hrsh7th/cmp-nvim-lsp",
     },
     config = function()
-      local lspconfig = require("lspconfig")
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-      local servers = {
+      -- Aplicar capabilities a todos los servidores globalmente
+      vim.lsp.config("*", { capabilities = capabilities })
+
+      -- Configuración específica por servidor
+      vim.lsp.config("lua_ls", {
+        settings = {
+          Lua = {
+            workspace = { checkThirdParty = false },
+            telemetry = { enable = false },
+          },
+        },
+      })
+
+      -- Habilitar todos los servidores
+      vim.lsp.enable({
         "gopls", "pyright", "lua_ls", "yamlls", "jsonls",
         "bashls", "terraformls", "dockerls", "ts_ls", "ansiblels",
-      }
-
-      for _, server in ipairs(servers) do
-        local opts = { capabilities = capabilities }
-        if server == "lua_ls" then
-          opts.settings = {
-            Lua = {
-              workspace = { checkThirdParty = false },
-              telemetry = { enable = false },
-            },
-          }
-        end
-        lspconfig[server].setup(opts)
-      end
+      })
 
       -- Keymaps LSP (se activan al conectar un servidor)
       vim.api.nvim_create_autocmd("LspAttach", {
@@ -111,7 +111,7 @@ return {
     end,
   },
 
-  -- Formatters (reemplaza ALE fixers)
+  -- Formatters
   {
     "stevearc/conform.nvim",
     event = "BufWritePre",
@@ -127,7 +127,7 @@ return {
     },
   },
 
-  -- Linters (reemplaza ALE linters)
+  -- Linters
   {
     "mfussenegger/nvim-lint",
     event = { "BufReadPost", "BufWritePost" },

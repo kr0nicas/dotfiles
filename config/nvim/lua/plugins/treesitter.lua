@@ -12,6 +12,6 @@ return {
     indent = { enable = true },
   },
   config = function(_, opts)
-    require("nvim-treesitter.configs").setup(opts)
+    require("nvim-treesitter").setup(opts)
   end,
 }
