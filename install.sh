@@ -205,7 +205,32 @@ install_if_missing "zoxide"   "curl -sSfL https://raw.githubusercontent.com/ajee
 install_if_missing "uv"       "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 # ------------------------------------------------------------------------------
-# 7. SYMLINKS DE DOTFILES
+# 7. TMUX — TPM Y PLUGINS
+# ------------------------------------------------------------------------------
+section "Tmux Plugin Manager (TPM)"
+
+TPM_DIR="$HOME/.tmux/plugins/tpm"
+
+if [[ ! -d "$TPM_DIR" ]]; then
+    log "Instalando TPM..."
+    if [[ $DRY_RUN -eq 0 ]]; then
+        git clone https://github.com/tmux-plugins/tpm "$TPM_DIR" --depth=1
+        ok "TPM instalado en $TPM_DIR"
+    else
+        warn "DRY-RUN: TPM install omitido"
+    fi
+else
+    ok "TPM ya instalado en $TPM_DIR"
+    if [[ $DRY_RUN -eq 0 ]]; then
+        git -C "$TPM_DIR" pull --rebase --quiet && ok "TPM actualizado" || warn "TPM update falló, continúa..."
+    fi
+fi
+
+# Flag para instalar plugins después de que los symlinks estén en su lugar
+[[ -d "$TPM_DIR" && $DRY_RUN -eq 0 ]] && INSTALL_TMUX_PLUGINS=1 || INSTALL_TMUX_PLUGINS=0
+
+# ------------------------------------------------------------------------------
+# 8. SYMLINKS DE DOTFILES
 # ------------------------------------------------------------------------------
 section "Sincronizando Symlinks"
 
@@ -231,8 +256,20 @@ safe_link "$DOTFILES_DIR/tmux.conf"     "$HOME/.tmux.conf"
 safe_link "$DOTFILES_DIR/vimrc"         "$HOME/.vimrc"
 safe_link "$DOTFILES_DIR/starship.toml" "$HOME/.config/starship.toml"
 
+# Ahora que tmux.conf está linkeado, instalar plugins headless
+if [[ $INSTALL_TMUX_PLUGINS -eq 1 ]]; then
+    if command -v tmux >/dev/null 2>&1; then
+        log "Instalando plugins tmux en background..."
+        "$TPM_DIR/bin/install_plugins" 2>/dev/null \
+            && ok "Plugins tmux instalados (resurrect, continuum, yank, sensible)" \
+            || warn "Plugins no pudieron instalarse headless — abre tmux y ejecuta: Prefix + I"
+    else
+        warn "tmux no encontrado — plugins se instalarán al abrir tmux por primera vez (Prefix + I)"
+    fi
+fi
+
 # ------------------------------------------------------------------------------
-# 8. LIMPIEZA DE CACHÉ ZSH
+# 9. LIMPIEZA DE CACHÉ ZSH
 # ------------------------------------------------------------------------------
 section "Limpieza"
 
@@ -244,7 +281,7 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 9. RESUMEN FINAL
+# 10. RESUMEN FINAL
 # ------------------------------------------------------------------------------
 section "Resumen de instalación"
 
@@ -256,6 +293,10 @@ for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux vim; do
     status=$([[ "$path_t" != "—" ]] && echo "✅" || echo "❌")
     printf "  %-14s %-30s %s\n" "$t" "$path_t" "$status"
 done
+
+# Estado TPM
+tpm_status=$([[ -d "$HOME/.tmux/plugins/tpm" ]] && echo "✅" || echo "❌")
+printf "  %-14s %-30s %s\n" "tpm" "$HOME/.tmux/plugins/tpm" "$tpm_status"
 echo ""
 
 ok "¡Entorno SRE 2026 listo!"
