@@ -84,23 +84,22 @@ npx() { nvm >/dev/null; npx "$@" }
 # ------------------------------------------------------------------------------
 # 5. PLUGINS & COMPLETIONS
 # ------------------------------------------------------------------------------
-PLUGIN_DIR_UBUNTU="/usr/share"
-PLUGIN_DIR_MAC="/opt/homebrew/share"
-
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 
-if [ -f "$PLUGIN_DIR_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
-    source "$PLUGIN_DIR_UBUNTU/zsh-autosuggestions/zsh-autosuggestions.zsh"
-elif [ -f "$PLUGIN_DIR_MAC/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
-    source "$PLUGIN_DIR_MAC/zsh-autosuggestions/zsh-autosuggestions.zsh"
-fi
+# Busca plugins en todas las rutas posibles (Ubuntu, Mac Intel, Mac Apple Silicon)
+_source_plugin() {
+    local plugin=$1
+    for dir in /usr/share /usr/local/share /opt/homebrew/share; do
+        if [ -f "$dir/$plugin/$plugin.zsh" ]; then
+            source "$dir/$plugin/$plugin.zsh"
+            return
+        fi
+    done
+}
 
-if [ -f "$PLUGIN_DIR_UBUNTU/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
-    source "$PLUGIN_DIR_UBUNTU/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-elif [ -f "$PLUGIN_DIR_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
-    source "$PLUGIN_DIR_MAC/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-fi
+_source_plugin zsh-autosuggestions
+_source_plugin zsh-syntax-highlighting
 
 autoload -Uz compinit && compinit -C
 autoload -Uz bashcompinit && bashcompinit
@@ -145,6 +144,14 @@ alias py='python3'
 alias venv='python3 -m venv venv'
 alias va='source venv/bin/activate'
 alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots: $(date +%Y-%m-%d)" && git push && cd -'
+
+# SSH: lista hosts y conecta con fzf
+s() {
+    local host
+    host=$(grep '^Host ' ~/.ssh/config | grep -v '[*?]' | awk '{print $2}' \
+        | fzf --prompt="ssh > " --height=40%)
+    [[ -n "$host" ]] && ssh "$host"
+}
 
 if command -v nvim > /dev/null; then
     alias vim='nvim'

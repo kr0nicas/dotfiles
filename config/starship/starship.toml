@@ -131,8 +131,8 @@ format = "\\([$state( $progress_current/$progress_total)](bold red)\\) "
 format   = "[⎈ $context](bold #89dceb)[/$namespace](dimmed #6c7086) "
 disabled = false
 
-# Muestra solo cuando hay contexto activo
-[[kubernetes.context_aliases]]
+[kubernetes.context_aliases]
+# "gke_project_zone_cluster" = "short-name"
 
 # ------------------------------------------------------------------------------
 # GCLOUD
