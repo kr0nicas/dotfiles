@@ -329,9 +329,11 @@ if [[ $IS_MAC -eq 0 ]]; then
     if ! command -v kubectx >/dev/null 2>&1; then
         log "Instalando kubectx/kubens..."
         if [[ $DRY_RUN -eq 0 ]]; then
-            gh_latest_tar ahmetb/kubectx "kubectx_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubectx
-            gh_latest_tar ahmetb/kubectx "kubens_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubens
-            ok "kubectx/kubens instalados"
+            gh_latest_tar ahmetb/kubectx "kubectx_v.*_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubectx \
+                || warn "kubectx no pudo instalarse, continúa manualmente."
+            gh_latest_tar ahmetb/kubectx "kubens_v.*_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubens \
+                || warn "kubens no pudo instalarse, continúa manualmente."
+            command -v kubectx >/dev/null 2>&1 && ok "kubectx/kubens instalados"
         else
             warn "DRY-RUN: kubectx install omitido"
         fi
