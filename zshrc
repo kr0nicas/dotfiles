@@ -1,11 +1,4 @@
 # ------------------------------------------------------------------------------
-# 0. OPTIMIZACIÓN DE ARRANQUE (INSTANT PROMPT)
-# ------------------------------------------------------------------------------
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-# ------------------------------------------------------------------------------
 # 2. DETECCIÓN DE ENTORNO & PATHS (ESTABILIDAD SRE)
 # ------------------------------------------------------------------------------
 typeset -gU path 
