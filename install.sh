@@ -3,9 +3,10 @@
 # ==============================================================================
 # INSTALLER SRE 2026 - Jorge Ochoa (kr0nicas)
 # ==============================================================================
-# Automatiza el entorno para OpenClaw y SRE.
+# Automatiza el entorno para OpenClaw, SRE y desarrollo Node.js.
 # Basado en: https://junegunn.github.io/fzf/installation/
-# Versión: 0.66.0
+# Incluye: NVM v0.40.1 + Node.js LTS
+# Versión fzf: 0.66.0
 
 set -e
 
@@ -24,7 +25,6 @@ DOTFILES_DIR="$HOME/dotfiles"
 LOCAL_BIN="$HOME/.local/bin"
 mkdir -p "$LOCAL_BIN"
 
-# Mapeo de Arquitectura
 case "$ARCH_TYPE" in
     x86_64)  ARCH="amd64" ;;
     aarch64|arm64) ARCH="arm64" ;;
@@ -34,99 +34,61 @@ esac
 # 2. Instalación de Herramientas Base
 if [ "$OS_TYPE" = "darwin" ]; then
     echo -e "${BLUE}🍎 Sistema detectado: macOS ($ARCH)${NC}"
-    
-    # Validación de Licencia de Xcode (SRE Check)
-    if command -v xcodebuild >/dev/null; then
-        if ! xcodebuild -license check &>/dev/null; then
-            echo -e "${RED}⚠️ Error: No has aceptado la licencia de Xcode.${NC}"
-            echo -e "${YELLOW}Por favor, ejecuta: sudo xcodebuild -license accept${NC}"
-            echo -e "${YELLOW}Luego vuelve a ejecutar este instalador.${NC}"
-            exit 1
-        fi
+    if command -v xcodebuild >/dev/null && ! xcodebuild -license check &>/dev/null; then
+        echo -e "${RED}⚠️ Por favor, ejecuta: sudo xcodebuild -license accept${NC}"; exit 1
     fi
-
     if command -v brew >/dev/null; then
-        if [ -f "$DOTFILES_DIR/Brewfile" ]; then
-            echo -e "📦 Procesando Brewfile..."
-            brew bundle --file="$DOTFILES_DIR/Brewfile" || true
-        fi
-    else
-        echo -e "${RED}⚠️ Homebrew no detectado. Instálalo primero en https://brew.sh${NC}"
+        [ -f "$DOTFILES_DIR/Brewfile" ] && brew bundle --file="$DOTFILES_DIR/Brewfile" || true
     fi
 else
     echo -e "${BLUE}🐧 Sistema detectado: Linux ($ARCH)${NC}"
     sudo apt update && sudo apt install -y zsh tmux git curl eza bat vim 2>/dev/null || true
-    
-    # Fix para 'bat' en Ubuntu
     if command -v batcat >/dev/null && [ ! -f "$LOCAL_BIN/bat" ]; then
         ln -sf /usr/bin/batcat "$LOCAL_BIN/bat"
     fi
 fi
 
-# 3. Instalación/Actualización Pro de fzf (v0.66.0)
-FZF_TARGET="0.66.0"
-echo -e "🔍 Verificando fzf $FZF_TARGET..."
+# 3. Instalación de NVM (Node Version Manager)
+export NVM_DIR="$HOME/.nvm"
+if [ ! -d "$NVM_DIR" ]; then
+    echo -e "${YELLOW}📦 Instalando NVM v0.40.1...${NC}"
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 
+    # Cargar NVM temporalmente para instalar Node inmediatamente
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+    echo -e "${GREEN}✅ NVM instalado. Instalando Node.js LTS...${NC}"
+    nvm install --lts
+    nvm use --lts
+else
+    echo -e "${GREEN}✅ NVM ya está instalado en $NVM_DIR${NC}"
+fi
+
+# 4. Instalación/Actualización Pro de fzf (v0.66.0)
+FZF_TARGET="0.66.0"
 CURRENT_FZF_VER=$(fzf --version 2>/dev/null | awk '{print $1}')
 
 if [[ "$CURRENT_FZF_VER" != "$FZF_TARGET" ]]; then
-    echo -e "${YELLOW}📦 Instalando binario oficial de fzf v$FZF_TARGET ($OS_TYPE/$ARCH)...${NC}"
-    
+    echo -e "${YELLOW}📦 Actualizando fzf a v$FZF_TARGET...${NC}"
     FZF_URL="https://github.com/junegunn/fzf/releases/download/v${FZF_TARGET}/fzf-${FZF_TARGET}-${OS_TYPE}_${ARCH}.tar.gz"
-    
-    if curl -fsSL "$FZF_URL" | tar -xz -C "$LOCAL_BIN"; then
-        echo -e "${GREEN}✅ fzf $FZF_TARGET instalado en $LOCAL_BIN${NC}"
-    else
-        echo -e "${RED}❌ Falló la descarga de fzf. Verificando URL...${NC}"
-        exit 1
-    fi
-else
-    echo -e "${GREEN}✅ fzf ya está actualizado en la versión $FZF_TARGET${NC}"
+    curl -fsSL "$FZF_URL" | tar -xz -C "$LOCAL_BIN"
 fi
 
-# 4. Limpieza de ZSH para evitar errores de "nesting" o "unknown option"
-echo -e "${BLUE}🧹 Limpiando caché de autocompletado...${NC}"
+# 5. Limpieza y Symlinks
+echo -e "${BLUE}🧹 Limpiando caché y sincronizando Symlinks...${NC}"
 rm -f "$HOME/.zcompdump*" 2>/dev/null
 
-# 5. Reparación de Symlinks
-echo -e "${BLUE}🔗 Sincronizando Symlinks...${NC}"
-
 safe_link() {
-    local src=$1
-    local dest=$2
-    if [ -f "$src" ]; then
-        rm -f "$dest"
-        ln -sf "$src" "$dest"
-        echo -e "${GREEN}✅ Linked: $dest${NC}"
-    else
-        echo -e "${RED}⚠️ No se encontró la fuente: $src${NC}"
-    fi
+    local src=$1 dest=$2
+    if [ -f "$src" ]; then rm -f "$dest"; ln -sf "$src" "$dest"; echo -e "${GREEN}✅ Linked: $dest${NC}"; fi
 }
 
-# Symlinks principales (ZSH & TMUX)
-[[ -f "$DOTFILES_DIR/.zshrc" ]] && safe_link "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc" || safe_link "$DOTFILES_DIR/zshrc" "$HOME/.zshrc"
-[[ -f "$DOTFILES_DIR/.tmux.conf" ]] && safe_link "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf" || safe_link "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
+[[ -f "$DOTFILES_DIR/zshrc" ]] && safe_link "$DOTFILES_DIR/zshrc" "$HOME/.zshrc"
+[[ -f "$DOTFILES_DIR/tmux.conf" ]] && safe_link "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
+[[ -f "$DOTFILES_DIR/vimrc" ]] && safe_link "$DOTFILES_DIR/vimrc" "$HOME/.vimrc"
 
-# Symlink Vim (Mejorado para buscar ambas variantes)
-if [ -f "$DOTFILES_DIR/.vimrc" ]; then
-    safe_link "$DOTFILES_DIR/.vimrc" "$HOME/.vimrc"
-elif [ -f "$DOTFILES_DIR/vimrc" ]; then
-    safe_link "$DOTFILES_DIR/vimrc" "$HOME/.vimrc"
-else
-    echo -e "${RED}❌ No se encontró vimrc en el repositorio.${NC}"
-fi
-
-# Symlink Starship
 mkdir -p "$HOME/.config"
-if [ -f "$DOTFILES_DIR/starship.toml" ]; then
-    safe_link "$DOTFILES_DIR/starship.toml" "$HOME/.config/starship.toml"
-elif [ -f "$DOTFILES_DIR/config/starship/starship.toml" ]; then
-    safe_link "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml"
-else
-    echo -e "${RED}❌ No se encontró starship.toml en el repositorio.${NC}"
-fi
+[ -f "$DOTFILES_DIR/starship.toml" ] && safe_link "$DOTFILES_DIR/starship.toml" "$HOME/.config/starship.toml"
 
-# 6. Finalización
-echo -e "${GREEN}✨ ¡Entorno SRE normalizado!${NC}"
+echo -e "${GREEN}✨ ¡Entorno SRE con Node.js normalizado!${NC}"
 echo -e "${YELLOW}👉 Ejecuta: source ~/.zshrc${NC}"
-
