@@ -106,7 +106,9 @@ if [[ -f ~/.fzf.zsh ]]; then
 elif command -v fzf > /dev/null; then
     # Si no existe el script, intentamos la carga nativa si la versión lo soporta
     fzf_version=$(fzf --version | awk '{print $1}')
-    if [[ $(echo "$fzf_version >= 0.48" | bc -l) -eq 1 ]]; then
+    fzf_major=$(echo "$fzf_version" | cut -d. -f1)
+    fzf_minor=$(echo "$fzf_version" | cut -d. -f2)
+    if [[ $fzf_major -gt 0 ]] || [[ $fzf_major -eq 0 && $fzf_minor -ge 48 ]]; then
         eval "$(fzf --zsh)"
     fi
 fi
