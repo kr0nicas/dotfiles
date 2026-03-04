@@ -271,11 +271,18 @@ if [[ $IS_MAC -eq 0 ]]; then
     esac
 
     # Helper: descarga el último release de GitHub sin hardcodear versión
+    # Compatible con Linux y macOS (sin grep -P)
+    gh_latest_url() {
+        local repo=$1 pattern=$2
+        curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" \
+            | grep "browser_download_url" | grep "$pattern" | head -1 \
+            | sed 's/.*"browser_download_url": *"//;s/".*//'
+    }
+
     gh_latest_tar() {
         local repo=$1 pattern=$2 dest=$3 extra_tar_args=${4:-}
         local url
-        url=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" \
-            | grep -oP "\"browser_download_url\": *\"\K[^\"]*${pattern}[^\"]*" | head -1)
+        url=$(gh_latest_url "$repo" "$pattern")
         if [[ -n "$url" ]]; then
             curl -fsSL "$url" | tar -xz -C "$dest" $extra_tar_args
         else
@@ -287,7 +294,7 @@ if [[ $IS_MAC -eq 0 ]]; then
         "gh_latest_tar derailed/k9s 'Linux_${ARCH}.tar.gz' $LOCAL_BIN k9s"
 
     install_if_missing "lazygit" \
-        "gh_latest_tar jesseduffield/lazygit 'Linux_${GH_ARCH}.tar.gz' $LOCAL_BIN lazygit"
+        "gh_latest_tar jesseduffield/lazygit 'linux_${GH_ARCH}.tar.gz' $LOCAL_BIN lazygit"
 
     install_if_missing "stern" \
         "gh_latest_tar stern/stern 'linux_${ARCH}.tar.gz' $LOCAL_BIN stern"
@@ -299,7 +306,7 @@ if [[ $IS_MAC -eq 0 ]]; then
         "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $LOCAL_BIN"
 
     install_if_missing "sops" \
-        "curl -fsSL -o $LOCAL_BIN/sops \$(curl -fsSL https://api.github.com/repos/getsops/sops/releases/latest | grep -oP '\"browser_download_url\": *\"\K[^\"]*linux.${ARCH}\"' | head -1 | tr -d '\"') && chmod +x $LOCAL_BIN/sops"
+        "gh_latest_url getsops/sops 'linux.${ARCH}' | xargs -I{} curl -fsSL -o $LOCAL_BIN/sops {} && chmod +x $LOCAL_BIN/sops"
 
     install_if_missing "dust" \
         "gh_latest_tar bootandy/dust '${GH_ARCH}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */dust'"
@@ -307,25 +314,17 @@ if [[ $IS_MAC -eq 0 ]]; then
     install_if_missing "curlie" \
         "gh_latest_tar rs/curlie 'linux_${ARCH}.tar.gz' $LOCAL_BIN curlie"
 
-    if ! command -v jless >/dev/null 2>&1; then
-        log "Instalando jless..."
-        if [[ $DRY_RUN -eq 0 ]]; then
-            local jless_url
-            jless_url=$(curl -fsSL https://api.github.com/repos/PaulJuliworksanow/jless/releases/latest 2>/dev/null \
-                | grep -oP "\"browser_download_url\": *\"\K[^\"]*${GH_ARCH}-unknown-linux-gnu.zip" | head -1)
-            if [[ -n "$jless_url" ]]; then
-                curl -fsSL "$jless_url" -o /tmp/jless.zip && unzip -qo /tmp/jless.zip -d "$LOCAL_BIN" && rm -f /tmp/jless.zip
-                chmod +x "$LOCAL_BIN/jless"
-                ok "jless instalado"
-            else
-                warn "jless: no se encontró release, instalar manualmente"
-            fi
+    install_jless() {
+        local url
+        url=$(gh_latest_url PaulJuliusson/jless "${GH_ARCH}-unknown-linux-gnu.zip")
+        if [[ -n "$url" ]]; then
+            curl -fsSL "$url" -o /tmp/jless.zip && unzip -qo /tmp/jless.zip -d "$LOCAL_BIN" && rm -f /tmp/jless.zip
+            chmod +x "$LOCAL_BIN/jless"
         else
-            warn "DRY-RUN: jless install omitido"
+            return 1
         fi
-    else
-        ok "jless ya instalado"
-    fi
+    }
+    install_if_missing "jless" "install_jless"
 
     if ! command -v kubectx >/dev/null 2>&1; then
         log "Instalando kubectx/kubens..."
