@@ -101,7 +101,8 @@ if [[ $IS_MAC -eq 1 ]]; then
             warn "No se encontró Brewfile en $DOTFILES_DIR"
             log "Instalando herramientas base con Homebrew..."
             if [[ $DRY_RUN -eq 0 ]]; then
-                brew install git zsh curl eza bat vim gh fzf zoxide starship uv || true
+                brew install git zsh curl eza bat neovim gh fzf zoxide starship uv \
+                    ripgrep fd k9s kubectx stern lazygit direnv delta trivy || true
             else
                 warn "DRY-RUN: brew install omitido"
             fi
@@ -113,7 +114,58 @@ else
     log "Actualizando apt e instalando paquetes base..."
     if [[ $DRY_RUN -eq 0 ]]; then
         sudo apt update -qq
-        sudo apt install -y zsh tmux git curl vim gh 2>/dev/null || true
+        sudo apt install -y zsh tmux git curl jq ripgrep fd-find direnv age 2>/dev/null || true
+
+        # gh (GitHub CLI) — necesita su propio repo
+        if ! command -v gh >/dev/null 2>&1; then
+            log "Agregando repo GitHub CLI..."
+            sudo mkdir -p /etc/apt/keyrings
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+                | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+                | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+            sudo apt update -qq && sudo apt install -y gh 2>/dev/null || warn "gh no pudo instalarse"
+        fi
+
+        # Neovim — el de apt suele ser muy viejo, usamos appimage como fallback
+        if ! command -v nvim >/dev/null 2>&1; then
+            log "Instalando Neovim via appimage..."
+            curl -fsSL -o "$LOCAL_BIN/nvim" \
+                "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCH_TYPE}.appimage"
+            chmod +x "$LOCAL_BIN/nvim"
+            # Si appimage no funciona (FUSE no disponible), extraer
+            if ! "$LOCAL_BIN/nvim" --version >/dev/null 2>&1; then
+                log "AppImage sin FUSE, extrayendo..."
+                cd /tmp && "$LOCAL_BIN/nvim" --appimage-extract >/dev/null 2>&1
+                rm -f "$LOCAL_BIN/nvim"
+                mv /tmp/squashfs-root "$HOME/.local/nvim-squashfs"
+                ln -sf "$HOME/.local/nvim-squashfs/usr/bin/nvim" "$LOCAL_BIN/nvim"
+                cd -
+            fi
+            ok "Neovim instalado: $($LOCAL_BIN/nvim --version | head -1)"
+        else
+            NVIM_VER=$(nvim --version | head -1 | grep -oP '\d+\.\d+')
+            if (( $(echo "$NVIM_VER < 0.10" | bc -l) )); then
+                warn "Neovim $NVIM_VER es muy viejo (se necesita >=0.10). Actualizando..."
+                curl -fsSL -o "$LOCAL_BIN/nvim" \
+                    "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCH_TYPE}.appimage"
+                chmod +x "$LOCAL_BIN/nvim"
+                if ! "$LOCAL_BIN/nvim" --version >/dev/null 2>&1; then
+                    cd /tmp && "$LOCAL_BIN/nvim" --appimage-extract >/dev/null 2>&1
+                    rm -f "$LOCAL_BIN/nvim"
+                    mv /tmp/squashfs-root "$HOME/.local/nvim-squashfs"
+                    ln -sf "$HOME/.local/nvim-squashfs/usr/bin/nvim" "$LOCAL_BIN/nvim"
+                    cd -
+                fi
+                ok "Neovim actualizado: $($LOCAL_BIN/nvim --version | head -1)"
+            fi
+        fi
+
+        # fd → symlink fdfind si hace falta
+        if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
+            ln -sf "$(command -v fdfind)" "$LOCAL_BIN/fd"
+            ok "Symlink fd → fdfind creado"
+        fi
 
         # eza (no está en apt por defecto)
         if ! command -v eza >/dev/null 2>&1; then
@@ -205,6 +257,65 @@ install_if_missing "zoxide"   "curl -sSfL https://raw.githubusercontent.com/ajee
 install_if_missing "uv"       "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 # ------------------------------------------------------------------------------
+# 6b. HERRAMIENTAS SRE (binarios — solo Linux, en Mac vienen del Brewfile)
+# ------------------------------------------------------------------------------
+if [[ $IS_MAC -eq 0 ]]; then
+    section "Herramientas SRE (Linux)"
+
+    # Mapeo de arquitectura para proyectos que usan x86_64/arm64
+    case "$ARCH_TYPE" in
+        x86_64)  GH_ARCH="x86_64" ;;
+        aarch64) GH_ARCH="arm64"   ;;
+        arm64)   GH_ARCH="arm64"   ;;
+        *)       GH_ARCH="x86_64"  ;;
+    esac
+
+    # Helper: descarga el último release de GitHub sin hardcodear versión
+    gh_latest_tar() {
+        local repo=$1 pattern=$2 dest=$3 extra_tar_args=${4:-}
+        local url
+        url=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" \
+            | grep -oP "\"browser_download_url\": *\"\K[^\"]*${pattern}[^\"]*" | head -1)
+        if [[ -n "$url" ]]; then
+            curl -fsSL "$url" | tar -xz -C "$dest" $extra_tar_args
+        else
+            return 1
+        fi
+    }
+
+    install_if_missing "k9s" \
+        "gh_latest_tar derailed/k9s 'Linux_${ARCH}.tar.gz' $LOCAL_BIN k9s"
+
+    install_if_missing "lazygit" \
+        "gh_latest_tar jesseduffield/lazygit 'Linux_${GH_ARCH}.tar.gz' $LOCAL_BIN lazygit"
+
+    install_if_missing "stern" \
+        "gh_latest_tar stern/stern 'linux_${ARCH}.tar.gz' $LOCAL_BIN stern"
+
+    install_if_missing "delta" \
+        "gh_latest_tar dandavison/delta '${GH_ARCH}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */delta'"
+
+    install_if_missing "trivy" \
+        "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $LOCAL_BIN"
+
+    install_if_missing "sops" \
+        "curl -fsSL -o $LOCAL_BIN/sops \$(curl -fsSL https://api.github.com/repos/getsops/sops/releases/latest | grep -oP '\"browser_download_url\": *\"\K[^\"]*linux.${ARCH}\"' | head -1 | tr -d '\"') && chmod +x $LOCAL_BIN/sops"
+
+    if ! command -v kubectx >/dev/null 2>&1; then
+        log "Instalando kubectx/kubens..."
+        if [[ $DRY_RUN -eq 0 ]]; then
+            gh_latest_tar ahmetb/kubectx "kubectx_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubectx
+            gh_latest_tar ahmetb/kubectx "kubens_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubens
+            ok "kubectx/kubens instalados"
+        else
+            warn "DRY-RUN: kubectx install omitido"
+        fi
+    else
+        ok "kubectx ya instalado"
+    fi
+fi
+
+# ------------------------------------------------------------------------------
 # 7. TMUX — TPM Y PLUGINS
 # ------------------------------------------------------------------------------
 section "Tmux Plugin Manager (TPM)"
@@ -230,7 +341,18 @@ fi
 [[ -d "$TPM_DIR" && $DRY_RUN -eq 0 ]] && INSTALL_TMUX_PLUGINS=1 || INSTALL_TMUX_PLUGINS=0
 
 # ------------------------------------------------------------------------------
-# 8. SYMLINKS DE DOTFILES
+# 8. NEOVIM — LAZY.NVIM (bootstrap automático al abrir nvim)
+# ------------------------------------------------------------------------------
+section "Neovim"
+
+if command -v nvim >/dev/null 2>&1; then
+    ok "Neovim encontrado: $(nvim --version | head -1)"
+else
+    warn "Neovim no encontrado — instálalo manualmente si brew/apt falló"
+fi
+
+# ------------------------------------------------------------------------------
+# 9. SYMLINKS DE DOTFILES
 # ------------------------------------------------------------------------------
 section "Sincronizando Symlinks"
 
@@ -251,25 +373,32 @@ safe_link() {
 
 mkdir -p "$HOME/.config"
 
-safe_link "$DOTFILES_DIR/zshrc"         "$HOME/.zshrc"
-safe_link "$DOTFILES_DIR/tmux.conf"     "$HOME/.tmux.conf"
-safe_link "$DOTFILES_DIR/vimrc"         "$HOME/.vimrc"
-safe_link "$DOTFILES_DIR/starship.toml" "$HOME/.config/starship.toml"
+safe_link "$DOTFILES_DIR/zshrc"                         "$HOME/.zshrc"
+safe_link "$DOTFILES_DIR/tmux.conf"                     "$HOME/.tmux.conf"
+safe_link "$DOTFILES_DIR/.gitconfig"                    "$HOME/.gitconfig"
+safe_link "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml"
 
-# Ahora que tmux.conf está linkeado, instalar plugins headless
-if [[ $INSTALL_TMUX_PLUGINS -eq 1 ]]; then
-    if command -v tmux >/dev/null 2>&1; then
-        log "Instalando plugins tmux en background..."
-        "$TPM_DIR/bin/install_plugins" 2>/dev/null \
-            && ok "Plugins tmux instalados (resurrect, continuum, yank, sensible)" \
-            || warn "Plugins no pudieron instalarse headless — abre tmux y ejecuta: Prefix + I"
+# Neovim config directory
+if [[ -d "$DOTFILES_DIR/config/nvim" ]]; then
+    if [[ $DRY_RUN -eq 0 ]]; then
+        rm -rf "$HOME/.config/nvim"
+        ln -sf "$DOTFILES_DIR/config/nvim" "$HOME/.config/nvim"
+        ok "Linked: ~/.config/nvim → $DOTFILES_DIR/config/nvim"
     else
-        warn "tmux no encontrado — plugins se instalarán al abrir tmux por primera vez (Prefix + I)"
+        warn "DRY-RUN: ln -sf $DOTFILES_DIR/config/nvim → ~/.config/nvim"
     fi
 fi
 
+# Instalar plugins de Neovim headless (lazy.nvim bootstrap)
+if command -v nvim >/dev/null 2>&1 && [[ -d "$HOME/.config/nvim" && $DRY_RUN -eq 0 ]]; then
+    log "Instalando plugins Neovim (lazy.nvim sync)..."
+    nvim --headless -c 'lua require("lazy").sync({ wait = true })' -c 'qa' 2>/dev/null \
+        && ok "Plugins Neovim instalados" \
+        || warn "Plugins no instalados headless — abre nvim y lazy.nvim los descargará"
+fi
+
 # ------------------------------------------------------------------------------
-# 9. LIMPIEZA DE CACHÉ ZSH
+# 10. LIMPIEZA DE CACHÉ ZSH
 # ------------------------------------------------------------------------------
 section "Limpieza"
 
@@ -281,22 +410,24 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 10. RESUMEN FINAL
+# 11. RESUMEN FINAL
 # ------------------------------------------------------------------------------
 section "Resumen de instalación"
 
 echo ""
 printf "  %-14s %-30s %s\n" "HERRAMIENTA" "RUTA" "ESTADO"
 printf "  %-14s %-30s %s\n" "──────────" "────────────────────────────" "──────"
-for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux vim; do
+for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux nvim rg fd k9s kubectl helm stern kubectx lazygit direnv delta trivy terraform docker; do
     path_t=$(command -v "$t" 2>/dev/null || echo "—")
     status=$([[ "$path_t" != "—" ]] && echo "✅" || echo "❌")
     printf "  %-14s %-30s %s\n" "$t" "$path_t" "$status"
 done
 
-# Estado TPM
+# Estado TPM y lazy.nvim
 tpm_status=$([[ -d "$HOME/.tmux/plugins/tpm" ]] && echo "✅" || echo "❌")
-printf "  %-14s %-30s %s\n" "tpm" "$HOME/.tmux/plugins/tpm" "$tpm_status"
+lazy_status=$([[ -d "$HOME/.local/share/nvim/lazy/lazy.nvim" ]] && echo "✅" || echo "❌")
+printf "  %-14s %-30s %s\n" "tpm"       "$HOME/.tmux/plugins/tpm"                "$tpm_status"
+printf "  %-14s %-30s %s\n" "lazy.nvim" "$HOME/.local/share/nvim/lazy/lazy.nvim"  "$lazy_status"
 echo ""
 
 ok "¡Entorno SRE 2026 listo!"

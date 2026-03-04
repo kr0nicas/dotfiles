@@ -54,6 +54,10 @@ if command -v zoxide > /dev/null; then
     eval "$(zoxide init zsh)"
 fi
 
+if command -v direnv > /dev/null; then
+    eval "$(direnv hook zsh)"
+fi
+
 # ------------------------------------------------------------------------------
 # 4. CARGA DIFERIDA (LAZY LOADING)
 # ------------------------------------------------------------------------------
@@ -141,6 +145,14 @@ alias py='python3'
 alias venv='python3 -m venv venv'
 alias va='source venv/bin/activate'
 alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots: $(date +%Y-%m-%d)" && git push && cd -'
+
+if command -v nvim > /dev/null; then
+    alias vim='nvim'
+    alias vi='nvim'
+    export EDITOR='nvim'
+else
+    export EDITOR='vim'
+fi
 
 # ------------------------------------------------------------------------------
 # 7. CONFIGURACIÓN DE HISTORIAL & ESTABILIDAD
