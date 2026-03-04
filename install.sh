@@ -403,6 +403,12 @@ safe_link "$DOTFILES_DIR/tmux.conf"                     "$HOME/.tmux.conf"
 safe_link "$DOTFILES_DIR/.gitconfig"                    "$HOME/.gitconfig"
 safe_link "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml"
 
+# Claude Code settings
+if [[ -f "$DOTFILES_DIR/config/claude/settings.json" ]]; then
+    mkdir -p "$HOME/.claude"
+    safe_link "$DOTFILES_DIR/config/claude/settings.json" "$HOME/.claude/settings.json"
+fi
+
 # direnv config directory
 if [[ -d "$DOTFILES_DIR/config/direnv" ]]; then
     mkdir -p "$HOME/.config/direnv"
