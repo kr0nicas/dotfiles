@@ -1,50 +1,207 @@
-palette = "cyberpunk_sre"
+# ==============================================================================
+# starship.toml — SRE 2026 · Jorge Ochoa (kr0nicas)
+# ==============================================================================
+# Fuente recomendada: MesloLGS NF o JetBrainsMono Nerd Font
+# Instalar en Mac:  brew install --cask font-jetbrains-mono-nerd-font
+# Instalar en Linux: https://www.nerdfonts.com/font-downloads
+# ==============================================================================
 
+# Prompt de dos líneas: info arriba, cursor abajo
 format = """
-[](dir_bg)\
+[╭─](bold #5c6bc0)\
+$os\
+$username\
+$hostname\
 $directory\
-[](fg:dir_bg bg:python_bg)\
-$python\
-[](fg:python_bg bg:git_bg)\
 $git_branch\
 $git_status\
-[](fg:git_bg bg:status_bg)\
-$os\
-[](fg:status_bg)\
+$git_state\
+$kubernetes\
+$gcloud\
+$nodejs\
+$golang\
+$python\
+$rust\
+$docker_context\
+$cmd_duration\
+$fill\
+$memory_usage\
+$time\
+$line_break\
+[╰─](bold #5c6bc0)\
 $character"""
 
-[directory]
-style = "bg:dir_bg fg:white bold"
-format = "[  $path ]($style)"
-truncation_length = 3
-fish_style_pwd_dir_length = 1
+# Paleta principal
+palette = "sre_dark"
 
+[palettes.sre_dark]
+base       = "#1e1e2e"
+mantle     = "#181825"
+crust      = "#11111b"
+text       = "#cdd6f4"
+subtext    = "#a6adc8"
+overlay    = "#6c7086"
+blue       = "#89b4fa"
+lavender   = "#b4befe"
+sapphire   = "#74c7ec"
+sky        = "#89dceb"
+teal       = "#94e2d5"
+green      = "#a6e3a1"
+yellow     = "#f9e2af"
+peach      = "#fab387"
+red        = "#f38ba8"
+pink       = "#f5c2e7"
+mauve      = "#cba6f7"
+indigo     = "#5c6bc0"
+
+# ------------------------------------------------------------------------------
+# CARÁCTER DE ENTRADA
+# ------------------------------------------------------------------------------
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol   = "[❯](bold red)"
+vimcmd_symbol  = "[❮](bold yellow)"
+
+# ------------------------------------------------------------------------------
+# OS
+# ------------------------------------------------------------------------------
 [os]
+format   = "[$symbol](bold #89b4fa) "
 disabled = false
-style = "bg:status_bg fg:white"
-format = "[ $symbol ]($style)"
 
-[python]
-symbol = "🐍 "
-style = "bg:python_bg fg:black bold"
-format = '[ $symbol($version) ]($style)'
+[os.symbols]
+Macos  = "󰀵"
+Ubuntu = ""
+Debian = ""
+Linux  = ""
 
+# ------------------------------------------------------------------------------
+# USUARIO Y HOST
+# ------------------------------------------------------------------------------
+[username]
+format      = "[$user](bold #cba6f7)"
+show_always = false   # solo muestra si es root o SSH
+
+[hostname]
+format    = "[@](bold #6c7086)[$hostname](bold #74c7ec) "
+ssh_only  = true      # solo en SSH para no saturar la línea local
+
+# ------------------------------------------------------------------------------
+# DIRECTORIO
+# ------------------------------------------------------------------------------
+[directory]
+format            = "[󰉋 ](bold #89b4fa)[$path](bold #b4befe)[$read_only]($read_only_style) "
+truncation_length = 3
+truncate_to_repo  = true
+read_only         = " 󰌾"
+read_only_style   = "bold red"
+
+[directory.substitutions]
+"~"          = "󰋜 ~"
+"~/dotfiles" = "󱧻 dotfiles"
+"~/go"       = "󰟓 go"
+
+# ------------------------------------------------------------------------------
+# GIT
+# ------------------------------------------------------------------------------
 [git_branch]
-symbol = " "
-style = "bg:git_bg fg:white bold"
-format = '[ $symbol$branch ]($style)'
+format = "[on](dimmed #6c7086) [ $branch](bold #f9e2af) "
+symbol = ""
 
 [git_status]
-style = "bg:git_bg fg:white"
-format = '([\[$all_status$ahead_behind\]]($style))'
+format      = "([$all_status$ahead_behind]($style) )"
+style       = "bold #fab387"
+ahead       = "⇡${count}"
+behind      = "⇣${count}"
+diverged    = "⇕⇡${ahead_count}⇣${behind_count}"
+staged      = "[+${count}](bold green)"
+modified    = "[~${count}](bold yellow)"
+untracked   = "[?${count}](bold #74c7ec)"
+deleted     = "[-${count}](bold red)"
+stashed     = "[*${count}](bold #cba6f7)"
+conflicted  = "[!${count}](bold red)"
 
-[character]
-success_symbol = "[ ❯](bold #89b4fa)"
-error_symbol = "[ ❯](bold #f38ba8)"
+[git_state]
+format = "\\([$state( $progress_current/$progress_total)](bold red)\\) "
 
-# --- PALETA CYBERPUNK SRE (Contraste Máximo) ---
-[palettes.cyberpunk_sre]
-dir_bg = '#89b4fa'     # Azul zafiro brillante (Directorio)
-python_bg = '#fab387'  # Naranja melocotón (Python)
-git_bg = '#45475a'     # Gris superficie (Git)
-status_bg = '#313244'  # Gris oscuro (OS/Info)
+# ------------------------------------------------------------------------------
+# KUBERNETES
+# ------------------------------------------------------------------------------
+[kubernetes]
+format   = "[⎈ $context](bold #89dceb)[/$namespace](dimmed #6c7086) "
+disabled = false
+
+# Muestra solo cuando hay contexto activo
+[[kubernetes.context_aliases]]
+
+# ------------------------------------------------------------------------------
+# GCLOUD
+# ------------------------------------------------------------------------------
+[gcloud]
+format   = "[ $active](bold #89b4fa)[(\\($project\\))](dimmed #6c7086) "
+disabled = false
+
+# ------------------------------------------------------------------------------
+# LENGUAJES (solo si hay archivos relevantes en el directorio)
+# ------------------------------------------------------------------------------
+[nodejs]
+format         = "[󰎙 $version](bold #a6e3a1) "
+detect_files   = ["package.json", ".nvmrc"]
+
+[golang]
+format         = "[ $version](bold #89dceb) "
+detect_files   = ["go.mod", "go.sum"]
+
+[python]
+format         = "[ $version](bold #f9e2af) "
+detect_files   = ["requirements.txt", "pyproject.toml", ".python-version"]
+
+[rust]
+format         = "[ $version](bold #fab387) "
+detect_files   = ["Cargo.toml"]
+
+[docker_context]
+format         = "[ $context](bold #89b4fa) "
+only_with_files = true
+
+# ------------------------------------------------------------------------------
+# TIEMPO DE EJECUCIÓN
+# ------------------------------------------------------------------------------
+[cmd_duration]
+format            = "[ $duration](bold #f9e2af) "
+min_time          = 2_000    # muestra solo si tardó más de 2 segundos
+show_milliseconds = false
+
+# ------------------------------------------------------------------------------
+# FILL (empuja memoria y hora a la derecha)
+# ------------------------------------------------------------------------------
+[fill]
+symbol = " "
+
+# ------------------------------------------------------------------------------
+# MEMORIA RAM (derecha)
+# ------------------------------------------------------------------------------
+[memory_usage]
+format    = "[ $ram_pct](bold #f38ba8) "
+threshold = 60        # solo muestra cuando supera el 60%
+disabled  = false
+
+# ------------------------------------------------------------------------------
+# HORA (derecha)
+# ------------------------------------------------------------------------------
+[time]
+format   = "[  $time](dimmed #6c7086) "
+time_format = "%H:%M"
+disabled = false
+
+# ------------------------------------------------------------------------------
+# DESACTIVADOS (reducen ruido)
+# ------------------------------------------------------------------------------
+[package]
+disabled = true
+
+[aws]
+disabled = true
+
+[azure]
+disabled = true
