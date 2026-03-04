@@ -142,12 +142,13 @@ alias va='source venv/bin/activate'
 alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots: $(date +%Y-%m-%d)" && git push && cd -'
 
 # SSH: lista hosts y conecta con fzf
-s() {
+ssh-pick() {
     local host
     host=$(grep '^Host ' ~/.ssh/config | grep -v '[*?]' | awk '{print $2}' \
         | fzf --prompt="ssh > " --height=40%)
     [[ -n "$host" ]] && ssh "$host"
 }
+alias sp='ssh-pick'
 
 # Kubernetes
 alias k='kubectl'
