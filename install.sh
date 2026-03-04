@@ -326,6 +326,53 @@ if [[ $IS_MAC -eq 0 ]]; then
     }
     install_if_missing "jless" "install_jless"
 
+    # kubectl — latest stable
+    if ! command -v kubectl >/dev/null 2>&1; then
+        log "Instalando kubectl..."
+        if [[ $DRY_RUN -eq 0 ]]; then
+            KUBECTL_VER=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
+            curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/${ARCH}/kubectl" \
+                -o "$LOCAL_BIN/kubectl" && chmod +x "$LOCAL_BIN/kubectl" \
+                && ok "kubectl ${KUBECTL_VER} instalado" \
+                || warn "kubectl no pudo instalarse, continúa manualmente."
+        else
+            warn "DRY-RUN: kubectl install omitido"
+        fi
+    else
+        ok "kubectl ya instalado ($(kubectl version --client --short 2>/dev/null | head -1))"
+    fi
+
+    # helm — latest stable
+    if ! command -v helm >/dev/null 2>&1; then
+        log "Instalando helm..."
+        if [[ $DRY_RUN -eq 0 ]]; then
+            curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash \
+                && ok "helm instalado" \
+                || warn "helm no pudo instalarse, continúa manualmente."
+        else
+            warn "DRY-RUN: helm install omitido"
+        fi
+    else
+        ok "helm ya instalado ($(helm version --short 2>/dev/null))"
+    fi
+
+    # OpenTofu — latest stable (reemplazo open source de Terraform)
+    if ! command -v tofu >/dev/null 2>&1; then
+        log "Instalando OpenTofu..."
+        if [[ $DRY_RUN -eq 0 ]]; then
+            TOFU_VER=$(curl -fsSL https://api.github.com/repos/opentofu/opentofu/releases/latest \
+                | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+            TOFU_URL="https://github.com/opentofu/opentofu/releases/download/v${TOFU_VER}/tofu_${TOFU_VER}_linux_${ARCH}.tar.gz"
+            curl -fsSL "$TOFU_URL" | tar -xz -C "$LOCAL_BIN" tofu \
+                && ok "OpenTofu v${TOFU_VER} instalado" \
+                || warn "OpenTofu no pudo instalarse, continúa manualmente."
+        else
+            warn "DRY-RUN: OpenTofu install omitido"
+        fi
+    else
+        ok "OpenTofu ya instalado ($(tofu version | head -1))"
+    fi
+
     if ! command -v kubectx >/dev/null 2>&1; then
         log "Instalando kubectx/kubens..."
         if [[ $DRY_RUN -eq 0 ]]; then
@@ -456,7 +503,7 @@ section "Resumen de instalación"
 echo ""
 printf "  %-14s %-30s %s\n" "HERRAMIENTA" "RUTA" "ESTADO"
 printf "  %-14s %-30s %s\n" "──────────" "────────────────────────────" "──────"
-for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux nvim rg fd k9s kubectl helm stern kubectx lazygit direnv delta trivy terraform docker dust btop curlie jless jq yq; do
+for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux nvim rg fd k9s kubectl helm stern kubectx lazygit direnv delta trivy tofu docker dust btop curlie jless jq yq; do
     path_t=$(command -v "$t" 2>/dev/null || echo "—")
     status=$([[ "$path_t" != "—" ]] && echo "✅" || echo "❌")
     printf "  %-14s %-30s %s\n" "$t" "$path_t" "$status"
