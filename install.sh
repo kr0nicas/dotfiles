@@ -316,7 +316,7 @@ if [[ $IS_MAC -eq 0 ]]; then
 
     install_jless() {
         local url
-        url=$(gh_latest_url PaulJuliusson/jless "${GH_ARCH}-unknown-linux-gnu.zip")
+        url=$(gh_latest_url PaulJuliusMartinez/jless "${GH_ARCH}-unknown-linux-gnu.zip")
         if [[ -n "$url" ]]; then
             curl -fsSL "$url" -o /tmp/jless.zip && unzip -qo /tmp/jless.zip -d "$LOCAL_BIN" && rm -f /tmp/jless.zip
             chmod +x "$LOCAL_BIN/jless"
