@@ -8,12 +8,17 @@ return {
   {
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "mason.nvim" },
-    opts = {
-      ensure_installed = {
-        "gopls", "pyright", "lua_ls", "yamlls", "jsonls",
-        "bashls", "terraformls", "dockerls", "ts_ls", "ansiblels",
-      },
-    },
+    opts = function()
+      local is_mac = vim.loop.os_uname().sysname == "Darwin"
+      local servers = {
+        "pyright", "lua_ls", "yamlls", "jsonls",
+        "bashls", "dockerls", "ts_ls", "ansiblels",
+      }
+      if is_mac then
+        vim.list_extend(servers, { "gopls", "terraformls" })
+      end
+      return { ensure_installed = servers }
+    end,
   },
 
   -- LSP config (nvim 0.11+ API — sin require('lspconfig')[server].setup())
@@ -41,11 +46,16 @@ return {
         },
       })
 
-      -- Habilitar todos los servidores
-      vim.lsp.enable({
-        "gopls", "pyright", "lua_ls", "yamlls", "jsonls",
-        "bashls", "terraformls", "dockerls", "ts_ls", "ansiblels",
-      })
+      -- Habilitar servidores según OS
+      local is_mac = vim.loop.os_uname().sysname == "Darwin"
+      local servers = {
+        "pyright", "lua_ls", "yamlls", "jsonls",
+        "bashls", "dockerls", "ts_ls", "ansiblels",
+      }
+      if is_mac then
+        vim.list_extend(servers, { "gopls", "terraformls" })
+      end
+      vim.lsp.enable(servers)
 
       -- Keymaps LSP (se activan al conectar un servidor)
       vim.api.nvim_create_autocmd("LspAttach", {
