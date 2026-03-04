@@ -38,6 +38,10 @@ brew "lazygit"
 brew "direnv"
 brew "jq"
 brew "python-yq"
+brew "dust"
+brew "btop"
+brew "curlie"
+brew "jless"
 
 # --- Cloud & Infra ---
 brew "awscli"

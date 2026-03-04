@@ -23,7 +23,7 @@ Simulacion sin cambios:
 
 | Herramienta | Descripcion |
 |---|---|
-| **zsh** | Shell principal con autosuggestions y syntax highlighting |
+| **zsh** | Shell principal con autosuggestions y syntax highlighting (plugins via brew/apt) |
 | **starship** | Prompt minimalista con info de git/k8s/python/go |
 | **tmux** | Multiplexor de terminal con TPM (plugin manager) |
 | **fzf** | Fuzzy finder para archivos, historial y branches |
@@ -40,7 +40,11 @@ Simulacion sin cambios:
 | **fd** | `find` | Busqueda de archivos simple y rapida |
 | **delta** | `diff` | Git diff con syntax highlighting side-by-side |
 | **sd** | `sed` | Find & replace moderno |
+| **dust** | `du` | Analizador de disco visual |
 | **lazygit** | — | TUI interactiva para git |
+| **btop** | `htop` | Monitor de sistema (CPU, RAM, disco, red) |
+| **curlie** | `curl` | HTTP client con formato legible |
+| **jless** | — | Visor interactivo de JSON |
 
 ### Editor: Neovim
 
@@ -53,6 +57,8 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**.
 | **mason.nvim** | Gestion automatica de LSP servers |
 | **nvim-lspconfig** | Go, Python, Lua, YAML, JSON, Bash, Terraform, Docker, TypeScript, Ansible |
 | **nvim-cmp** | Autocompletado con LSP, snippets, buffer y path |
+| **which-key.nvim** | Popup de keybindings al presionar Space |
+| **oil.nvim** | File explorer como buffer (abrir con `-`) |
 | **conform.nvim** | Formateo al guardar (black, goimports, jq, terraform fmt) |
 | **nvim-lint** | Linting asincrono (flake8, yamllint, shellcheck, tflint) |
 | **gitsigns.nvim** | Signos de cambios git en el gutter |
@@ -108,6 +114,23 @@ Config en `.gitconfig` con:
 - Merge conflicts: zdiff3
 - Aliases: `st`, `co`, `br`, `cm`
 
+### SSH
+
+Selector interactivo de hosts con `s` (usa fzf + `~/.ssh/config`).
+ControlMaster activo: reutiliza conexiones (segundo ssh es instantaneo, keepalive cada 60s).
+
+### Tmux Sessionizer
+
+`t` abre un selector fzf de proyectos (`~/projects`, `~/go/src`) y crea/attacha sesion tmux.
+
+### Prompt: Starship
+
+Config en `config/starship/starship.toml` con tema Catppuccin Mocha. Muestra:
+- OS icon, directorio, git branch/status
+- Kubernetes context/namespace, GCloud project
+- Node.js, Go, Python, Rust (solo si hay archivos relevantes)
+- Tiempo de ejecucion (>2s), RAM (>60%), hora
+
 ## Estructura de archivos
 
 ```
@@ -121,9 +144,11 @@ Config en `.gitconfig` con:
     nvim/                 # Config Neovim (Lua)
       init.lua
       lua/config/         # options, keymaps, autocmds, lazy bootstrap
-      lua/plugins/        # colorscheme, treesitter, telescope, lsp, git, editor, ui
+      lua/plugins/        # colorscheme, treesitter, telescope, lsp, git, editor, ui, which-key, oil
     starship/
       starship.toml       # Config del prompt
+    direnv/
+      direnv.toml         # Whitelist de directorios confiables
 ```
 
 ## Symlinks creados por install.sh
@@ -134,6 +159,7 @@ Config en `.gitconfig` con:
 ~/.gitconfig       -> ~/dotfiles/.gitconfig
 ~/.config/nvim     -> ~/dotfiles/config/nvim
 ~/.config/starship.toml -> ~/dotfiles/config/starship/starship.toml
+~/.config/direnv/direnv.toml -> ~/dotfiles/config/direnv/direnv.toml
 ```
 
 ## Post-instalacion

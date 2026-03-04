@@ -114,7 +114,7 @@ else
     log "Actualizando apt e instalando paquetes base..."
     if [[ $DRY_RUN -eq 0 ]]; then
         sudo apt update -qq
-        sudo apt install -y zsh tmux git curl jq ripgrep fd-find direnv age 2>/dev/null || true
+        sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop 2>/dev/null || true
 
         # gh (GitHub CLI) — necesita su propio repo
         if ! command -v gh >/dev/null 2>&1; then
@@ -301,6 +301,32 @@ if [[ $IS_MAC -eq 0 ]]; then
     install_if_missing "sops" \
         "curl -fsSL -o $LOCAL_BIN/sops \$(curl -fsSL https://api.github.com/repos/getsops/sops/releases/latest | grep -oP '\"browser_download_url\": *\"\K[^\"]*linux.${ARCH}\"' | head -1 | tr -d '\"') && chmod +x $LOCAL_BIN/sops"
 
+    install_if_missing "dust" \
+        "gh_latest_tar bootandy/dust '${GH_ARCH}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */dust'"
+
+    install_if_missing "curlie" \
+        "gh_latest_tar rs/curlie 'linux_${ARCH}.tar.gz' $LOCAL_BIN curlie"
+
+    if ! command -v jless >/dev/null 2>&1; then
+        log "Instalando jless..."
+        if [[ $DRY_RUN -eq 0 ]]; then
+            local jless_url
+            jless_url=$(curl -fsSL https://api.github.com/repos/PaulJuliworksanow/jless/releases/latest 2>/dev/null \
+                | grep -oP "\"browser_download_url\": *\"\K[^\"]*${GH_ARCH}-unknown-linux-gnu.zip" | head -1)
+            if [[ -n "$jless_url" ]]; then
+                curl -fsSL "$jless_url" -o /tmp/jless.zip && unzip -qo /tmp/jless.zip -d "$LOCAL_BIN" && rm -f /tmp/jless.zip
+                chmod +x "$LOCAL_BIN/jless"
+                ok "jless instalado"
+            else
+                warn "jless: no se encontró release, instalar manualmente"
+            fi
+        else
+            warn "DRY-RUN: jless install omitido"
+        fi
+    else
+        ok "jless ya instalado"
+    fi
+
     if ! command -v kubectx >/dev/null 2>&1; then
         log "Instalando kubectx/kubens..."
         if [[ $DRY_RUN -eq 0 ]]; then
@@ -378,6 +404,12 @@ safe_link "$DOTFILES_DIR/tmux.conf"                     "$HOME/.tmux.conf"
 safe_link "$DOTFILES_DIR/.gitconfig"                    "$HOME/.gitconfig"
 safe_link "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml"
 
+# direnv config directory
+if [[ -d "$DOTFILES_DIR/config/direnv" ]]; then
+    mkdir -p "$HOME/.config/direnv"
+    safe_link "$DOTFILES_DIR/config/direnv/direnv.toml" "$HOME/.config/direnv/direnv.toml"
+fi
+
 # Neovim config directory
 if [[ -d "$DOTFILES_DIR/config/nvim" ]]; then
     if [[ $DRY_RUN -eq 0 ]]; then
@@ -417,7 +449,7 @@ section "Resumen de instalación"
 echo ""
 printf "  %-14s %-30s %s\n" "HERRAMIENTA" "RUTA" "ESTADO"
 printf "  %-14s %-30s %s\n" "──────────" "────────────────────────────" "──────"
-for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux nvim rg fd k9s kubectl helm stern kubectx lazygit direnv delta trivy terraform docker; do
+for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux nvim rg fd k9s kubectl helm stern kubectx lazygit direnv delta trivy terraform docker dust btop curlie jless jq yq; do
     path_t=$(command -v "$t" 2>/dev/null || echo "—")
     status=$([[ "$path_t" != "—" ]] && echo "✅" || echo "❌")
     printf "  %-14s %-30s %s\n" "$t" "$path_t" "$status"

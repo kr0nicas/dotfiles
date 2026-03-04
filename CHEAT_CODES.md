@@ -18,6 +18,13 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 | `lt` | Vista de arbol (2 niveles) |
 | `cat archivo` | Visualizacion con syntax highlighting (bat) |
 
+### SSH
+
+| Comando | Accion |
+|---|---|
+| `s` | Selector interactivo de hosts SSH (fzf) |
+| `ssh host-name` | Conectar directo por nombre del config |
+
 ### Git (aliases en zshrc)
 
 | Comando | Accion |
@@ -39,6 +46,49 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 | `va` | Activa el virtualenv |
 | `uv pip install` | Install rapido con uv |
 | `uv run script.py` | Ejecuta con dependencias auto-resueltas |
+
+### Kubernetes (aliases)
+
+| Comando | Accion |
+|---|---|
+| `k` | `kubectl` |
+| `kgp` | `kubectl get pods` |
+| `kgs` | `kubectl get svc` |
+| `kgd` | `kubectl get deploy` |
+| `kga` | `kubectl get all` |
+| `kl pod` | `kubectl logs -f pod` |
+| `ke pod -- sh` | `kubectl exec -it pod` |
+| `kns` | `kubens` (cambiar namespace) |
+| `kctx` | `kubectx` (cambiar contexto) |
+
+### Terraform (aliases)
+
+| Comando | Accion |
+|---|---|
+| `tf` | `terraform` |
+| `tfi` | `terraform init` |
+| `tfp` | `terraform plan` |
+| `tfa` | `terraform apply` |
+| `tfs` | `terraform state list` |
+
+### Docker Compose (aliases)
+
+| Comando | Accion |
+|---|---|
+| `dc` | `docker compose` |
+| `dcu` | `docker compose up -d` |
+| `dcd` | `docker compose down` |
+| `dcl` | `docker compose logs -f` |
+
+### Otros aliases
+
+| Comando | Accion |
+|---|---|
+| `lg` | `lazygit` |
+| `cheat` | Ver este archivo con bat |
+| `top` | `btop` (CPU, RAM, disco, red) |
+| `du` | `dust` (uso de disco visual) |
+| `t` | Tmux sessionizer (selector de proyectos con fzf) |
 
 ### FZF
 
@@ -115,6 +165,25 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 |---|---|
 | `Ctrl+h/j/k/l` | Mover entre paneles |
 | `Space + Flechas` | Resize de paneles |
+
+### File Explorer (oil.nvim)
+
+| Tecla | Accion |
+|---|---|
+| `-` | Abrir explorador de archivos (directorio actual) |
+| `-` (dentro de oil) | Subir un directorio |
+| `Enter` | Abrir archivo/directorio |
+| `q` | Cerrar |
+| (editar nombres) | Renombrar/mover archivos como texto, guardar para aplicar |
+
+### Which-Key
+
+| Tecla | Accion |
+|---|---|
+| `Space` (esperar) | Muestra popup con todos los keybindings disponibles |
+| `Space g` (esperar) | Muestra grupo git |
+| `Space b` (esperar) | Muestra grupo buffers |
+| `Space c` (esperar) | Muestra grupo code |
 
 ### Edicion
 
@@ -298,6 +367,47 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 | `?` | Ayuda completa |
 
 ---
+
+## Monitoreo y Diagnostico
+
+| Comando | Accion |
+|---|---|
+| `btop` (o `top`) | Monitor de sistema completo (CPU, RAM, disco, red) |
+| `dust` (o `du`) | Uso de disco visual por directorio |
+| `dust -r` | Disco en orden inverso (mas grande primero) |
+| `dust -d 2 /var` | Solo 2 niveles de profundidad |
+
+## API y JSON
+
+| Comando | Accion |
+|---|---|
+| `curlie GET url` | curl con formato httpie (colores, headers limpios) |
+| `curlie POST url key=value` | POST con JSON automatico |
+| `curlie -v url` | Verbose con headers formateados |
+| `jless file.json` | Visor interactivo de JSON |
+| `kubectl get pod -o json \| jless` | Explorar output K8s interactivamente |
+| `jq '.items[].metadata.name' file.json` | Extraer campos de JSON |
+
+## Tmux Sessionizer
+
+| Comando | Accion |
+|---|---|
+| `t` | Selector fzf de proyectos en ~/projects y ~/go/src |
+| (seleccionar) | Crea sesion tmux con nombre del proyecto o re-attacha |
+| `tmux ls` | Listar sesiones activas |
+| `tmux a -t nombre` | Re-attach a sesion existente |
+| `Prefix + d` | Detach de sesion (vuelves a shell) |
+
+## SSH (ControlMaster activo)
+
+La primera conexion es normal. Las siguientes al mismo host son instantaneas (reutiliza socket).
+Las conexiones se mantienen vivas 10 min despues de desconectar.
+
+| Comando | Accion |
+|---|---|
+| `s` | Selector interactivo de hosts SSH |
+| `ssh -O check host` | Verificar si hay socket activo |
+| `ssh -O exit host` | Cerrar socket manualmente |
 
 ## Busqueda rapida (ripgrep + fd)
 

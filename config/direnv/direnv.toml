@@ -1,0 +1,16 @@
+# ==============================================================================
+# direnv config - Jorge Ochoa (kr0nicas)
+# ==============================================================================
+# Symlink: ~/.config/direnv/direnv.toml
+
+[global]
+# Carga .envrc silenciosamente (sin el banner cada vez)
+hide_env_diff = true
+
+[whitelist]
+# Directorios confiables donde direnv se activa sin pedir allow
+prefix = [
+  "~/projects",
+  "~/go/src",
+  "~/dotfiles",
+]

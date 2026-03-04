@@ -153,6 +153,51 @@ s() {
     [[ -n "$host" ]] && ssh "$host"
 }
 
+# Kubernetes
+alias k='kubectl'
+alias kgp='kubectl get pods'
+alias kgs='kubectl get svc'
+alias kgd='kubectl get deploy'
+alias kga='kubectl get all'
+alias kl='kubectl logs -f'
+alias ke='kubectl exec -it'
+alias kns='kubens'
+alias kctx='kubectx'
+
+# Terraform
+alias tf='terraform'
+alias tfi='terraform init'
+alias tfp='terraform plan'
+alias tfa='terraform apply'
+alias tfs='terraform state list'
+
+# Docker Compose
+alias dc='docker compose'
+alias dcu='docker compose up -d'
+alias dcd='docker compose down'
+alias dcl='docker compose logs -f'
+
+# Tools
+alias lg='lazygit'
+alias cheat='bat ~/dotfiles/CHEAT_CODES.md'
+alias top='btop'
+alias du='dust'
+
+# Tmux sessionizer: abre/crea sesion por proyecto con fzf
+t() {
+    local dir name
+    dir=$(find ~/projects ~/go/src -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
+        | fzf --prompt="tmux > " --height=40%)
+    [[ -z "$dir" ]] && return
+    name=$(basename "$dir" | tr '.' '_')
+    if tmux has-session -t="$name" 2>/dev/null; then
+        tmux attach -t "$name"
+    else
+        tmux new-session -d -s "$name" -c "$dir"
+        tmux attach -t "$name"
+    fi
+}
+
 if command -v nvim > /dev/null; then
     alias vim='nvim'
     alias vi='nvim'
