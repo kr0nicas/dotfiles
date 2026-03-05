@@ -174,13 +174,11 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     alias xclip='pbcopy'
 else
     pbcopy() {
-        local data
-        data=$(cat)
         if [[ -n "$DISPLAY" ]]; then
-            echo -n "$data" | xclip -selection clipboard
+            xclip -selection clipboard
         else
             # OSC 52: funciona sobre SSH en terminales modernas (iTerm2, WezTerm, kitty, etc.)
-            printf "\033]52;c;%s\a" "$(echo -n "$data" | base64)"
+            printf "\033]52;c;%s\a" "$(base64 | tr -d '\n')"
         fi
     }
 fi
