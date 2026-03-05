@@ -169,6 +169,22 @@ alias dcu='docker compose up -d'
 alias dcd='docker compose down'
 alias dcl='docker compose logs -f'
 
+# Clipboard cross-platform
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    alias xclip='pbcopy'
+else
+    pbcopy() {
+        local data
+        data=$(cat)
+        if [[ -n "$DISPLAY" ]]; then
+            echo -n "$data" | xclip -selection clipboard
+        else
+            # OSC 52: funciona sobre SSH en terminales modernas (iTerm2, WezTerm, kitty, etc.)
+            printf "\033]52;c;%s\a" "$(echo -n "$data" | base64)"
+        fi
+    }
+fi
+
 # Tools
 alias lg='lazygit'
 alias cheat='bat ~/dotfiles/CHEAT_CODES.md'
