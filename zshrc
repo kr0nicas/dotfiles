@@ -217,3 +217,6 @@ setopt SHARE_HISTORY
 if command -v zoxide > /dev/null; then
     eval "$(zoxide init zsh)"
 fi
+
+# Configuración local del host (no se sincroniza con dotfiles)
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
