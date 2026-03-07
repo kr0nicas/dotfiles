@@ -102,7 +102,7 @@ if [[ $IS_MAC -eq 1 ]]; then
             log "Instalando herramientas base con Homebrew..."
             if [[ $DRY_RUN -eq 0 ]]; then
                 brew install git zsh curl eza bat neovim gh fzf zoxide starship uv \
-                    ripgrep fd k9s kubectx stern lazygit direnv delta trivy || true
+                    ripgrep fd k9s kubectx stern lazygit direnv delta trivy zstd || true
             else
                 warn "DRY-RUN: brew install omitido"
             fi
@@ -114,7 +114,7 @@ else
     log "Actualizando apt e instalando paquetes base..."
     if [[ $DRY_RUN -eq 0 ]]; then
         sudo apt update -qq
-        sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop \
+        sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop zstd \
             zsh-autosuggestions zsh-syntax-highlighting 2>/dev/null || true
 
         # gh (GitHub CLI) — necesita su propio repo
@@ -504,7 +504,7 @@ section "Resumen de instalación"
 echo ""
 printf "  %-14s %-30s %s\n" "HERRAMIENTA" "RUTA" "ESTADO"
 printf "  %-14s %-30s %s\n" "──────────" "────────────────────────────" "──────"
-for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux nvim rg fd k9s kubectl helm stern kubectx lazygit direnv delta trivy tofu docker dust btop curlie jless jq yq; do
+for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux nvim rg fd k9s kubectl helm stern kubectx lazygit direnv delta trivy tofu docker dust btop curlie jless jq yq zstd; do
     path_t=$(command -v "$t" 2>/dev/null || echo "—")
     status=$([[ "$path_t" != "—" ]] && echo "✅" || echo "❌")
     printf "  %-14s %-30s %s\n" "$t" "$path_t" "$status"
