@@ -114,7 +114,8 @@ else
     log "Actualizando apt e instalando paquetes base..."
     if [[ $DRY_RUN -eq 0 ]]; then
         sudo apt update -qq
-        sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop 2>/dev/null || true
+        sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop \
+            zsh-autosuggestions zsh-syntax-highlighting 2>/dev/null || true
 
         # gh (GitHub CLI) — necesita su propio repo
         if ! command -v gh >/dev/null 2>&1; then

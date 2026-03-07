@@ -162,6 +162,24 @@ Config en `config/starship/starship.toml` con tema Catppuccin Mocha. Muestra:
 ~/.config/direnv/direnv.toml -> ~/dotfiles/config/direnv/direnv.toml
 ```
 
+## WSL — Instalar Nerd Fonts en Windows
+
+Los iconos del prompt (starship, eza) los renderiza el terminal de Windows, no WSL.
+Ejecuta esto **una sola vez** desde PowerShell como Administrador:
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force
+# Opcion A: desde PowerShell en Windows
+.\install-fonts-windows.ps1
+
+# Opcion B: directamente desde WSL
+powershell.exe -ExecutionPolicy Bypass -File "$(wslpath -w ~/dotfiles/install-fonts-windows.ps1)"
+```
+
+Luego configura la fuente en tu terminal:
+- **Windows Terminal**: `Ctrl+,` → perfil WSL → Appearance → Font face → `JetBrainsMono Nerd Font`
+- **VS Code**: `"terminal.integrated.fontFamily": "JetBrainsMono Nerd Font"`
+
 ## Post-instalacion
 
 ```bash

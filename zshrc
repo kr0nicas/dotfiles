@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # 2. DETECCIÓN DE ENTORNO & PATHS (ESTABILIDAD SRE)
 # ------------------------------------------------------------------------------
-typeset -gU path 
+typeset -gU path
 
 # Priorizamos binarios locales y de fzf para evitar el error "unknown option --zsh"
 path=(
@@ -11,6 +11,8 @@ path=(
     $path
 )
 export PATH
+
+export NVM_DIR="$HOME/.nvm"
 
 # Configuraciones específicas para macOS (Jorge Ochoa)
 if [[ "$OSTYPE" == "darwin"* ]]; then
