@@ -281,3 +281,8 @@ setopt AUTO_CD SHARE_HISTORY INC_APPEND_HISTORY NO_HUP
 [[ -s "$HOME/.autoenv/activate.sh" ]]                          && source "$HOME/.autoenv/activate.sh"
 [ -f "$HOME/.openclaw/completions/openclaw.zsh" ]              && source "$HOME/.openclaw/completions/openclaw.zsh" 2>/dev/null
 [ -s "$NVM_DIR/bash_completion" ]                              && \. "$NVM_DIR/bash_completion"
+
+# ------------------------------------------------------------------------------
+# 12. CONFIGURACIÓN LOCAL (no versionada, específica por máquina)
+# ------------------------------------------------------------------------------
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
