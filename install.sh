@@ -66,6 +66,14 @@ fi
 
 mkdir -p "$LOCAL_BIN"
 
+# Wrappers de scripts locales (config/bin/)
+for script in "$DOTFILES/config/bin/"*; do
+    [[ -f "$script" ]] || continue
+    name=$(basename "$script")
+    ln -sf "$script" "$LOCAL_BIN/$name"
+    chmod +x "$script"
+done
+
 # ------------------------------------------------------------------------------
 # 2. VERIFICACIÓN DE DEPENDENCIAS CRÍTICAS
 # ------------------------------------------------------------------------------
