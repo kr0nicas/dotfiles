@@ -185,6 +185,11 @@ else
     }
 fi
 
+# WSL
+if grep -qi microsoft /proc/version 2>/dev/null; then
+    alias expose-ports='powershell.exe -ExecutionPolicy Bypass -File C:\\Scripts\\wsl-portproxy.ps1'
+fi
+
 # Tools
 alias lg='lazygit'
 alias cheat='bat ~/dotfiles/CHEAT_CODES.md'
