@@ -37,6 +37,15 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         $HOME/google-cloud-sdk/bin
     )
     export PATH="/Users/jorgeochoa/.opencode/bin:$PATH"
+else
+    # Linux — Go toolchain en ~/.local/go (sin sudo)
+    export GOROOT="$HOME/.local/go"
+    export GOPATH="$HOME/go"
+    path=(
+        $GOROOT/bin
+        $GOPATH/bin
+        $path
+    )
 fi
 
 # ------------------------------------------------------------------------------
@@ -193,7 +202,7 @@ fi
 
 # WSL
 if grep -qi microsoft /proc/version 2>/dev/null; then
-    alias expose-ports='powershell.exe -ExecutionPolicy Bypass -File C:\\Scripts\\wsl-portproxy.ps1'
+    alias expose-ports='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -File C:\\Scripts\\wsl-portproxy.ps1'
 fi
 
 # Tools
@@ -247,3 +256,6 @@ fi
 
 # Configuración local del host (no se sincroniza con dotfiles)
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+
+# opencode
+export PATH=/home/kr0nicas/.opencode/bin:$PATH

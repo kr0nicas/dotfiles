@@ -1,12 +1,12 @@
 {
-  "model": "sonnet",
-  "effortLevel": "low",
-  "enabledPlugins": {
-    "gopls-lsp@claude-plugins-official": true
-  },
   "env": {
     "CLAUDE_CODE_AUTOCOMPACT_PCT_OVERRIDE": "80",
     "MAX_THINKING_TOKENS": "8000",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "16000"
-  }
+  },
+  "model": "sonnet",
+  "enabledPlugins": {
+    "gopls-lsp@claude-plugins-official": true
+  },
+  "effortLevel": "low"
 }
