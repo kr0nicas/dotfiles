@@ -259,3 +259,6 @@ fi
 
 # opencode
 export PATH=/home/kr0nicas/.opencode/bin:$PATH
+
+# OpenClaw Completion
+source "/home/kr0nicas/.openclaw/completions/openclaw.zsh"
