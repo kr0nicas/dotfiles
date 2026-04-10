@@ -257,8 +257,8 @@ fi
 # Configuración local del host (no se sincroniza con dotfiles)
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
-# opencode
-export PATH=/home/kr0nicas/.opencode/bin:$PATH
+# opencode (carga condicional para evitar errores en macOS)
+[[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
 
-# OpenClaw Completion
-source "/home/kr0nicas/.openclaw/completions/openclaw.zsh"
+# OpenClaw Completion (carga condicional)
+[[ -f "$HOME/.openclaw/completions/openclaw.zsh" ]] && source "$HOME/.openclaw/completions/openclaw.zsh"
