@@ -34,6 +34,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         $GOPATH/bin
         $HOME/.opencode/bin
         /opt/homebrew/bin
+        $HOME/google-cloud-sdk/bin
     )
     export PATH="/Users/jorgeochoa/.opencode/bin:$PATH"
 fi
@@ -62,15 +63,20 @@ gcloud() {
 gsutil() { gcloud "$@"; gsutil "$@" }
 bq() { gcloud "$@"; bq "$@" }
 
-nvm() {
-    unset -f nvm node npm npx
-    [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"
-    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-    nvm "$@"
-}
-node() { nvm >/dev/null; node "$@" }
-npm() { nvm >/dev/null; npm "$@" }
-npx() { nvm >/dev/null; npx "$@" }
+# NVM — solo se carga en shells interactivas para evitar errores de ZLE
+# en entornos no-interactivos (VS Code, tmux, scripts, Claude Code).
+# En shells no-interactivas solo se exporta el PATH para que `node` esté disponible.
+if [[ $- == *i* ]]; then
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+else
+    # En shells no-interactivas: carga nvm sin activar versión (evita errores ZLE),
+    # luego activa la versión default para que node/npm estén disponibles en scripts.
+    if [ -s "$NVM_DIR/nvm.sh" ]; then
+        \. "$NVM_DIR/nvm.sh" --no-use
+        nvm use default --silent 2>/dev/null
+    fi
+fi
 
 # ------------------------------------------------------------------------------
 # 5. PLUGINS & COMPLETIONS
