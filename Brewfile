@@ -60,6 +60,7 @@ brew "istioctl"
 brew "grpcurl"
 
 # --- Linters & formatters (nvim: nvim-lint + conform.nvim) ---
+brew "tree-sitter-cli"
 brew "shellcheck"
 brew "yamllint"
 brew "stylua"
