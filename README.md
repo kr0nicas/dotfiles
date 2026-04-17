@@ -42,6 +42,7 @@ Simulacion sin cambios:
 | **sd** | `sed` | Find & replace moderno |
 | **dust** | `du` | Analizador de disco visual |
 | **lazygit** | — | TUI interactiva para git |
+| **git-extras** | — | Comandos extra de git (summary, changelog, etc.) |
 | **btop** | `htop` | Monitor de sistema (CPU, RAM, disco, red) |
 | **curlie** | `curl` | HTTP client con formato legible |
 | **jless** | — | Visor interactivo de JSON |
@@ -86,12 +87,17 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**.
 | **stern** | Tail de logs multi-pod |
 | **kustomize** | Gestion de manifests K8s |
 | **istioctl** | CLI de Istio service mesh |
+| **kubectl-neat** | Limpia YAMLs de metadata generada |
+| **viddy** | `watch` moderno con diff visual |
+| **kubecolor** | Colorea output de kubectl |
 
 ### Seguridad
 
 | Herramienta | Descripcion |
 |---|---|
 | **trivy** | Scanner de vulnerabilidades (containers, IaC, repos) |
+| **tfsec** | Analisis estatico de Terraform (shift-left) |
+| **vault** | Gestor de secrets HashiCorp |
 | **sops** | Encriptacion de secrets en repos |
 | **age** | Encriptacion moderna (backend para sops) |
 | **pass** | Gestor de passwords con GPG |
@@ -101,9 +107,9 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**.
 | Lenguaje | Tooling |
 |---|---|
 | **Go** | `go` + `gopls` (LSP) + `gosec` |
-| **Python** | `uv` (gestor moderno) + `pyright` (LSP) |
-| **Java** | `openjdk` + `jenv` + `maven` + `gradle` |
-| **Node.js** | `nvm` (lazy-loaded) + LTS |
+| **Python** | `uv` (gestor moderno, reemplaza pip/pyenv/virtualenv) + `pyright` (LSP) |
+| **Java** | `openjdk@17` + `jenv` + `maven` + `gradle` |
+| **Node.js** | `fnm` (auto-detecta `.nvmrc`/`.node-version` por proyecto) + LTS |
 | **Lua** | `lua_ls` (LSP para config nvim) |
 
 ### Git

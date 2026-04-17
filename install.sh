@@ -15,7 +15,7 @@ set -euo pipefail
 # ------------------------------------------------------------------------------
 # VARIABLES GLOBALES
 # ------------------------------------------------------------------------------
-NVM_VERSION="v0.40.1"
+FNM_VERSION="1.38.1"
 FZF_VERSION="0.66.0"
 DOTFILES_DIR="$HOME/dotfiles"
 LOCAL_BIN="$HOME/.local/bin"
@@ -204,25 +204,26 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 4. NVM + NODE.JS LTS
+# 4. FNM + NODE.JS LTS
 # ------------------------------------------------------------------------------
-section "NVM $NVM_VERSION + Node.js LTS"
+section "fnm v$FNM_VERSION + Node.js LTS"
 
-export NVM_DIR="$HOME/.nvm"
-
-if [[ ! -d "$NVM_DIR" ]]; then
-    log "Instalando NVM $NVM_VERSION..."
+if ! command -v fnm >/dev/null 2>&1; then
+    log "Instalando fnm v$FNM_VERSION..."
     if [[ $DRY_RUN -eq 0 ]]; then
-        curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash
-        [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh"
-        nvm install --lts
-        nvm use --lts
-        ok "NVM + Node.js LTS instalados"
+        curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "$LOCAL_BIN" --skip-shell
+        export PATH="$LOCAL_BIN:$PATH"
+        eval "$(fnm env --shell bash)"
+        fnm install --lts && fnm use lts-latest
+        ok "fnm + Node.js LTS instalados"
     else
-        warn "DRY-RUN: NVM install omitido"
+        warn "DRY-RUN: fnm install omitido"
     fi
 else
-    ok "NVM ya instalado en $NVM_DIR"
+    ok "fnm ya instalado ($(fnm --version))"
+    if [[ $DRY_RUN -eq 0 ]]; then
+        fnm install --lts 2>/dev/null || true
+    fi
 fi
 
 # ------------------------------------------------------------------------------

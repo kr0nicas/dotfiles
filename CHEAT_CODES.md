@@ -22,7 +22,7 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 
 | Comando | Accion |
 |---|---|
-| `s` | Selector interactivo de hosts SSH (fzf) |
+| `sp` | Selector interactivo de hosts SSH (fzf) |
 | `ssh host-name` | Conectar directo por nombre del config |
 
 ### Git (aliases en zshrc)
@@ -36,6 +36,15 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 | `gl` | `git log --oneline --graph --all` |
 | `gcb` | Checkout de branch con fzf |
 | `dots` | Commit + push de ~/dotfiles |
+
+### Node.js (fnm)
+
+| Comando | Accion |
+|---|---|
+| `fnm install --lts` | Instalar Node.js LTS |
+| `fnm use 20` | Activar version especifica |
+| `fnm list` | Versiones instaladas |
+| `echo "20" > .node-version` | Pinear version del proyecto (auto-detectado) |
 
 ### Python
 
@@ -240,6 +249,20 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 | `kubens` | Listar/cambiar namespace |
 | `kubens -` | Volver al namespace anterior |
 
+### kubectl-neat
+
+| Comando | Accion |
+|---|---|
+| `kubectl get pod mipod -o yaml \| kubectl neat` | YAML limpio sin metadata generada |
+| `kubectl get deploy -o yaml \| kubectl neat` | Deployment sin ruido |
+
+### viddy (watch moderno)
+
+| Comando | Accion |
+|---|---|
+| `viddy kubectl get pods` | Watch con diff visual resaltado |
+| `viddy -n 2 kubectl get pods` | Refresco cada 2 segundos |
+
 ### stern (logs)
 
 | Comando | Accion |
@@ -325,6 +348,23 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 
 ## Seguridad
 
+### tfsec
+
+| Comando | Accion |
+|---|---|
+| `tfsec .` | Analisis estatico de Terraform en directorio actual |
+| `tfsec . --format json` | Output en JSON para CI |
+| `tfsec . --minimum-severity HIGH` | Solo severidad alta+ |
+
+### vault
+
+| Comando | Accion |
+|---|---|
+| `vault login` | Autenticarse |
+| `vault kv get secret/myapp` | Leer secret |
+| `vault kv put secret/myapp key=value` | Escribir secret |
+| `vault kv list secret/` | Listar secrets |
+
 ### trivy
 
 | Comando | Accion |
@@ -405,7 +445,7 @@ Las conexiones se mantienen vivas 10 min despues de desconectar.
 
 | Comando | Accion |
 |---|---|
-| `s` | Selector interactivo de hosts SSH |
+| `sp` | Selector interactivo de hosts SSH |
 | `ssh -O check host` | Verificar si hay socket activo |
 | `ssh -O exit host` | Cerrar socket manualmente |
 

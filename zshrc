@@ -12,12 +12,9 @@ path=(
 )
 export PATH
 
-export NVM_DIR="$HOME/.nvm"
-
 # Configuraciones específicas para macOS (Jorge Ochoa)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     export CLOUDSDK_PYTHON="python3"
-    export NVM_DIR="$HOME/.nvm"
     export ANDROID_HOME=$HOME/Library/Android/sdk
     export GOPATH=$HOME/go
     
@@ -72,19 +69,9 @@ gcloud() {
 gsutil() { gcloud "$@"; gsutil "$@" }
 bq() { gcloud "$@"; bq "$@" }
 
-# NVM — solo se carga en shells interactivas para evitar errores de ZLE
-# en entornos no-interactivos (VS Code, tmux, scripts, Claude Code).
-# En shells no-interactivas solo se exporta el PATH para que `node` esté disponible.
-if [[ $- == *i* ]]; then
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-else
-    # En shells no-interactivas: carga nvm sin activar versión (evita errores ZLE),
-    # luego activa la versión default para que node/npm estén disponibles en scripts.
-    if [ -s "$NVM_DIR/nvm.sh" ]; then
-        \. "$NVM_DIR/nvm.sh" --no-use
-        nvm use default --silent 2>/dev/null
-    fi
+# fnm — Node version manager (rápido, lee .nvmrc y .node-version por proyecto)
+if command -v fnm > /dev/null; then
+    eval "$(fnm env --use-on-cd --shell zsh)"
 fi
 
 # ------------------------------------------------------------------------------
