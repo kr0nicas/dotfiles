@@ -4,8 +4,6 @@
 
 # --- Taps ---
 tap "hashicorp/tap"
-tap "homebrew/bundle"
-tap "homebrew/services"
 
 # --- Core CLI ---
 brew "git"
@@ -60,6 +58,13 @@ brew "kubectx"
 brew "stern"
 brew "istioctl"
 brew "grpcurl"
+
+# --- Linters & formatters (nvim: nvim-lint + conform.nvim) ---
+brew "shellcheck"
+brew "yamllint"
+brew "stylua"
+brew "tflint"
+brew "black"
 
 # --- Security ---
 brew "trivy"

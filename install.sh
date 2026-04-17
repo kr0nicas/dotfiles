@@ -67,7 +67,7 @@ fi
 mkdir -p "$LOCAL_BIN"
 
 # Wrappers de scripts locales (config/bin/)
-for script in "$DOTFILES/config/bin/"*; do
+for script in "$DOTFILES_DIR/config/bin/"*; do
     [[ -f "$script" ]] || continue
     name=$(basename "$script")
     ln -sf "$script" "$LOCAL_BIN/$name"
@@ -96,9 +96,12 @@ check_deps
 section "Herramientas Base"
 
 if [[ $IS_MAC -eq 1 ]]; then
-    # Verificar licencia Xcode
-    if ! xcodebuild -license check &>/dev/null 2>&1; then
-        err "Licencia de Xcode no aceptada. Ejecuta: sudo xcodebuild -license accept"
+    # Verificar licencia Xcode (solo si Xcode.app está instalado; con solo CLT no aplica)
+    XCODE_PATH=$(xcode-select -p 2>/dev/null || echo "")
+    if [[ "$XCODE_PATH" == *"Xcode.app"* ]]; then
+        if ! xcodebuild -license check &>/dev/null; then
+            err "Licencia de Xcode no aceptada. Ejecuta: sudo xcodebuild -license accept"
+        fi
     fi
 
     if command -v brew >/dev/null 2>&1; then

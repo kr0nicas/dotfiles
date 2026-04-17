@@ -9,7 +9,7 @@ return {
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "mason.nvim" },
     opts = function()
-      local is_mac = vim.loop.os_uname().sysname == "Darwin"
+      local is_mac = vim.uv.os_uname().sysname == "Darwin"
       local servers = {
         "pyright", "lua_ls", "yamlls", "jsonls",
         "bashls", "dockerls", "ts_ls", "ansiblels",
@@ -47,7 +47,7 @@ return {
       })
 
       -- Habilitar servidores según OS
-      local is_mac = vim.loop.os_uname().sysname == "Darwin"
+      local is_mac = vim.uv.os_uname().sysname == "Darwin"
       local servers = {
         "pyright", "lua_ls", "yamlls", "jsonls",
         "bashls", "dockerls", "ts_ls", "ansiblels",
