@@ -192,6 +192,12 @@ if grep -qi microsoft /proc/version 2>/dev/null; then
     alias expose-ports='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -File C:\\Scripts\\wsl-portproxy.ps1'
 fi
 
+# GCP: cambiar entre configuraciones/cuentas
+alias gcpers='gcloud config configurations activate personal && echo "→ personal (ochoa.j@gmail.com)"'
+alias gcit='gcloud config configurations activate itproject && echo "→ ITProject (jorge.ochoa@itproject41.com)"'
+alias gcfact='gcloud config configurations activate facturaya && echo "→ Facturaya (administrator@facturayasv.com)"'
+alias gcwho='gcloud config list --format="value(core.account,core.project)" 2>/dev/null | paste - - | column -t'
+
 # Tools
 alias lg='lazygit'
 alias cheat='bat ~/dotfiles/CHEAT_CODES.md'
