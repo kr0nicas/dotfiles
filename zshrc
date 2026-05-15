@@ -32,6 +32,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         $HOME/.opencode/bin
         /opt/homebrew/bin
         $HOME/google-cloud-sdk/bin
+        /usr/local/share/google-cloud-sdk/bin
     )
     export PATH="/Users/jorgeochoa/.opencode/bin:$PATH"
 else

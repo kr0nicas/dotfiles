@@ -1,2 +1,5 @@
 # Neovim
 config/nvim/lazy-lock.json
+
+# Claude Code worktrees (artefactos temporales, nunca al repo)
+.claude/

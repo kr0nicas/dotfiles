@@ -28,5 +28,6 @@
       }
     }
   },
-  "effortLevel": "low"
+  "effortLevel": "low",
+  "theme": "dark"
 }

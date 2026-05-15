@@ -23,4 +23,7 @@
     br = branch
     cm = commit
 [credential]
-	helper = osxkeychain
+    helper = cache --timeout=3600
+
+[includeIf "gitdir/i:/Users/"]
+    path = ~/.gitconfig.macos
