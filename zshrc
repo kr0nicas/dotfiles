@@ -73,6 +73,9 @@ bq() { gcloud "$@"; bq "$@" }
 # fnm — Node version manager (rápido, lee .nvmrc y .node-version por proyecto)
 if command -v fnm > /dev/null; then
     eval "$(fnm env --use-on-cd --shell zsh)"
+    # fnm antepone su shim al PATH. Re-anteponemos ~/.local/bin para que binarios
+    # standalone (claude, etc.) ganen sobre cualquier global de npm en un node version.
+    path=( $HOME/.local/bin $path )
 fi
 
 # ------------------------------------------------------------------------------
