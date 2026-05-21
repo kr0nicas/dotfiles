@@ -7,7 +7,7 @@
   "model": "sonnet",
   "statusLine": {
     "type": "command",
-    "command": "bash /Users/jorgeochoa/.claude/statusline-command.sh"
+    "command": "bash ~/.claude/statusline.sh"
   },
   "enabledPlugins": {
     "gopls-lsp@claude-plugins-official": true,

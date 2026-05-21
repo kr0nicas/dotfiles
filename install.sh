@@ -503,6 +503,7 @@ safe_link "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.
 if [[ -f "$DOTFILES_DIR/config/claude/settings.json" ]]; then
     mkdir -p "$HOME/.claude"
     safe_link "$DOTFILES_DIR/config/claude/settings.json" "$HOME/.claude/settings.json"
+    safe_link "$DOTFILES_DIR/config/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
 fi
 
 # direnv config directory

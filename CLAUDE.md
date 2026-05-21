@@ -47,6 +47,7 @@ All config lives in `~/dotfiles/` and is symlinked into place:
 ~/.config/starship.toml     -> ~/dotfiles/config/starship/starship.toml
 ~/.config/direnv/direnv.toml -> ~/dotfiles/config/direnv/direnv.toml
 ~/.claude/settings.json     -> ~/dotfiles/config/claude/settings.json
+~/.claude/statusline.sh     -> ~/dotfiles/config/claude/statusline.sh
 ```
 
 ### zshrc load order
