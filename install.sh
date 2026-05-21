@@ -515,8 +515,33 @@ fi
 
 # WezTerm config
 if [[ -f "$DOTFILES_DIR/config/wezterm/wezterm.lua" ]]; then
-    mkdir -p "$HOME/.config/wezterm"
-    safe_link "$DOTFILES_DIR/config/wezterm/wezterm.lua" "$HOME/.config/wezterm/wezterm.lua"
+    if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+        # WSL2: el symlink debe vivir en el lado Windows (~/.config/wezterm/)
+        # WezTerm corre como app Windows y no ve el filesystem de WSL directamente
+        WIN_HOME=$(cmd.exe /c "echo %USERPROFILE%" 2>/dev/null | tr -d '\r\n')
+        WIN_CONFIG="$WIN_HOME\\.config\\wezterm"
+        WIN_SRC=$(wslpath -w "$DOTFILES_DIR/config/wezterm/wezterm.lua")
+        WIN_DEST="$WIN_CONFIG\\wezterm.lua"
+
+        if [[ -n "$WIN_HOME" ]] && [[ $DRY_RUN -eq 0 ]]; then
+            powershell.exe -NoProfile -Command "
+                \$dest = '$WIN_DEST'
+                \$src  = '$WIN_SRC'
+                New-Item -ItemType Directory -Force -Path (Split-Path \$dest) | Out-Null
+                if (Test-Path \$dest) { Remove-Item \$dest -Force }
+                New-Item -ItemType SymbolicLink -Path \$dest -Target \$src | Out-Null
+                Write-Host 'Linked (Windows): ' + \$dest
+            " 2>/dev/null \
+            && ok "Linked (Windows): $WIN_DEST → $WIN_SRC" \
+            || warn "Symlink Windows requiere Modo Desarrollador o PowerShell como Admin — copia manual: cp $DOTFILES_DIR/config/wezterm/wezterm.lua $(wslpath "$WIN_HOME")/.config/wezterm/wezterm.lua"
+        elif [[ $DRY_RUN -eq 1 ]]; then
+            warn "DRY-RUN: New-Item SymbolicLink $WIN_DEST → $WIN_SRC"
+        fi
+    else
+        # macOS / Linux nativo
+        mkdir -p "$HOME/.config/wezterm"
+        safe_link "$DOTFILES_DIR/config/wezterm/wezterm.lua" "$HOME/.config/wezterm/wezterm.lua"
+    fi
 fi
 
 # direnv config directory
