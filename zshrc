@@ -153,6 +153,74 @@ ssh-pick() {
 }
 alias sp='ssh-pick'
 
+# SSH Color wrapper — cambia el fondo del terminal según el servidor
+# Compatible con iTerm2 (OSC 1337) y terminales estándar (OSC 11)
+ssh() {
+    # Extraer hostname (último argumento no-flag)
+    local host=""
+    for arg in "$@"; do
+        [[ "$arg" != -* ]] && host="$arg"
+    done
+
+    # Leer mapa de colores desde dotfiles (o ~/.ssh/colors.conf como override local)
+    local color_conf=""
+    for f in "$HOME/.ssh/colors.conf" "$HOME/dotfiles/config/ssh/colors.conf"; do
+        [[ -f "$f" ]] && color_conf="$f" && break
+    done
+
+    local bg="" label="" emoji=""
+    if [[ -n "$color_conf" && -n "$host" ]]; then
+        while IFS='|' read -r pattern bg_val lbl emj || [[ -n "$pattern" ]]; do
+            [[ "$pattern" =~ ^#.*$ || -z "$pattern" ]] && continue
+            if [[ "${host:l}" == *"${pattern:l}"* ]]; then
+                bg="$bg_val" label="$lbl" emoji="$emj"
+                break
+            fi
+        done < "$color_conf"
+    fi
+
+    # Función interna: cambiar background (iTerm2 + xterm estándar)
+    _ssh_set_bg() {
+        local hex="$1"
+        if [[ -n "$TMUX" ]]; then
+            # En tmux hay que envolver el escape con DCS passthrough
+            printf '\033Ptmux;\033\033]1337;SetColors=bg=%s\007\033\\' "$hex"
+            printf '\033Ptmux;\033\033]11;#%s\007\033\\' "$hex"
+        else
+            printf '\033]1337;SetColors=bg=%s\007' "$hex"   # iTerm2
+            printf '\033]11;#%s\007' "$hex"                 # xterm estándar
+        fi
+    }
+
+    # Restaurar fondo original al salir (Catppuccin Mocha base: #1e1e2e)
+    _ssh_reset_bg() {
+        if [[ -n "$TMUX" ]]; then
+            printf '\033Ptmux;\033\033]1337;SetColors=bg=1e1e2e\007\033\\'
+            printf '\033Ptmux;\033\033]11;#1e1e2e\007\033\\'
+        else
+            printf '\033]1337;SetColors=bg=1e1e2e\007'
+            printf '\033]11;#1e1e2e\007'
+        fi
+    }
+
+    # Aplicar color y mostrar banner si hay coincidencia
+    if [[ -n "$bg" ]]; then
+        _ssh_set_bg "$bg"
+        echo ""
+        echo "  ${emoji} ${label} → ${host}"
+        echo "  ─────────────────────────────"
+    fi
+
+    # Conectar
+    command ssh "$@"
+    local exit_code=$?
+
+    # Restaurar siempre al salir
+    [[ -n "$bg" ]] && _ssh_reset_bg
+
+    return $exit_code
+}
+
 # Kubernetes
 alias k='kubectl'
 alias kgp='kubectl get pods'

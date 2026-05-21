@@ -499,6 +499,13 @@ safe_link "$DOTFILES_DIR/tmux.conf"                     "$HOME/.tmux.conf"
 safe_link "$DOTFILES_DIR/.gitconfig"                    "$HOME/.gitconfig"
 safe_link "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml"
 
+# SSH color map (override local posible: ~/.ssh/colors.conf, sin symlink)
+if [[ -f "$DOTFILES_DIR/config/ssh/colors.conf" ]]; then
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
+    safe_link "$DOTFILES_DIR/config/ssh/colors.conf" "$HOME/.ssh/colors.conf"
+fi
+
 # Claude Code settings
 if [[ -f "$DOTFILES_DIR/config/claude/settings.json" ]]; then
     mkdir -p "$HOME/.claude"
