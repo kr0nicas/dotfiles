@@ -1,26 +1,12 @@
 {
   "env": {
-    "CLAUDE_CODE_AUTOCOMPACT_PCT_OVERRIDE": "80",
-    "MAX_THINKING_TOKENS": "8000",
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "16000"
+    "CLAUDE_CODE_AUTOCOMPACT_PCT_OVERRIDE": "80"
   },
-  "model": "sonnet",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline.sh"
   },
-  "enabledPlugins": {
-    "gopls-lsp@claude-plugins-official": true,
-    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
-    "frontend-design@claude-plugins-official": true
-  },
   "extraKnownMarketplaces": {
-    "code-review-graph": {
-      "source": {
-        "source": "github",
-        "repo": "tirth8205/code-review-graph"
-      }
-    },
     "ui-ux-pro-max-skill": {
       "source": {
         "source": "github",
@@ -28,6 +14,6 @@
       }
     }
   },
-  "effortLevel": "low",
-  "theme": "dark"
+  "theme": "dark",
+  "autoUpdatesChannel": "stable"
 }

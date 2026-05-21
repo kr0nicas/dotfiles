@@ -3,3 +3,6 @@ config/nvim/lazy-lock.json
 
 # Claude Code worktrees (artefactos temporales, nunca al repo)
 .claude/
+
+# Claude Code overrides locales por máquina (usar .example como plantilla)
+config/claude/settings.local.json

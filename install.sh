@@ -506,11 +506,21 @@ if [[ -f "$DOTFILES_DIR/config/ssh/colors.conf" ]]; then
     safe_link "$DOTFILES_DIR/config/ssh/colors.conf" "$HOME/.ssh/colors.conf"
 fi
 
-# Claude Code settings
+# Claude Code settings + statusline
 if [[ -f "$DOTFILES_DIR/config/claude/settings.json" ]]; then
     mkdir -p "$HOME/.claude"
     safe_link "$DOTFILES_DIR/config/claude/settings.json" "$HOME/.claude/settings.json"
     safe_link "$DOTFILES_DIR/config/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
+
+    # settings.local.json: overrides por máquina (no versionado). Sembrar desde example si falta.
+    if [[ ! -e "$HOME/.claude/settings.local.json" ]]; then
+        if [[ $DRY_RUN -eq 0 ]]; then
+            cp "$DOTFILES_DIR/config/claude/settings.local.json.example" "$HOME/.claude/settings.local.json"
+            ok "Sembrado: ~/.claude/settings.local.json (edítalo para overrides locales)"
+        else
+            warn "DRY-RUN: sembraría ~/.claude/settings.local.json"
+        fi
+    fi
 fi
 
 # WezTerm config
