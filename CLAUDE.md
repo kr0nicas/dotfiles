@@ -48,6 +48,8 @@ All config lives in `~/dotfiles/` and is symlinked into place:
 ~/.config/direnv/direnv.toml -> ~/dotfiles/config/direnv/direnv.toml
 ~/.claude/settings.json     -> ~/dotfiles/config/claude/settings.json
 ~/.claude/statusline.sh     -> ~/dotfiles/config/claude/statusline.sh
+~/.config/wezterm/wezterm.lua -> ~/dotfiles/config/wezterm/wezterm.lua
+~/.ssh/colors.conf          -> ~/dotfiles/config/ssh/colors.conf
 ```
 
 ### zshrc load order

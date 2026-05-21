@@ -513,6 +513,12 @@ if [[ -f "$DOTFILES_DIR/config/claude/settings.json" ]]; then
     safe_link "$DOTFILES_DIR/config/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
 fi
 
+# WezTerm config
+if [[ -f "$DOTFILES_DIR/config/wezterm/wezterm.lua" ]]; then
+    mkdir -p "$HOME/.config/wezterm"
+    safe_link "$DOTFILES_DIR/config/wezterm/wezterm.lua" "$HOME/.config/wezterm/wezterm.lua"
+fi
+
 # direnv config directory
 if [[ -d "$DOTFILES_DIR/config/direnv" ]]; then
     mkdir -p "$HOME/.config/direnv"

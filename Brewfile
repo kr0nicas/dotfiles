@@ -105,6 +105,7 @@ cask "spotify"
 cask "ngrok"
 cask "postman"
 cask "iterm2"
+cask "wezterm"
 
 # --- VS Code Extensions ---
 vscode "anthropic.claude-code"
