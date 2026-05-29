@@ -1,10 +1,45 @@
-# Dotfiles SRE 2026 - Jorge Ochoa (kr0nicas)
+<div align="center">
 
-Entorno de terminal reproducible para **macOS** (Apple Silicon / Intel) y **Debian/Ubuntu** (VPS, GCP, AWS).
+# ⚡ Dotfiles SRE 2026
 
-Un solo comando configura: shell, editor, git, herramientas cloud, Kubernetes y mas.
+**Cross-platform dotfiles para SRE** — un solo `./install.sh` configura todo tu entorno.
 
-## Instalacion
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-blue?style=flat-square)](#)
+[![Shell](https://img.shields.io/badge/shell-zsh-89e051?style=flat-square&logo=gnu-bash&logoColor=white)](#)
+[![Editor](https://img.shields.io/badge/editor-Neovim-57A143?style=flat-square&logo=neovim&logoColor=white)](#)
+[![Theme](https://img.shields.io/badge/theme-Catppuccin%20Mocha-cba6f7?style=flat-square)](#)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/kr0nicas/dotfiles?style=flat-square&color=fab387)](https://github.com/kr0nicas/dotfiles/commits/main)
+[![Stars](https://img.shields.io/github/stars/kr0nicas/dotfiles?style=flat-square&color=f9e2af)](https://github.com/kr0nicas/dotfiles/stargazers)
+
+</div>
+
+---
+
+## 📑 Tabla de contenidos
+
+- [⚡ Quickstart](#-quickstart)
+- [✨ Highlights](#-highlights)
+- [🐚 Shell y terminal](#-shell-y-terminal)
+- [🦀 CLIs modernas (Rust-powered)](#-clis-modernas-rust-powered)
+- [📝 Editor — Neovim](#-editor--neovim)
+- [☁️ Cloud e infraestructura](#️-cloud-e-infraestructura)
+- [☸️ Kubernetes](#️-kubernetes)
+- [🔐 Seguridad](#-seguridad)
+- [💻 Lenguajes](#-lenguajes)
+- [🎨 Prompt — Starship](#-prompt--starship)
+- [🌐 SSH](#-ssh)
+- [🖥️ WezTerm](#️-wezterm)
+- [🤖 Claude Code](#-claude-code)
+- [🔧 Git](#-git)
+- [🗂️ Estructura de archivos](#️-estructura-de-archivos)
+- [🔗 Symlinks creados](#-symlinks-creados)
+- [🪟 WSL — Nerd Fonts en Windows](#-wsl--nerd-fonts-en-windows)
+- [🔄 Post-instalacion y actualizacion](#-post-instalacion-y-actualizacion)
+
+---
+
+## ⚡ Quickstart
 
 ```bash
 git clone https://github.com/kr0nicas/dotfiles.git ~/dotfiles
@@ -17,9 +52,20 @@ Simulacion sin cambios:
 ./install.sh --dry-run
 ```
 
-## Que incluye
+Soportado en **macOS** (Apple Silicon / Intel) y **Debian/Ubuntu** (VPS, GCP, AWS).
 
-### Shell y Terminal
+---
+
+## ✨ Highlights
+
+- 🌍 **Cross-platform real** — un solo `install.sh` distingue macOS (Brewfile) vs Linux (apt + binarios de GitHub releases, sin sudo).
+- 🦀 **Stack 2026** — CLIs Rust modernas (`eza`, `bat`, `rg`, `fd`, `delta`), Neovim 0.11+ con API nueva de LSP, `fnm` + `uv` para gestion de runtimes.
+- ☸️ **SRE-ready** — Kubernetes, Terraform, AWS/GCP/Azure CLIs, Vault, Trivy, tfsec — listo para clusters de produccion.
+- 🎨 **Identidad visual coherente** — Catppuccin Mocha en nvim/tmux/starship/delta + colores de fondo SSH por entorno (prod en rojo, staging en naranja...) para evitar accidentes en produccion.
+
+---
+
+## 🐚 Shell y terminal
 
 | Herramienta | Descripcion |
 |---|---|
@@ -28,9 +74,11 @@ Simulacion sin cambios:
 | **tmux** | Multiplexor de terminal con TPM (plugin manager) |
 | **fzf** | Fuzzy finder para archivos, historial y branches |
 | **zoxide** | `cd` inteligente que aprende tus directorios frecuentes |
-| **direnv** | Variables de entorno automaticas por directorio (.envrc) |
+| **direnv** | Variables de entorno automaticas por directorio (`.envrc`) |
 
-### CLI Modernas (Rust-powered)
+---
+
+## 🦀 CLIs modernas (Rust-powered)
 
 | Herramienta | Reemplaza | Descripcion |
 |---|---|---|
@@ -47,9 +95,11 @@ Simulacion sin cambios:
 | **curlie** | `curl` | HTTP client con formato legible |
 | **jless** | — | Visor interactivo de JSON |
 
-### Editor: Neovim
+---
 
-Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**.
+## 📝 Editor — Neovim
+
+Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**. Leader key: `<Space>`.
 
 | Plugin | Funcion |
 |---|---|
@@ -58,16 +108,20 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**.
 | **mason.nvim** | Gestion automatica de LSP servers |
 | **nvim-lspconfig** | Go, Python, Lua, YAML, JSON, Bash, Terraform, Docker, TypeScript, Ansible |
 | **nvim-cmp** | Autocompletado con LSP, snippets, buffer y path |
-| **which-key.nvim** | Popup de keybindings al presionar Space |
+| **which-key.nvim** | Popup de keybindings al presionar `<Space>` |
 | **oil.nvim** | File explorer como buffer (abrir con `-`) |
-| **conform.nvim** | Formateo al guardar (black, goimports, jq, terraform fmt) |
+| **conform.nvim** | Formateo al guardar (black, goimports, jq, terraform fmt, stylua) |
 | **nvim-lint** | Linting asincrono (flake8, yamllint, shellcheck, tflint) |
 | **gitsigns.nvim** | Signos de cambios git en el gutter |
 | **vim-fugitive** | Comandos git dentro del editor |
 | **lualine.nvim** | Statusline con branch, diagnosticos, encoding |
 | **mini.nvim** | Pairs, surround, comment |
 
-### Cloud e Infraestructura
+**LSP bindings principales** (activos en `LspAttach`): `gd` definicion · `gr` referencias · `K` hover · `<Leader>ca` code action · `<Leader>rn` rename.
+
+---
+
+## ☁️ Cloud e infraestructura
 
 | Herramienta | Descripcion |
 |---|---|
@@ -76,14 +130,16 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**.
 | **azure-cli** | CLI de Microsoft Azure |
 | **gcloud** | CLI de Google Cloud (lazy-loaded en zshrc) |
 
-### Kubernetes
+---
+
+## ☸️ Kubernetes
 
 | Herramienta | Descripcion |
 |---|---|
 | **kubectl** | CLI oficial de Kubernetes |
 | **helm** | Package manager para K8s |
 | **k9s** | TUI para gestionar clusters en tiempo real |
-| **kubectx/kubens** | Cambio rapido de contexto y namespace |
+| **kubectx / kubens** | Cambio rapido de contexto y namespace |
 | **stern** | Tail de logs multi-pod |
 | **kustomize** | Gestion de manifests K8s |
 | **istioctl** | CLI de Istio service mesh |
@@ -91,7 +147,9 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**.
 | **viddy** | `watch` moderno con diff visual |
 | **kubecolor** | Colorea output de kubectl |
 
-### Seguridad
+---
+
+## 🔐 Seguridad
 
 | Herramienta | Descripcion |
 |---|---|
@@ -102,7 +160,9 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**.
 | **age** | Encriptacion moderna (backend para sops) |
 | **pass** | Gestor de passwords con GPG |
 
-### Lenguajes
+---
+
+## 💻 Lenguajes
 
 | Lenguaje | Tooling |
 |---|---|
@@ -112,101 +172,122 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**.
 | **Node.js** | `fnm` (auto-detecta `.nvmrc`/`.node-version` por proyecto) + LTS |
 | **Lua** | `lua_ls` (LSP para config nvim) |
 
-### Git
+---
 
-Config en `.gitconfig` con:
-- Editor: nvim
-- Pager: delta (side-by-side, line numbers, tema Catppuccin)
-- Merge conflicts: zdiff3
-- Aliases: `st`, `co`, `br`, `cm`
-
-### SSH
-
-Selector interactivo de hosts con `s` (usa fzf + `~/.ssh/config`).
-ControlMaster activo: reutiliza conexiones (segundo ssh es instantaneo, keepalive cada 60s).
-
-**Colores de fondo por entorno** (`config/ssh/colors.conf`): al hacer `ssh prod-*`, `staging-*`, `gcp-*`, etc. la terminal cambia de color para identificar visualmente el contexto y evitar accidentes en produccion. Patrones editables; override local en `~/.ssh/colors.conf` (no symlinked).
-
-### Terminal: WezTerm
-
-Config cross-platform en `config/wezterm/wezterm.lua` (macOS + WSL2 Windows). Tema Catppuccin Mocha, fuente JetBrainsMono Nerd Font.
-En WSL2 el symlink se crea automaticamente en `%USERPROFILE%\.config\wezterm\` (requiere Modo Desarrollador o PowerShell admin).
-
-### Claude Code
-
-- `config/claude/settings.json` — symlinked a `~/.claude/settings.json`. Statusline custom, plugins habilitados (superpowers, frontend-design, code-review), marketplaces extra.
-- `config/claude/statusline.sh` — statusline portable (Mac + Linux + WSL).
-- `config/claude/settings.local.json.example` — plantilla para overrides locales por maquina (no commiteado, sembrado en primer install).
-- `install.sh` ancla `claude` al build nativo (`~/.local/bin/claude`) para evitar que fnm/npm rompa el PATH al cambiar de version de Node.
-
-### Scripts locales
-
-`config/bin/` se enlaza a `~/.local/bin/`:
-- `cn` — wrapper de `@continuedev/cli` que localiza el node de fnm/nvm sin requerir que el version manager este cargado en el shell actual.
-
-### Tmux Sessionizer
-
-`t` abre un selector fzf de proyectos (`~/projects`, `~/go/src`) y crea/attacha sesion tmux.
-
-### Prompt: Starship
+## 🎨 Prompt — Starship
 
 Config en `config/starship/starship.toml` con tema Catppuccin Mocha. Muestra:
+
 - OS icon, directorio, git branch/status
 - Kubernetes context/namespace, GCloud project
 - Node.js, Go, Python, Rust (solo si hay archivos relevantes)
 - Tiempo de ejecucion (>2s), RAM (>60%), hora
 
-## Estructura de archivos
+---
+
+## 🌐 SSH
+
+- 🔍 Selector interactivo de hosts con `s` (usa fzf + `~/.ssh/config`).
+- ⚡ ControlMaster activo: reutiliza conexiones (segundo ssh es instantaneo, keepalive cada 60s).
+- 🎨 **Colores de fondo por entorno** (`config/ssh/colors.conf`): al hacer `ssh prod-*`, `staging-*`, `gcp-*`, etc. la terminal cambia de color para identificar el contexto visualmente y evitar accidentes en produccion. Patrones editables; override local en `~/.ssh/colors.conf` (sin symlink).
+
+Mapeo por defecto:
+
+| Patron | Color | Etiqueta |
+|---|---|---|
+| `prod`, `prd` | 🔴 Rojo | PRODUCCION |
+| `staging`, `stg` | 🟠 Naranja | STAGING |
+| `qa` | 🟡 Amarillo | QA |
+| `dev`, `gcp` | 🔵 Azul | DESARROLLO / GCP |
+| `aws` | 🟢 Verde | AWS |
+| `vps` | 🟣 Morado | VPS |
+| `bastion` | ⚡ Magenta | BASTION |
+
+---
+
+## 🖥️ WezTerm
+
+Config cross-platform en `config/wezterm/wezterm.lua` (macOS + WSL2 Windows). Tema Catppuccin Mocha, fuente JetBrainsMono Nerd Font.
+En WSL2 el symlink se crea automaticamente en `%USERPROFILE%\.config\wezterm\` (requiere Modo Desarrollador o PowerShell admin).
+
+---
+
+## 🤖 Claude Code
+
+- `config/claude/settings.json` → symlinked a `~/.claude/settings.json`. Statusline custom, plugins habilitados (superpowers, frontend-design, code-review), marketplaces extra.
+- `config/claude/statusline.sh` → statusline portable (Mac + Linux + WSL).
+- `config/claude/settings.local.json.example` → plantilla para overrides locales por maquina (no commiteada, sembrada en primer install).
+- `install.sh` ancla `claude` al build nativo (`~/.local/bin/claude`) para evitar que fnm/npm rompa el `PATH` al cambiar de version de Node.
+
+---
+
+## 🔧 Git
+
+Config en `.gitconfig` con:
+
+- Editor: nvim
+- Pager: delta (side-by-side, line numbers, tema Catppuccin)
+- Merge conflicts: zdiff3
+- Aliases: `st`, `co`, `br`, `cm`
+
+---
+
+## 🗂️ Estructura de archivos
 
 ```
 ~/dotfiles/
-  install.sh                  # Instalador cross-platform
-  Brewfile                    # Paquetes macOS (brew bundle)
-  zshrc                       # Config de zsh
-  tmux.conf                   # Config de tmux
-  .gitconfig                  # Config de git + delta
-  install-fonts-windows.ps1   # Nerd Fonts para WSL/Windows
-  get-docker.sh               # Helper instalacion Docker
-  vimrc                       # Fallback vim (sin nvim)
-  CHEAT_CODES.md, VIM_GUIA.md # Notas personales
-  config/
-    nvim/                     # Config Neovim (Lua)
-      init.lua
-      lua/config/             # options, keymaps, autocmds, lazy bootstrap
-      lua/plugins/            # colorscheme, treesitter, telescope, lsp, git, editor, ui, which-key, oil
-    starship/
-      starship.toml           # Config del prompt
-    direnv/
-      direnv.toml             # Whitelist de directorios confiables
-    claude/
-      settings.json           # Config Claude Code (statusline, plugins)
-      statusline.sh           # Statusline portable Mac/Linux/WSL
-      settings.local.json.example  # Plantilla overrides locales
-    wezterm/
-      wezterm.lua             # Config terminal Mac + WSL2
-    ssh/
-      colors.conf             # Color de fondo por entorno SSH
-    bin/
-      cn                      # Wrapper de @continuedev/cli
+├── install.sh                   # Instalador cross-platform
+├── Brewfile                     # Paquetes macOS (brew bundle)
+├── zshrc                        # Config de zsh
+├── tmux.conf                    # Config de tmux
+├── .gitconfig                   # Config de git + delta
+├── install-fonts-windows.ps1    # Nerd Fonts para WSL/Windows
+├── get-docker.sh                # Helper instalacion Docker
+├── vimrc                        # Fallback vim (sin nvim)
+├── CHEAT_CODES.md, VIM_GUIA.md  # Notas personales
+└── config/
+    ├── nvim/                    # Config Neovim (Lua)
+    │   ├── init.lua
+    │   └── lua/
+    │       ├── config/          # options, keymaps, autocmds, lazy bootstrap
+    │       └── plugins/         # colorscheme, treesitter, telescope, lsp, git, editor, ui, which-key, oil
+    ├── starship/
+    │   └── starship.toml        # Config del prompt
+    ├── direnv/
+    │   └── direnv.toml          # Whitelist de directorios confiables
+    ├── claude/
+    │   ├── settings.json        # Config Claude Code (statusline, plugins)
+    │   ├── statusline.sh        # Statusline portable Mac/Linux/WSL
+    │   └── settings.local.json.example   # Plantilla overrides locales
+    ├── wezterm/
+    │   └── wezterm.lua          # Config terminal Mac + WSL2
+    ├── ssh/
+    │   └── colors.conf          # Color de fondo por entorno SSH
+    └── bin/
+        └── cn                   # Wrapper de @continuedev/cli
 ```
 
-## Symlinks creados por install.sh
+---
+
+## 🔗 Symlinks creados
 
 ```
-~/.zshrc                       -> ~/dotfiles/zshrc
-~/.tmux.conf                   -> ~/dotfiles/tmux.conf
-~/.gitconfig                   -> ~/dotfiles/.gitconfig
-~/.config/nvim                 -> ~/dotfiles/config/nvim
-~/.config/starship.toml        -> ~/dotfiles/config/starship/starship.toml
-~/.config/direnv/direnv.toml   -> ~/dotfiles/config/direnv/direnv.toml
-~/.claude/settings.json        -> ~/dotfiles/config/claude/settings.json
-~/.claude/statusline.sh        -> ~/dotfiles/config/claude/statusline.sh
-~/.ssh/colors.conf             -> ~/dotfiles/config/ssh/colors.conf
-~/.config/wezterm/wezterm.lua  -> ~/dotfiles/config/wezterm/wezterm.lua  (en WSL2: lado Windows)
-~/.local/bin/cn                -> ~/dotfiles/config/bin/cn
+~/.zshrc                        →  ~/dotfiles/zshrc
+~/.tmux.conf                    →  ~/dotfiles/tmux.conf
+~/.gitconfig                    →  ~/dotfiles/.gitconfig
+~/.config/nvim                  →  ~/dotfiles/config/nvim
+~/.config/starship.toml         →  ~/dotfiles/config/starship/starship.toml
+~/.config/direnv/direnv.toml    →  ~/dotfiles/config/direnv/direnv.toml
+~/.claude/settings.json         →  ~/dotfiles/config/claude/settings.json
+~/.claude/statusline.sh         →  ~/dotfiles/config/claude/statusline.sh
+~/.ssh/colors.conf              →  ~/dotfiles/config/ssh/colors.conf
+~/.config/wezterm/wezterm.lua   →  ~/dotfiles/config/wezterm/wezterm.lua   (WSL2: lado Windows)
+~/.local/bin/cn                 →  ~/dotfiles/config/bin/cn
 ```
 
-## WSL — Instalar Nerd Fonts en Windows
+---
+
+## 🪟 WSL — Nerd Fonts en Windows
 
 Los iconos del prompt (starship, eza) los renderiza el terminal de Windows, no WSL.
 Ejecuta esto **una sola vez** desde PowerShell como Administrador:
@@ -221,23 +302,32 @@ powershell.exe -ExecutionPolicy Bypass -File "$(wslpath -w ~/dotfiles/install-fo
 ```
 
 Luego configura la fuente en tu terminal:
+
 - **Windows Terminal**: `Ctrl+,` → perfil WSL → Appearance → Font face → `JetBrainsMono Nerd Font`
 - **VS Code**: `"terminal.integrated.fontFamily": "JetBrainsMono Nerd Font"`
 
-## Post-instalacion
+---
+
+## 🔄 Post-instalacion y actualizacion
 
 ```bash
-source ~/.zshrc                    # Recargar shell
-nvim                               # Lazy.nvim instala plugins automaticamente
-tmux && prefix + I                 # Instalar plugins de tmux
+source ~/.zshrc              # Recargar shell
+nvim                         # Lazy.nvim instala plugins automaticamente
+tmux && prefix + I           # Instalar plugins de tmux (prefix = C-a)
 ```
 
-## Actualizar
+Actualizar el repo:
 
 ```bash
-dots    # alias: commit + push de ~/dotfiles
+dots    # alias: git add . && commit con fecha && push desde ~/dotfiles
 ```
 
 ---
 
-Mantenido por Jorge Ochoa (kr0nicas) - 2026
+<div align="center">
+
+**Mantenido por [Jorge Ochoa (kr0nicas)](https://github.com/kr0nicas) · 2026**
+
+Licencia [MIT](LICENSE) — uso publico, contribuciones bienvenidas.
+
+</div>
