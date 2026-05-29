@@ -18,7 +18,6 @@ brew "tmux"
 brew "neovim"
 brew "gh"
 brew "glab"
-brew "htop"
 brew "tldr"
 
 # --- Modern CLI (Rust-powered) ---
