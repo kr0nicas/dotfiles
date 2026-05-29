@@ -76,7 +76,7 @@ else
     ok "Linux detectado: $OS_NAME ($ARCH)"
 fi
 
-mkdir -p "$LOCAL_BIN"
+[[ $DRY_RUN -eq 0 ]] && mkdir -p "$LOCAL_BIN" || { [[ -d "$LOCAL_BIN" ]] || warn "DRY-RUN: mkdir -p $LOCAL_BIN"; }
 
 # Wrappers de scripts locales (config/bin/)
 for script in "$DOTFILES_DIR/config/bin/"*; do
@@ -308,9 +308,19 @@ if [[ $IS_MAC -eq 0 ]]; then
 
     # Helper: descarga el último release de GitHub sin hardcodear versión
     # Compatible con Linux y macOS (sin grep -P)
+    # Detecta rate-limit (60 req/h anónimo) y emite warning legible.
     gh_latest_url() {
         local repo=$1 pattern=$2
-        curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" \
+        local response
+        response=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null) || {
+            warn "GitHub API falló para $repo (¿rate-limit? auth con: gh auth login). Saltando."
+            return 1
+        }
+        if [[ "$response" == *"API rate limit exceeded"* ]] || [[ "$response" == *"rate limit"* ]]; then
+            warn "GitHub API rate-limit alcanzado (60 req/h anónimo). Auth: gh auth login. Saltando $repo."
+            return 1
+        fi
+        printf '%s\n' "$response" \
             | grep "browser_download_url" | grep "$pattern" | head -1 \
             | sed 's/.*"browser_download_url": *"//;s/".*//'
     }
@@ -447,9 +457,6 @@ else
     fi
 fi
 
-# Flag para instalar plugins después de que los symlinks estén en su lugar
-[[ -d "$TPM_DIR" && $DRY_RUN -eq 0 ]] && INSTALL_TMUX_PLUGINS=1 || INSTALL_TMUX_PLUGINS=0
-
 # ------------------------------------------------------------------------------
 # 8. NEOVIM — LAZY.NVIM (bootstrap automático al abrir nvim)
 # ------------------------------------------------------------------------------
@@ -515,7 +522,16 @@ safe_link() {
     ok "Linked: $dest → $src"
 }
 
-mkdir -p "$HOME/.config"
+safe_mkdir() {
+    local dir=$1
+    if [[ $DRY_RUN -eq 1 ]]; then
+        [[ -d "$dir" ]] || warn "DRY-RUN: mkdir -p $dir"
+        return
+    fi
+    mkdir -p "$dir"
+}
+
+safe_mkdir "$HOME/.config"
 
 safe_link "$DOTFILES_DIR/zshrc"                         "$HOME/.zshrc"
 safe_link "$DOTFILES_DIR/tmux.conf"                     "$HOME/.tmux.conf"
@@ -524,14 +540,14 @@ safe_link "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.
 
 # SSH color map (override local posible: ~/.ssh/colors.conf, sin symlink)
 if [[ -f "$DOTFILES_DIR/config/ssh/colors.conf" ]]; then
-    mkdir -p "$HOME/.ssh"
-    chmod 700 "$HOME/.ssh"
+    safe_mkdir "$HOME/.ssh"
+    [[ $DRY_RUN -eq 0 ]] && chmod 700 "$HOME/.ssh"
     safe_link "$DOTFILES_DIR/config/ssh/colors.conf" "$HOME/.ssh/colors.conf"
 fi
 
 # Claude Code settings + statusline
 if [[ -f "$DOTFILES_DIR/config/claude/settings.json" ]]; then
-    mkdir -p "$HOME/.claude"
+    safe_mkdir "$HOME/.claude"
     safe_link "$DOTFILES_DIR/config/claude/settings.json" "$HOME/.claude/settings.json"
     safe_link "$DOTFILES_DIR/config/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
 
@@ -572,14 +588,14 @@ if [[ -f "$DOTFILES_DIR/config/wezterm/wezterm.lua" ]]; then
         fi
     else
         # macOS / Linux nativo
-        mkdir -p "$HOME/.config/wezterm"
+        safe_mkdir "$HOME/.config/wezterm"
         safe_link "$DOTFILES_DIR/config/wezterm/wezterm.lua" "$HOME/.config/wezterm/wezterm.lua"
     fi
 fi
 
 # direnv config directory
 if [[ -d "$DOTFILES_DIR/config/direnv" ]]; then
-    mkdir -p "$HOME/.config/direnv"
+    safe_mkdir "$HOME/.config/direnv"
     safe_link "$DOTFILES_DIR/config/direnv/direnv.toml" "$HOME/.config/direnv/direnv.toml"
 fi
 
