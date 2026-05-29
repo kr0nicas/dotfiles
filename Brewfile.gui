@@ -1,0 +1,41 @@
+# ==============================================================================
+# Brewfile.gui — Apps GUI + VSCode + extensiones
+# Instalado por install.sh salvo que pases --no-gui o --minimal.
+# Util omitir en servidores VPS o instalaciones headless.
+# ==============================================================================
+
+# --- Apps GUI ---
+cask "visual-studio-code"
+cask "brave-browser"
+cask "spotify"
+cask "ngrok"
+cask "postman"
+
+# --- VS Code Extensions ---
+vscode "anthropic.claude-code"
+vscode "continue.continue"
+vscode "github.copilot-chat"
+vscode "github.vscode-github-actions"
+vscode "golang.go"
+vscode "hashicorp.terraform"
+vscode "redhat.java"
+vscode "redhat.vscode-yaml"
+vscode "ms-python.python"
+vscode "ms-python.vscode-pylance"
+vscode "ms-python.debugpy"
+vscode "ms-azuretools.vscode-containers"
+vscode "ms-vscode-remote.remote-containers"
+vscode "ms-toolsai.jupyter"
+vscode "docker.docker"
+vscode "dbaeumer.vscode-eslint"
+vscode "esbenp.prettier-vscode"
+vscode "eamodio.gitlens"
+vscode "googlecloudtools.cloudcode"
+vscode "vscjava.vscode-java-pack"
+vscode "vscjava.vscode-maven"
+vscode "vscjava.vscode-gradle"
+vscode "vscode-icons-team.vscode-icons"
+vscode "streetsidesoftware.code-spell-checker"
+vscode "sonarsource.sonarlint-vscode"
+vscode "wholroyd.jinja"
+vscode "drblury.protobuf-vsc"

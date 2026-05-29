@@ -1,0 +1,25 @@
+# ==============================================================================
+# Brewfile.k8s — Kubernetes + Containers tooling
+# Instalado por install.sh salvo que pases --no-k8s o --minimal.
+# ==============================================================================
+
+# --- Containers ---
+brew "docker", link: false
+brew "docker-compose"
+
+# --- Kubernetes core ---
+brew "kubernetes-cli"
+brew "helm"
+brew "kustomize"
+
+# --- Kubernetes TUI / ergonomía ---
+brew "k9s"
+brew "kubectx"
+brew "stern"
+brew "kubectl-neat"
+brew "viddy"
+brew "kubecolor"
+
+# --- Service mesh / observability ---
+brew "istioctl"
+brew "grpcurl"

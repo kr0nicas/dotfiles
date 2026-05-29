@@ -1,9 +1,9 @@
 # ==============================================================================
-# Brewfile SRE 2026 - Jorge Ochoa (kr0nicas)
+# Brewfile (base) - Jorge Ochoa (kr0nicas)
+# Stack mínimo: terminal env + nvim + linters + lenguajes + security + fonts.
+# Brewfiles modulares: Brewfile.cloud, Brewfile.k8s, Brewfile.gui
+# (instalados condicionalmente por install.sh segun flags --no-{cloud,k8s,gui}).
 # ==============================================================================
-
-# --- Taps ---
-tap "hashicorp/tap"
 
 # --- Core CLI ---
 brew "git"
@@ -40,36 +40,13 @@ brew "btop"
 brew "curlie"
 brew "jless"
 
-# --- Cloud & Infra ---
-brew "awscli"
-brew "azure-cli"
-brew "hashicorp/tap/terraform"
-brew "hashicorp/tap/vault"
-brew "pre-commit"
-
-# --- Containers & Kubernetes ---
-brew "docker", link: false
-brew "docker-compose"
-brew "kubernetes-cli"
-brew "helm"
-brew "kustomize"
-brew "k9s"
-brew "kubectx"
-brew "stern"
-brew "istioctl"
-brew "grpcurl"
-brew "kubectl-neat"
-brew "viddy"
-brew "kubecolor"
-
 # --- Linters & formatters (nvim: nvim-lint + conform.nvim) ---
 brew "tree-sitter-cli"
 brew "shellcheck"
 brew "yamllint"
 brew "stylua"
-brew "tflint"
-brew "tfsec"
 brew "black"
+brew "pre-commit"
 
 # --- Security ---
 brew "trivy"
@@ -94,47 +71,12 @@ brew "nghttp2"
 brew "llm"
 brew "gemini-cli"
 
-# --- Casks ---
+# --- Terminal casks (siempre necesarios) ---
 cask "font-hack-nerd-font"
 cask "font-source-code-pro"
-cask "gcloud-cli"
-cask "visual-studio-code"
-cask "brave-browser"
-cask "spotify"
-cask "ngrok"
-cask "postman"
 cask "iterm2"
 cask "wezterm"
 
-# --- VS Code Extensions ---
-vscode "anthropic.claude-code"
-vscode "continue.continue"
-vscode "github.copilot-chat"
-vscode "github.vscode-github-actions"
-vscode "golang.go"
-vscode "hashicorp.terraform"
-vscode "redhat.java"
-vscode "redhat.vscode-yaml"
-vscode "ms-python.python"
-vscode "ms-python.vscode-pylance"
-vscode "ms-python.debugpy"
-vscode "ms-azuretools.vscode-containers"
-vscode "ms-vscode-remote.remote-containers"
-vscode "ms-toolsai.jupyter"
-vscode "docker.docker"
-vscode "dbaeumer.vscode-eslint"
-vscode "esbenp.prettier-vscode"
-vscode "eamodio.gitlens"
-vscode "googlecloudtools.cloudcode"
-vscode "vscjava.vscode-java-pack"
-vscode "vscjava.vscode-maven"
-vscode "vscjava.vscode-gradle"
-vscode "vscode-icons-team.vscode-icons"
-vscode "streetsidesoftware.code-spell-checker"
-vscode "sonarsource.sonarlint-vscode"
-vscode "wholroyd.jinja"
-vscode "drblury.protobuf-vsc"
-
-# --- Go tools ---
+# --- Go tools (LSP + sec audit) ---
 go "golang.org/x/tools/gopls"
 go "github.com/securego/gosec/v2/cmd/gosec"
