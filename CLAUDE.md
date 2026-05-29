@@ -9,8 +9,12 @@ Cross-platform dotfiles for Jorge Ochoa (kr0nicas) — SRE 2026 setup targeting 
 ## Installation & common commands
 
 ```bash
-./install.sh              # Full install (macOS via Brewfile + brew bundle; Linux via apt + binary downloads)
-./install.sh --dry-run    # Simulate without making changes
+./install.sh              # Interactive menu (or full install if stdin is not a TTY)
+./install.sh --dry-run    # Simulate without making changes (menu still runs if interactive)
+./install.sh --update     # Detect prior install → git pull --ff-only + re-apply (aborts if dirty)
+./install.sh --vps        # VPS/server preset (base + cloud, no k8s/gui)
+./install.sh --container  # Container/Docker preset (base only, ultra-minimal)
+./install.sh --k8s-node   # Kubernetes node preset (base + cloud + k8s, no gui)
 ./install.sh --minimal    # Skip cloud, k8s, GUI (only base terminal env)
 ./install.sh --no-cloud   # Skip aws/azure/terraform/vault/gcloud
 ./install.sh --no-k8s     # Skip kubectl/helm/k9s/stern/kubectx/docker

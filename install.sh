@@ -35,6 +35,11 @@ DRY_RUN=0
 INSTALL_CLOUD=1
 INSTALL_K8S=1
 INSTALL_GUI=1
+PROFILE_FLAG=0
+UPDATE_REQUESTED=0
+EXISTING_INSTALL=0
+DIRTY=0
+REMOTE_STATUS=""
 
 print_help() {
     cat <<'EOF'
@@ -42,17 +47,29 @@ Uso: ./install.sh [opciones]
 
 Opciones:
   --dry-run        Simula sin hacer cambios
+  --update         Si hay instalación previa: git pull --ff-only antes de re-correr
+                   (aborta si hay cambios sin commit en ~/dotfiles)
   --minimal        Solo base (equivale a --no-cloud --no-k8s --no-gui)
+  --vps            Perfil Servidor/VPS  (base + cloud, sin k8s ni gui)
+  --container      Perfil Container/Docker (solo base, ultra-minimal)
+  --k8s-node       Perfil Nodo Kubernetes (base + cloud + k8s, sin gui)
   --no-cloud       Omite Cloud/IaC (aws, azure, terraform, vault, tflint, gcloud)
   --no-k8s         Omite Kubernetes (kubectl, helm, k9s, stern, kubectx, docker)
   --no-gui         Omite apps GUI (VSCode, Brave, Spotify, Postman, ngrok)
   -h, --help       Muestra esta ayuda
 
+Sin flags y con TTY interactivo:
+  - Si detecta una instalación previa, muestra un menú de update.
+  - Luego muestra el menú de perfil de instalación.
+
 Ejemplos:
-  ./install.sh                          # Todo (default)
-  ./install.sh --dry-run                # Auditar sin cambios
-  ./install.sh --minimal                # Solo shell + nvim + langs (VPS, contenedores)
-  ./install.sh --no-gui                 # Servidor con cloud+k8s pero sin apps GUI
+  ./install.sh                          # Menú interactivo (o full si no hay TTY)
+  ./install.sh --dry-run                # Auditar sin cambios (con menú si aplica)
+  ./install.sh --update                 # Pull desde git + re-aplicar configs/tools
+  ./install.sh --vps                    # Servidor cloud sin k8s ni gui
+  ./install.sh --container              # Dev container / Docker image
+  ./install.sh --k8s-node               # Nodo de cluster Kubernetes
+  ./install.sh --minimal                # Solo shell + nvim + langs
   ./install.sh --no-cloud --no-k8s      # Workstation sin SRE tools
 EOF
     exit 0
@@ -61,10 +78,14 @@ EOF
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dry-run)   DRY_RUN=1 ;;
-        --minimal)   INSTALL_CLOUD=0; INSTALL_K8S=0; INSTALL_GUI=0 ;;
-        --no-cloud)  INSTALL_CLOUD=0 ;;
-        --no-k8s)    INSTALL_K8S=0 ;;
-        --no-gui)    INSTALL_GUI=0 ;;
+        --update)    UPDATE_REQUESTED=1 ;;
+        --minimal)   INSTALL_CLOUD=0; INSTALL_K8S=0; INSTALL_GUI=0; PROFILE_FLAG=1 ;;
+        --vps)       INSTALL_CLOUD=1; INSTALL_K8S=0; INSTALL_GUI=0; PROFILE_FLAG=1 ;;
+        --container) INSTALL_CLOUD=0; INSTALL_K8S=0; INSTALL_GUI=0; PROFILE_FLAG=1 ;;
+        --k8s-node)  INSTALL_CLOUD=1; INSTALL_K8S=1; INSTALL_GUI=0; PROFILE_FLAG=1 ;;
+        --no-cloud)  INSTALL_CLOUD=0; PROFILE_FLAG=1 ;;
+        --no-k8s)    INSTALL_K8S=0; PROFILE_FLAG=1 ;;
+        --no-gui)    INSTALL_GUI=0; PROFILE_FLAG=1 ;;
         -h|--help)   print_help ;;
         *)           echo "Flag desconocida: $1" >&2; echo "Usa --help para ver opciones." >&2; exit 2 ;;
     esac
@@ -79,6 +100,7 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
+BRIGHT_GREEN='\033[1;92m'
 NC='\033[0m'
 
 log()  { echo -e "${BLUE}  ℹ️  $*${NC}"; }
@@ -87,6 +109,146 @@ warn() { echo -e "${YELLOW}  ⚠️  $*${NC}"; }
 err()  { echo -e "${RED}  ❌ $*${NC}"; exit 1; }
 section() { echo -e "\n${CYAN}━━━ $* ${NC}"; }
 
+banner() {
+    printf "\n"
+    printf "%b\n" "${CYAN}██╗  ██╗██████╗ ${BRIGHT_GREEN} ██████╗ ${CYAN}███╗   ██╗██╗ ██████╗ █████╗ ███████╗${NC}"
+    printf "%b\n" "${CYAN}██║ ██╔╝██╔══██╗${BRIGHT_GREEN}██╔═████╗${CYAN}████╗  ██║██║██╔════╝██╔══██╗██╔════╝${NC}"
+    printf "%b\n" "${CYAN}█████╔╝ ██████╔╝${BRIGHT_GREEN}██║██╔██║${CYAN}██╔██╗ ██║██║██║     ███████║███████╗${NC}"
+    printf "%b\n" "${CYAN}██╔═██╗ ██╔══██╗${BRIGHT_GREEN}████╔╝██║${CYAN}██║╚██╗██║██║██║     ██╔══██║╚════██║${NC}"
+    printf "%b\n" "${CYAN}██║  ██╗██║  ██║${BRIGHT_GREEN}╚██████╔╝${CYAN}██║ ╚████║██║╚██████╗██║  ██║███████║${NC}"
+    printf "%b\n" "${CYAN}╚═╝  ╚═╝╚═╝  ╚═╝${BRIGHT_GREEN} ╚═════╝ ${CYAN}╚═╝  ╚═══╝╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝${NC}"
+    printf "%b\n" "              ${BRIGHT_GREEN}░ SRE 2026 · dotfiles installer ░${NC}"
+    printf "\n"
+}
+
+ask_modules() {
+    local r
+    read -rp "  ¿Incluir Cloud/IaC (aws, terraform, gcloud)? [Y/n]: " r
+    [[ "$r" =~ ^[Nn]$ ]] && INSTALL_CLOUD=0 || INSTALL_CLOUD=1
+    read -rp "  ¿Incluir Kubernetes (kubectl, helm, k9s)?      [Y/n]: " r
+    [[ "$r" =~ ^[Nn]$ ]] && INSTALL_K8S=0 || INSTALL_K8S=1
+    read -rp "  ¿Incluir apps GUI (VSCode, Brave, Postman)?    [Y/n]: " r
+    [[ "$r" =~ ^[Nn]$ ]] && INSTALL_GUI=0 || INSTALL_GUI=1
+}
+
+show_menu() {
+    echo -e "${CYAN}Selecciona el perfil de instalación:${NC}"
+    echo
+    echo "  1) Workstation completo    (base + cloud + k8s + gui)"
+    echo "  2) Servidor / VPS          (base + cloud, sin k8s ni gui)"
+    echo "  3) Container / Docker      (solo base, ultra-minimal)"
+    echo "  4) Nodo Kubernetes         (base + cloud + k8s, sin gui)"
+    echo "  5) Personalizado           (te pregunto módulo por módulo)"
+    echo "  q) Cancelar"
+    echo
+    local choice
+    read -rp "Opción [1-5/q]: " choice
+    echo
+    case "$choice" in
+        1)   INSTALL_CLOUD=1; INSTALL_K8S=1; INSTALL_GUI=1; ok "Perfil: Workstation completo" ;;
+        2)   INSTALL_CLOUD=1; INSTALL_K8S=0; INSTALL_GUI=0; ok "Perfil: Servidor / VPS" ;;
+        3)   INSTALL_CLOUD=0; INSTALL_K8S=0; INSTALL_GUI=0; ok "Perfil: Container / Docker" ;;
+        4)   INSTALL_CLOUD=1; INSTALL_K8S=1; INSTALL_GUI=0; ok "Perfil: Nodo Kubernetes" ;;
+        5)   ask_modules; ok "Perfil: Personalizado" ;;
+        q|Q) echo "Cancelado."; exit 0 ;;
+        *)   err "Opción inválida: '$choice'" ;;
+    esac
+}
+
+detect_existing_install() {
+    [[ -d "$DOTFILES_DIR/.git" ]] || return 1
+    [[ -L "$HOME/.zshrc" ]] || return 1
+    [[ "$(readlink "$HOME/.zshrc")" == "$DOTFILES_DIR/zshrc" ]] || return 1
+    EXISTING_INSTALL=1
+    return 0
+}
+
+git_status_summary() {
+    local current_commit current_msg behind_count remote_commit dirty_state
+    current_commit=$(git -C "$DOTFILES_DIR" rev-parse --short HEAD 2>/dev/null || echo "?")
+    current_msg=$(git -C "$DOTFILES_DIR" log -1 --pretty=format:'%s' 2>/dev/null | head -c 60)
+
+    if git -C "$DOTFILES_DIR" fetch --quiet 2>/dev/null; then
+        behind_count=$(git -C "$DOTFILES_DIR" rev-list --count HEAD..@{u} 2>/dev/null || echo "0")
+        remote_commit=$(git -C "$DOTFILES_DIR" rev-parse --short @{u} 2>/dev/null || echo "?")
+        REMOTE_STATUS="ok"
+    else
+        REMOTE_STATUS="offline"
+        behind_count="?"
+        remote_commit="?"
+    fi
+
+    if [[ -n "$(git -C "$DOTFILES_DIR" status --porcelain 2>/dev/null)" ]]; then
+        dirty_state="DIRTY (cambios sin commit)"
+        DIRTY=1
+    else
+        dirty_state="clean"
+        DIRTY=0
+    fi
+
+    echo
+    echo -e "${CYAN}Instalación previa detectada:${NC}"
+    echo "  Repositorio:   $DOTFILES_DIR"
+    echo "  Commit actual: $current_commit  $current_msg"
+    if [[ "$REMOTE_STATUS" == "ok" ]]; then
+        if [[ "$behind_count" -gt 0 ]]; then
+            echo -e "  Remoto:        $remote_commit  (${YELLOW}${behind_count} commits pendientes${NC})"
+        else
+            echo -e "  Remoto:        $remote_commit  (${GREEN}al día${NC})"
+        fi
+    else
+        echo -e "  Remoto:        ${YELLOW}fetch falló (offline?)${NC}"
+    fi
+    if [[ $DIRTY -eq 1 ]]; then
+        echo -e "  Estado:        ${YELLOW}${dirty_state}${NC}"
+    else
+        echo -e "  Estado:        ${GREEN}${dirty_state}${NC}"
+    fi
+    echo
+}
+
+do_git_pull() {
+    if [[ -n "$(git -C "$DOTFILES_DIR" status --porcelain 2>/dev/null)" ]]; then
+        err "Hay cambios sin commit en $DOTFILES_DIR. Commitéalos primero, o re-corre sin --update (opción 2 'Re-instalar' en el menú) para saltar el git pull."
+    fi
+    log "git pull --ff-only en $DOTFILES_DIR..."
+    if [[ $DRY_RUN -eq 1 ]]; then
+        warn "DRY-RUN: git -C $DOTFILES_DIR pull --ff-only omitido"
+    else
+        git -C "$DOTFILES_DIR" pull --ff-only || err "git pull falló (historia divergente o conflicto). Resuelve manualmente y vuelve a correr."
+        ok "Repositorio actualizado a $(git -C "$DOTFILES_DIR" rev-parse --short HEAD)"
+    fi
+}
+
+show_update_menu() {
+    git_status_summary
+    echo "¿Qué quieres hacer?"
+    echo
+    echo "  1) Actualizar (git pull --ff-only + reaplicar configs/tools)"
+    echo "  2) Re-instalar (saltar git pull, solo reaplicar)"
+    echo "  q) Cancelar"
+    echo
+    local choice
+    read -rp "Opción [1/2/q]: " choice
+    echo
+    case "$choice" in
+        1)   do_git_pull ;;
+        2)   ok "Saltando git pull — se re-aplicarán configs y se sincronizarán tools" ;;
+        q|Q) echo "Cancelado."; exit 0 ;;
+        *)   err "Opción inválida: '$choice'" ;;
+    esac
+}
+
+banner
+detect_existing_install || true
+if [[ $UPDATE_REQUESTED -eq 1 ]]; then
+    [[ $EXISTING_INSTALL -eq 1 ]] || err "--update: no se detectó instalación previa en $DOTFILES_DIR (falta .git o ~/.zshrc no apunta al repo)"
+    git_status_summary
+    do_git_pull
+elif [[ $EXISTING_INSTALL -eq 1 && $PROFILE_FLAG -eq 0 && -t 0 ]]; then
+    show_update_menu
+fi
+[[ $PROFILE_FLAG -eq 0 && -t 0 ]] && show_menu
 [[ $DRY_RUN -eq 1 ]] && warn "Modo DRY-RUN activo — no se realizarán cambios."
 log "Módulos: base=ON, cloud=$([[ $INSTALL_CLOUD -eq 1 ]] && echo ON || echo OFF), k8s=$([[ $INSTALL_K8S -eq 1 ]] && echo ON || echo OFF), gui=$([[ $INSTALL_GUI -eq 1 ]] && echo ON || echo OFF)"
 
