@@ -35,6 +35,7 @@
 - [🗂️ Estructura de archivos](#️-estructura-de-archivos)
 - [🔗 Symlinks creados](#-symlinks-creados)
 - [🪟 WSL — Nerd Fonts en Windows](#-wsl--nerd-fonts-en-windows)
+- [🛡️ Notas de seguridad](#️-notas-de-seguridad)
 - [🔄 Post-instalacion y actualizacion](#-post-instalacion-y-actualizacion)
 
 ---
@@ -305,6 +306,18 @@ Luego configura la fuente en tu terminal:
 
 - **Windows Terminal**: `Ctrl+,` → perfil WSL → Appearance → Font face → `JetBrainsMono Nerd Font`
 - **VS Code**: `"terminal.integrated.fontFamily": "JetBrainsMono Nerd Font"`
+
+---
+
+## 🛡️ Notas de seguridad
+
+`install.sh` usa los instaladores oficiales upstream (`curl … | bash`) para fnm, starship, zoxide, uv, trivy, helm y claude — la vía documentada por cada proyecto. Trade-off aceptado por ergonomía. Antes de instalar en una máquina nueva:
+
+- Corre `./install.sh --dry-run` para ver exactamente qué se descarga.
+- Verifica que todas las URLs sean HTTPS desde hosts oficiales (lo son hoy).
+- Si necesitas un entorno hardened, reemplaza cada bloque por descarga + verificación SHA256.
+
+Binarios descargados desde GitHub releases (k9s, delta, lazygit, stern, etc.) viajan por HTTPS pero no se valida el checksum publicado en cada release. Mismo trade-off.
 
 ---
 

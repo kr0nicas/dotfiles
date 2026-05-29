@@ -8,6 +8,18 @@
 # Uso:
 #   ./install.sh             → instalación completa
 #   ./install.sh --dry-run   → simula sin hacer cambios
+#
+# ------------------------------------------------------------------------------
+# NOTA DE SEGURIDAD — Riesgo aceptado:
+# Este instalador usa `curl … | bash` para varios upstream installers oficiales
+# (fnm, starship, zoxide, uv, trivy, helm, claude) sin verificación de checksum.
+# Es la vía oficial documentada por cada proyecto; aceptamos el trade-off por
+# ergonomía. Si te preocupa supply chain:
+#   1. Revisa cada URL antes de ejecutar (todos son HTTPS, hosts oficiales).
+#   2. Usa --dry-run para auditar qué se descarga.
+#   3. Reemplaza el bloque correspondiente por download + sha256 verificado.
+# Binarios descargados desde GitHub releases (sección 6b) viajan por HTTPS
+# pero tampoco verifican checksum publicado en el release.
 # ==============================================================================
 
 set -euo pipefail
@@ -70,8 +82,12 @@ mkdir -p "$LOCAL_BIN"
 for script in "$DOTFILES_DIR/config/bin/"*; do
     [[ -f "$script" ]] || continue
     name=$(basename "$script")
-    ln -sf "$script" "$LOCAL_BIN/$name"
-    chmod +x "$script"
+    if [[ $DRY_RUN -eq 0 ]]; then
+        ln -sf "$script" "$LOCAL_BIN/$name"
+        chmod +x "$script"
+    else
+        warn "DRY-RUN: ln -sf $script → $LOCAL_BIN/$name"
+    fi
 done
 
 # ------------------------------------------------------------------------------
@@ -140,36 +156,43 @@ else
         fi
 
         # Neovim — el de apt suele ser muy viejo, usamos appimage como fallback
+        NVIM_URL="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCH_TYPE}.appimage"
         if ! command -v nvim >/dev/null 2>&1; then
             log "Instalando Neovim via appimage..."
-            curl -fsSL -o "$LOCAL_BIN/nvim" \
-                "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCH_TYPE}.appimage"
-            chmod +x "$LOCAL_BIN/nvim"
-            # Si appimage no funciona (FUSE no disponible), extraer
-            if ! "$LOCAL_BIN/nvim" --version >/dev/null 2>&1; then
-                log "AppImage sin FUSE, extrayendo..."
-                cd /tmp && "$LOCAL_BIN/nvim" --appimage-extract >/dev/null 2>&1
-                rm -f "$LOCAL_BIN/nvim"
-                mv /tmp/squashfs-root "$HOME/.local/nvim-squashfs"
-                ln -sf "$HOME/.local/nvim-squashfs/usr/bin/nvim" "$LOCAL_BIN/nvim"
-                cd -
-            fi
-            ok "Neovim instalado: $($LOCAL_BIN/nvim --version | head -1)"
-        else
-            NVIM_VER=$(nvim --version | head -1 | grep -oP '\d+\.\d+')
-            if (( $(echo "$NVIM_VER < 0.10" | bc -l) )); then
-                warn "Neovim $NVIM_VER es muy viejo (se necesita >=0.10). Actualizando..."
-                curl -fsSL -o "$LOCAL_BIN/nvim" \
-                    "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCH_TYPE}.appimage"
+            if ! curl -fsI "$NVIM_URL" >/dev/null 2>&1; then
+                warn "Neovim appimage no disponible para arch=$ARCH_TYPE ($NVIM_URL). Instala manualmente o usa el paquete del SO."
+            else
+                curl -fsSL -o "$LOCAL_BIN/nvim" "$NVIM_URL"
                 chmod +x "$LOCAL_BIN/nvim"
+                # Si appimage no funciona (FUSE no disponible), extraer
                 if ! "$LOCAL_BIN/nvim" --version >/dev/null 2>&1; then
+                    log "AppImage sin FUSE, extrayendo..."
                     cd /tmp && "$LOCAL_BIN/nvim" --appimage-extract >/dev/null 2>&1
                     rm -f "$LOCAL_BIN/nvim"
                     mv /tmp/squashfs-root "$HOME/.local/nvim-squashfs"
                     ln -sf "$HOME/.local/nvim-squashfs/usr/bin/nvim" "$LOCAL_BIN/nvim"
                     cd -
                 fi
-                ok "Neovim actualizado: $($LOCAL_BIN/nvim --version | head -1)"
+                ok "Neovim instalado: $($LOCAL_BIN/nvim --version | head -1)"
+            fi
+        else
+            NVIM_VER=$(nvim --version | head -1 | grep -oP '\d+\.\d+')
+            if (( $(echo "$NVIM_VER < 0.10" | bc -l) )); then
+                warn "Neovim $NVIM_VER es muy viejo (se necesita >=0.10). Actualizando..."
+                if ! curl -fsI "$NVIM_URL" >/dev/null 2>&1; then
+                    warn "Neovim appimage no disponible para arch=$ARCH_TYPE — actualiza manualmente."
+                else
+                    curl -fsSL -o "$LOCAL_BIN/nvim" "$NVIM_URL"
+                    chmod +x "$LOCAL_BIN/nvim"
+                    if ! "$LOCAL_BIN/nvim" --version >/dev/null 2>&1; then
+                        cd /tmp && "$LOCAL_BIN/nvim" --appimage-extract >/dev/null 2>&1
+                        rm -f "$LOCAL_BIN/nvim"
+                        mv /tmp/squashfs-root "$HOME/.local/nvim-squashfs"
+                        ln -sf "$HOME/.local/nvim-squashfs/usr/bin/nvim" "$LOCAL_BIN/nvim"
+                        cd -
+                    fi
+                    ok "Neovim actualizado: $($LOCAL_BIN/nvim --version | head -1)"
+                fi
             fi
         fi
 
@@ -185,7 +208,7 @@ else
             sudo mkdir -p /etc/apt/keyrings
             wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
                 | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-            echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" \
+            echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] https://deb.gierens.de stable main" \
                 | sudo tee /etc/apt/sources.list.d/gierens.list
             sudo apt update -qq && sudo apt install -y eza 2>/dev/null || warn "eza no pudo instalarse"
         fi
@@ -563,11 +586,18 @@ fi
 # Neovim config directory
 if [[ -d "$DOTFILES_DIR/config/nvim" ]]; then
     if [[ $DRY_RUN -eq 0 ]]; then
-        rm -rf "$HOME/.config/nvim"
+        # Si ya existe un dir real (no symlink al repo), respaldar antes de pisar
+        if [[ -e "$HOME/.config/nvim" && ! -L "$HOME/.config/nvim" ]]; then
+            BACKUP="$HOME/.config/nvim.bak.$(date +%Y%m%d-%H%M%S)"
+            mv "$HOME/.config/nvim" "$BACKUP"
+            warn "Config existente respaldada en: $BACKUP"
+        elif [[ -L "$HOME/.config/nvim" ]]; then
+            rm -f "$HOME/.config/nvim"
+        fi
         ln -sf "$DOTFILES_DIR/config/nvim" "$HOME/.config/nvim"
         ok "Linked: ~/.config/nvim → $DOTFILES_DIR/config/nvim"
     else
-        warn "DRY-RUN: ln -sf $DOTFILES_DIR/config/nvim → ~/.config/nvim"
+        warn "DRY-RUN: ln -sf $DOTFILES_DIR/config/nvim → ~/.config/nvim (con backup automático si aplica)"
     fi
 fi
 
