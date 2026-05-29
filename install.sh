@@ -32,8 +32,44 @@ FZF_VERSION="0.66.0"
 DOTFILES_DIR="$HOME/dotfiles"
 LOCAL_BIN="$HOME/.local/bin"
 DRY_RUN=0
+INSTALL_CLOUD=1
+INSTALL_K8S=1
+INSTALL_GUI=1
 
-[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
+print_help() {
+    cat <<'EOF'
+Uso: ./install.sh [opciones]
+
+Opciones:
+  --dry-run        Simula sin hacer cambios
+  --minimal        Solo base (equivale a --no-cloud --no-k8s --no-gui)
+  --no-cloud       Omite Cloud/IaC (aws, azure, terraform, vault, tflint, gcloud)
+  --no-k8s         Omite Kubernetes (kubectl, helm, k9s, stern, kubectx, docker)
+  --no-gui         Omite apps GUI (VSCode, Brave, Spotify, Postman, ngrok)
+  -h, --help       Muestra esta ayuda
+
+Ejemplos:
+  ./install.sh                          # Todo (default)
+  ./install.sh --dry-run                # Auditar sin cambios
+  ./install.sh --minimal                # Solo shell + nvim + langs (VPS, contenedores)
+  ./install.sh --no-gui                 # Servidor con cloud+k8s pero sin apps GUI
+  ./install.sh --no-cloud --no-k8s      # Workstation sin SRE tools
+EOF
+    exit 0
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dry-run)   DRY_RUN=1 ;;
+        --minimal)   INSTALL_CLOUD=0; INSTALL_K8S=0; INSTALL_GUI=0 ;;
+        --no-cloud)  INSTALL_CLOUD=0 ;;
+        --no-k8s)    INSTALL_K8S=0 ;;
+        --no-gui)    INSTALL_GUI=0 ;;
+        -h|--help)   print_help ;;
+        *)           echo "Flag desconocida: $1" >&2; echo "Usa --help para ver opciones." >&2; exit 2 ;;
+    esac
+    shift
+done
 
 # ------------------------------------------------------------------------------
 # COLORES Y LOGGING
@@ -52,6 +88,7 @@ err()  { echo -e "${RED}  ❌ $*${NC}"; exit 1; }
 section() { echo -e "\n${CYAN}━━━ $* ${NC}"; }
 
 [[ $DRY_RUN -eq 1 ]] && warn "Modo DRY-RUN activo — no se realizarán cambios."
+log "Módulos: base=ON, cloud=$([[ $INSTALL_CLOUD -eq 1 ]] && echo ON || echo OFF), k8s=$([[ $INSTALL_K8S -eq 1 ]] && echo ON || echo OFF), gui=$([[ $INSTALL_GUI -eq 1 ]] && echo ON || echo OFF)"
 
 # ------------------------------------------------------------------------------
 # 1. DETECCIÓN DE SISTEMA Y ARQUITECTURA
@@ -121,19 +158,24 @@ if [[ $IS_MAC -eq 1 ]]; then
     fi
 
     if command -v brew >/dev/null 2>&1; then
-        if [[ -f "$DOTFILES_DIR/Brewfile" ]]; then
-            log "Instalando desde Brewfile..."
-            [[ $DRY_RUN -eq 0 ]] && brew bundle --file="$DOTFILES_DIR/Brewfile" || warn "DRY-RUN: brew bundle omitido"
-        else
-            warn "No se encontró Brewfile en $DOTFILES_DIR"
-            log "Instalando herramientas base con Homebrew..."
-            if [[ $DRY_RUN -eq 0 ]]; then
-                brew install git zsh curl eza bat neovim gh fzf zoxide starship uv \
-                    ripgrep fd k9s kubectx stern lazygit direnv delta trivy zstd || true
-            else
-                warn "DRY-RUN: brew install omitido"
+        # Helper local para bundle modular
+        run_bundle() {
+            local label=$1 file=$2 flag=$3
+            if [[ $flag -eq 0 ]]; then
+                warn "Skipping Brewfile${label:+.$label} (flag desactivado)"
+                return
             fi
-        fi
+            if [[ ! -f "$file" ]]; then
+                warn "No se encontró $file — omitiendo"
+                return
+            fi
+            log "Brew bundle ${label:-base}..."
+            [[ $DRY_RUN -eq 0 ]] && brew bundle --file="$file" || warn "DRY-RUN: brew bundle ${label:-base} omitido"
+        }
+        run_bundle "" "$DOTFILES_DIR/Brewfile"        1
+        run_bundle "cloud" "$DOTFILES_DIR/Brewfile.cloud" $INSTALL_CLOUD
+        run_bundle "k8s" "$DOTFILES_DIR/Brewfile.k8s"   $INSTALL_K8S
+        run_bundle "gui" "$DOTFILES_DIR/Brewfile.gui"   $INSTALL_GUI
     else
         err "Homebrew no encontrado. Instálalo desde https://brew.sh"
     fi
@@ -336,14 +378,9 @@ if [[ $IS_MAC -eq 0 ]]; then
         fi
     }
 
-    install_if_missing "k9s" \
-        "gh_latest_tar derailed/k9s 'Linux_${ARCH}.tar.gz' $LOCAL_BIN k9s"
-
+    # --- Always: dev ergonomics + security (no gating) ---
     install_if_missing "lazygit" \
         "gh_latest_tar jesseduffield/lazygit 'linux_${GH_ARCH}.tar.gz' $LOCAL_BIN lazygit"
-
-    install_if_missing "stern" \
-        "gh_latest_tar stern/stern 'linux_${ARCH}.tar.gz' $LOCAL_BIN stern"
 
     install_if_missing "delta" \
         "gh_latest_tar dandavison/delta '${GH_ARCH}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */delta'"
@@ -360,6 +397,17 @@ if [[ $IS_MAC -eq 0 ]]; then
     install_if_missing "curlie" \
         "gh_latest_tar rs/curlie 'linux_${ARCH}.tar.gz' $LOCAL_BIN curlie"
 
+    # --- K8s tools (gated por --no-k8s / --minimal) ---
+    if [[ $INSTALL_K8S -eq 1 ]]; then
+        install_if_missing "k9s" \
+            "gh_latest_tar derailed/k9s 'Linux_${ARCH}.tar.gz' $LOCAL_BIN k9s"
+
+        install_if_missing "stern" \
+            "gh_latest_tar stern/stern 'linux_${ARCH}.tar.gz' $LOCAL_BIN stern"
+    else
+        warn "Skipping k9s/stern (--no-k8s)"
+    fi
+
     install_jless() {
         local url
         url=$(gh_latest_url PaulJuliusMartinez/jless "${GH_ARCH}-unknown-linux-gnu.zip")
@@ -372,66 +420,77 @@ if [[ $IS_MAC -eq 0 ]]; then
     }
     install_if_missing "jless" "install_jless"
 
-    # kubectl — latest stable
-    if ! command -v kubectl >/dev/null 2>&1; then
-        log "Instalando kubectl..."
-        if [[ $DRY_RUN -eq 0 ]]; then
-            KUBECTL_VER=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
-            curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/${ARCH}/kubectl" \
-                -o "$LOCAL_BIN/kubectl" && chmod +x "$LOCAL_BIN/kubectl" \
-                && ok "kubectl ${KUBECTL_VER} instalado" \
-                || warn "kubectl no pudo instalarse, continúa manualmente."
+    # --- K8s core (gated por --no-k8s / --minimal) ---
+    if [[ $INSTALL_K8S -eq 1 ]]; then
+        # kubectl — latest stable
+        if ! command -v kubectl >/dev/null 2>&1; then
+            log "Instalando kubectl..."
+            if [[ $DRY_RUN -eq 0 ]]; then
+                KUBECTL_VER=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
+                curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/${ARCH}/kubectl" \
+                    -o "$LOCAL_BIN/kubectl" && chmod +x "$LOCAL_BIN/kubectl" \
+                    && ok "kubectl ${KUBECTL_VER} instalado" \
+                    || warn "kubectl no pudo instalarse, continúa manualmente."
+            else
+                warn "DRY-RUN: kubectl install omitido"
+            fi
         else
-            warn "DRY-RUN: kubectl install omitido"
+            ok "kubectl ya instalado ($(kubectl version --client --short 2>/dev/null | head -1))"
+        fi
+
+        # helm — latest stable
+        if ! command -v helm >/dev/null 2>&1; then
+            log "Instalando helm..."
+            if [[ $DRY_RUN -eq 0 ]]; then
+                curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash \
+                    && ok "helm instalado" \
+                    || warn "helm no pudo instalarse, continúa manualmente."
+            else
+                warn "DRY-RUN: helm install omitido"
+            fi
+        else
+            ok "helm ya instalado ($(helm version --short 2>/dev/null))"
+        fi
+
+        # kubectx / kubens
+        if ! command -v kubectx >/dev/null 2>&1; then
+            log "Instalando kubectx/kubens..."
+            if [[ $DRY_RUN -eq 0 ]]; then
+                gh_latest_tar ahmetb/kubectx "kubectx_v.*_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubectx \
+                    || warn "kubectx no pudo instalarse, continúa manualmente."
+                gh_latest_tar ahmetb/kubectx "kubens_v.*_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubens \
+                    || warn "kubens no pudo instalarse, continúa manualmente."
+                command -v kubectx >/dev/null 2>&1 && ok "kubectx/kubens instalados"
+            else
+                warn "DRY-RUN: kubectx install omitido"
+            fi
+        else
+            ok "kubectx ya instalado"
         fi
     else
-        ok "kubectl ya instalado ($(kubectl version --client --short 2>/dev/null | head -1))"
+        warn "Skipping kubectl/helm/kubectx (--no-k8s)"
     fi
 
-    # helm — latest stable
-    if ! command -v helm >/dev/null 2>&1; then
-        log "Instalando helm..."
-        if [[ $DRY_RUN -eq 0 ]]; then
-            curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash \
-                && ok "helm instalado" \
-                || warn "helm no pudo instalarse, continúa manualmente."
+    # --- Cloud / IaC (gated por --no-cloud / --minimal) ---
+    if [[ $INSTALL_CLOUD -eq 1 ]]; then
+        # OpenTofu — latest stable (reemplazo open source de Terraform)
+        if ! command -v tofu >/dev/null 2>&1; then
+            log "Instalando OpenTofu..."
+            if [[ $DRY_RUN -eq 0 ]]; then
+                TOFU_VER=$(curl -fsSL https://api.github.com/repos/opentofu/opentofu/releases/latest \
+                    | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+                TOFU_URL="https://github.com/opentofu/opentofu/releases/download/v${TOFU_VER}/tofu_${TOFU_VER}_linux_${ARCH}.tar.gz"
+                curl -fsSL "$TOFU_URL" | tar -xz -C "$LOCAL_BIN" tofu \
+                    && ok "OpenTofu v${TOFU_VER} instalado" \
+                    || warn "OpenTofu no pudo instalarse, continúa manualmente."
+            else
+                warn "DRY-RUN: OpenTofu install omitido"
+            fi
         else
-            warn "DRY-RUN: helm install omitido"
+            ok "OpenTofu ya instalado ($(tofu version | head -1))"
         fi
     else
-        ok "helm ya instalado ($(helm version --short 2>/dev/null))"
-    fi
-
-    # OpenTofu — latest stable (reemplazo open source de Terraform)
-    if ! command -v tofu >/dev/null 2>&1; then
-        log "Instalando OpenTofu..."
-        if [[ $DRY_RUN -eq 0 ]]; then
-            TOFU_VER=$(curl -fsSL https://api.github.com/repos/opentofu/opentofu/releases/latest \
-                | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
-            TOFU_URL="https://github.com/opentofu/opentofu/releases/download/v${TOFU_VER}/tofu_${TOFU_VER}_linux_${ARCH}.tar.gz"
-            curl -fsSL "$TOFU_URL" | tar -xz -C "$LOCAL_BIN" tofu \
-                && ok "OpenTofu v${TOFU_VER} instalado" \
-                || warn "OpenTofu no pudo instalarse, continúa manualmente."
-        else
-            warn "DRY-RUN: OpenTofu install omitido"
-        fi
-    else
-        ok "OpenTofu ya instalado ($(tofu version | head -1))"
-    fi
-
-    if ! command -v kubectx >/dev/null 2>&1; then
-        log "Instalando kubectx/kubens..."
-        if [[ $DRY_RUN -eq 0 ]]; then
-            gh_latest_tar ahmetb/kubectx "kubectx_v.*_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubectx \
-                || warn "kubectx no pudo instalarse, continúa manualmente."
-            gh_latest_tar ahmetb/kubectx "kubens_v.*_linux_${GH_ARCH}.tar.gz" "$LOCAL_BIN" kubens \
-                || warn "kubens no pudo instalarse, continúa manualmente."
-            command -v kubectx >/dev/null 2>&1 && ok "kubectx/kubens instalados"
-        else
-            warn "DRY-RUN: kubectx install omitido"
-        fi
-    else
-        ok "kubectx ya instalado"
+        warn "Skipping OpenTofu (--no-cloud)"
     fi
 fi
 

@@ -11,8 +11,13 @@ Cross-platform dotfiles for Jorge Ochoa (kr0nicas) — SRE 2026 setup targeting 
 ```bash
 ./install.sh              # Full install (macOS via Brewfile + brew bundle; Linux via apt + binary downloads)
 ./install.sh --dry-run    # Simulate without making changes
+./install.sh --minimal    # Skip cloud, k8s, GUI (only base terminal env)
+./install.sh --no-cloud   # Skip aws/azure/terraform/vault/gcloud
+./install.sh --no-k8s     # Skip kubectl/helm/k9s/stern/kubectx/docker
+./install.sh --no-gui     # Skip VSCode + extensions + Brave/Spotify/Postman
+./install.sh --help       # Show all options
 
-brew bundle --file=~/dotfiles/Brewfile   # Install/sync macOS packages
+brew bundle --file=~/dotfiles/Brewfile   # Install/sync base macOS packages (cloud/k8s/gui in Brewfile.{cloud,k8s,gui})
 source ~/.zshrc                          # Reload shell after config changes
 ```
 
@@ -32,8 +37,8 @@ dots    # alias: git add . && commit with date && push from ~/dotfiles
 ### Cross-platform split
 
 The OS split is the core architectural decision:
-- **Brewfile** — macOS only. `install.sh` calls `brew bundle` only when `$IS_MAC=1`.
-- **install.sh section 6b** — Linux only. Downloads SRE tool binaries (k9s, lazygit, stern, delta, etc.) directly from GitHub releases into `$HOME/.local/bin` — no sudo required.
+- **Brewfile** + **Brewfile.cloud** + **Brewfile.k8s** + **Brewfile.gui** — macOS only. `install.sh` calls `brew bundle` for the base file always, and the others conditionally based on `--no-cloud`/`--no-k8s`/`--no-gui` flags.
+- **install.sh section 6b** — Linux only. Downloads SRE tool binaries (k9s, lazygit, stern, delta, etc.) directly from GitHub releases into `$HOME/.local/bin` — no sudo required. K8s tools gated by `$INSTALL_K8S`, cloud tools by `$INSTALL_CLOUD`.
 - **zshrc** — single file with `if [[ "$OSTYPE" == "darwin"* ]]` guards for macOS-specific PATH entries and tools.
 
 ### Symlinks (created by install.sh)
@@ -106,7 +111,7 @@ Wrapper for `@continuedev/cli` — finds the fnm/nvm node binary without requiri
 
 ## Key conventions
 
-- **Brewfile is macOS-only** — never add Linux-specific packages here; add them to the apt block or the binary download section in `install.sh` section 6b.
+- **Brewfile/Brewfile.{cloud,k8s,gui} are macOS-only** — never add Linux-specific packages here; add them to the apt block or the binary download section in `install.sh` section 6b. New macOS packages: classify into the right Brewfile split — base for always-needed, `.cloud` for IaC/cloud CLIs, `.k8s` for kubernetes/containers, `.gui` for Mac apps + VSCode extensions.
 - **`pinentry-mac` in Security section** — macOS-only, intentional, fine since Brewfile is macOS-only.
 - **`~/.zshrc.local`** — for machine-specific config that should not be committed (tokens, host-specific aliases, etc.).
 - **Consistent theme** — Catppuccin Mocha across nvim, tmux status bar, starship, and git delta. Keep new UI additions on this theme.

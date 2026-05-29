@@ -50,11 +50,26 @@ git clone https://github.com/kr0nicas/dotfiles.git ~/dotfiles
 cd ~/dotfiles && ./install.sh
 ```
 
-Simulacion sin cambios:
+### Instalación modular
+
+`install.sh` acepta flags compositivos para adaptarse al tipo de máquina:
 
 ```bash
-./install.sh --dry-run
+./install.sh --dry-run                # Simula sin cambios
+./install.sh --minimal                # Solo terminal env (zsh, tmux, nvim, langs) — ideal VPS/contenedores
+./install.sh --no-gui                 # Sin VSCode/Brave/Spotify (servidor con DE pero sin apps)
+./install.sh --no-cloud --no-k8s      # Workstation sin SRE tools
+./install.sh --help                   # Ver todas las opciones
 ```
+
+| Flag | Omite |
+|---|---|
+| `--minimal` | Cloud + Kubernetes + GUI (todo lo opcional) |
+| `--no-cloud` | aws, azure, terraform, vault, tflint, gcloud |
+| `--no-k8s` | kubectl, helm, k9s, stern, kubectx, docker |
+| `--no-gui` | VSCode + extensiones, Brave, Spotify, Postman, ngrok |
+
+El `Brewfile` base (siempre instalado) cubre: shell, CLIs modernas, nvim + linters, lenguajes, security y fonts.
 
 Soportado en **macOS** (Apple Silicon / Intel) y **Debian/Ubuntu** (VPS, GCP, AWS). Ver [matriz completa](#-plataformas-probadas).
 
@@ -374,7 +389,7 @@ mv ~/.zshrc.bak.20260529-103045 ~/.zshrc   # restaurar uno
 ```
 
 **¿Puedo instalar solo lo terminal sin las herramientas de cloud/k8s?**
-Hoy `install.sh` es monolítico — todo o nada. En roadmap: flags `--minimal`, `--no-cloud`, `--no-k8s`.
+Sí. Usa `./install.sh --minimal` (solo base) o combina `--no-cloud`, `--no-k8s`, `--no-gui`. Ver [Quickstart](#-quickstart).
 
 ---
 

@@ -1,0 +1,19 @@
+# ==============================================================================
+# Brewfile.cloud — Cloud CLIs + IaC tooling
+# Instalado por install.sh salvo que pases --no-cloud o --minimal.
+# ==============================================================================
+
+tap "hashicorp/tap"
+
+# --- Cloud CLIs ---
+brew "awscli"
+brew "azure-cli"
+
+# --- IaC ---
+brew "hashicorp/tap/terraform"
+brew "hashicorp/tap/vault"
+brew "tflint"
+brew "tfsec"
+
+# --- Casks ---
+cask "gcloud-cli"
