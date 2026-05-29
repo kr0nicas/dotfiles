@@ -36,6 +36,9 @@
 - [🔗 Symlinks creados](#-symlinks-creados)
 - [🪟 WSL — Nerd Fonts en Windows](#-wsl--nerd-fonts-en-windows)
 - [🛡️ Notas de seguridad](#️-notas-de-seguridad)
+- [🧪 Plataformas probadas](#-plataformas-probadas)
+- [❓ FAQ](#-faq)
+- [📚 Referencias](#-referencias)
 - [🔄 Post-instalacion y actualizacion](#-post-instalacion-y-actualizacion)
 
 ---
@@ -53,7 +56,9 @@ Simulacion sin cambios:
 ./install.sh --dry-run
 ```
 
-Soportado en **macOS** (Apple Silicon / Intel) y **Debian/Ubuntu** (VPS, GCP, AWS).
+Soportado en **macOS** (Apple Silicon / Intel) y **Debian/Ubuntu** (VPS, GCP, AWS). Ver [matriz completa](#-plataformas-probadas).
+
+> 💡 Si ya tienes un `.zshrc`, `.tmux.conf`, etc., el installer **respalda automáticamente** a `<archivo>.bak.<timestamp>` antes de pisar. Nunca pierdes config existente.
 
 ---
 
@@ -318,6 +323,67 @@ Luego configura la fuente en tu terminal:
 - Si necesitas un entorno hardened, reemplaza cada bloque por descarga + verificación SHA256.
 
 Binarios descargados desde GitHub releases (k9s, delta, lazygit, stern, etc.) viajan por HTTPS pero no se valida el checksum publicado en cada release. Mismo trade-off.
+
+---
+
+## 🧪 Plataformas probadas
+
+| OS | Versión | Arch | Estado |
+|---|---|---|---|
+| 🍎 macOS | Sonoma 14.x | Apple Silicon (M1/M2/M3) | ✅ Daily driver |
+| 🍎 macOS | Sequoia 15.x | Apple Silicon | ✅ Probado |
+| 🐧 Ubuntu | 24.04 LTS | x86_64 / arm64 | ✅ Probado |
+| 🐧 Ubuntu | 22.04 LTS | x86_64 | ✅ Probado |
+| 🐧 Debian | 12 (Bookworm) | x86_64 / arm64 | ✅ Probado |
+| 🪟 WSL2 | Ubuntu 24.04 sobre Windows 11 | x86_64 | ✅ Probado (WezTerm en Windows) |
+| 🐧 Otras distros | Fedora, Arch, Alpine, etc. | — | ⚠️ No probado (puede requerir ajustes en `install.sh`) |
+
+> Reporta issues con tu plataforma en [github.com/kr0nicas/dotfiles/issues](https://github.com/kr0nicas/dotfiles/issues).
+
+---
+
+## ❓ FAQ
+
+**¿Es seguro correr `./install.sh` si ya tengo configs existentes?**
+Sí. `safe_link()` respalda automáticamente cualquier `.zshrc`, `.tmux.conf`, etc. existente a `<archivo>.bak.<timestamp>` antes de pisar. Igual recomendamos `--dry-run` primero.
+
+**¿Necesito sudo?**
+En macOS: no (todo via Homebrew en `/opt/homebrew` o `/usr/local`).
+En Linux: sí, solo para `apt install` y agregar repos firmados a `/etc/apt/keyrings`. Binarios SRE van a `~/.local/bin` (sudoless).
+
+**¿Cómo actualizo después de cambios upstream?**
+```bash
+cd ~/dotfiles && git pull && ./install.sh
+```
+`install.sh` es idempotente: detecta lo ya instalado y solo aplica diffs.
+
+**¿Funciona sin internet?**
+No. `install.sh` descarga paquetes y binarios. Pero una vez instalado, todo funciona offline.
+
+**`gh_latest_url` falla con "rate limit"**
+La API de GitHub anónima permite 60 req/hora. Auth con `gh auth login` antes de instalar.
+
+**¿Por qué `lazy-lock.json` está en `.gitignore`?**
+Decisión filosófica: priorizamos "instala lo último al re-instalar" sobre reproducibilidad estricta. Si prefieres pinned plugins, abre un issue.
+
+**Algo se rompió. ¿Cómo restauro mi config previa?**
+Los backups están en `~/<archivo>.bak.<timestamp>`. Por ejemplo:
+```bash
+ls ~/.zshrc.bak.*    # listar backups
+mv ~/.zshrc.bak.20260529-103045 ~/.zshrc   # restaurar uno
+```
+
+**¿Puedo instalar solo lo terminal sin las herramientas de cloud/k8s?**
+Hoy `install.sh` es monolítico — todo o nada. En roadmap: flags `--minimal`, `--no-cloud`, `--no-k8s`.
+
+---
+
+## 📚 Referencias
+
+- [`CHEAT_CODES.md`](CHEAT_CODES.md) — Atajos de tmux, fzf, k9s, lazygit, kubectx y aliases custom
+- [`VIM_GUIA.md`](VIM_GUIA.md) — Guía rápida de Vim/Neovim (motions, comandos, plugins)
+- [`CLAUDE.md`](CLAUDE.md) — Instrucciones internas para Claude Code (arquitectura del repo)
+- [`Mac-Optimization/`](Mac-Optimization/) — Notas de optimización macOS *(WIP)*
 
 ---
 

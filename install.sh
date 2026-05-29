@@ -517,7 +517,18 @@ safe_link() {
         warn "DRY-RUN: ln -sf $src → $dest"
         return
     fi
-    rm -f "$dest"
+    # Si el destino ya existe y NO es symlink al mismo src, respaldar antes de pisar
+    if [[ -e "$dest" || -L "$dest" ]]; then
+        if [[ -L "$dest" ]] && [[ "$(readlink "$dest")" == "$src" ]]; then
+            : # ya apunta al repo, nada que hacer
+        elif [[ -L "$dest" ]]; then
+            rm -f "$dest"
+        else
+            local backup="${dest}.bak.$(date +%Y%m%d-%H%M%S)"
+            mv "$dest" "$backup"
+            warn "Config existente respaldada: $backup"
+        fi
+    fi
     ln -sf "$src" "$dest"
     ok "Linked: $dest → $src"
 }
