@@ -125,6 +125,25 @@ Config en `.gitconfig` con:
 Selector interactivo de hosts con `s` (usa fzf + `~/.ssh/config`).
 ControlMaster activo: reutiliza conexiones (segundo ssh es instantaneo, keepalive cada 60s).
 
+**Colores de fondo por entorno** (`config/ssh/colors.conf`): al hacer `ssh prod-*`, `staging-*`, `gcp-*`, etc. la terminal cambia de color para identificar visualmente el contexto y evitar accidentes en produccion. Patrones editables; override local en `~/.ssh/colors.conf` (no symlinked).
+
+### Terminal: WezTerm
+
+Config cross-platform en `config/wezterm/wezterm.lua` (macOS + WSL2 Windows). Tema Catppuccin Mocha, fuente JetBrainsMono Nerd Font.
+En WSL2 el symlink se crea automaticamente en `%USERPROFILE%\.config\wezterm\` (requiere Modo Desarrollador o PowerShell admin).
+
+### Claude Code
+
+- `config/claude/settings.json` — symlinked a `~/.claude/settings.json`. Statusline custom, plugins habilitados (superpowers, frontend-design, code-review), marketplaces extra.
+- `config/claude/statusline.sh` — statusline portable (Mac + Linux + WSL).
+- `config/claude/settings.local.json.example` — plantilla para overrides locales por maquina (no commiteado, sembrado en primer install).
+- `install.sh` ancla `claude` al build nativo (`~/.local/bin/claude`) para evitar que fnm/npm rompa el PATH al cambiar de version de Node.
+
+### Scripts locales
+
+`config/bin/` se enlaza a `~/.local/bin/`:
+- `cn` — wrapper de `@continuedev/cli` que localiza el node de fnm/nvm sin requerir que el version manager este cargado en el shell actual.
+
 ### Tmux Sessionizer
 
 `t` abre un selector fzf de proyectos (`~/projects`, `~/go/src`) y crea/attacha sesion tmux.
@@ -141,31 +160,50 @@ Config en `config/starship/starship.toml` con tema Catppuccin Mocha. Muestra:
 
 ```
 ~/dotfiles/
-  install.sh              # Instalador cross-platform
-  Brewfile                # Paquetes macOS (brew bundle)
-  zshrc                   # Config de zsh
-  tmux.conf               # Config de tmux
-  .gitconfig              # Config de git + delta
+  install.sh                  # Instalador cross-platform
+  Brewfile                    # Paquetes macOS (brew bundle)
+  zshrc                       # Config de zsh
+  tmux.conf                   # Config de tmux
+  .gitconfig                  # Config de git + delta
+  install-fonts-windows.ps1   # Nerd Fonts para WSL/Windows
+  get-docker.sh               # Helper instalacion Docker
+  vimrc                       # Fallback vim (sin nvim)
+  CHEAT_CODES.md, VIM_GUIA.md # Notas personales
   config/
-    nvim/                 # Config Neovim (Lua)
+    nvim/                     # Config Neovim (Lua)
       init.lua
-      lua/config/         # options, keymaps, autocmds, lazy bootstrap
-      lua/plugins/        # colorscheme, treesitter, telescope, lsp, git, editor, ui, which-key, oil
+      lua/config/             # options, keymaps, autocmds, lazy bootstrap
+      lua/plugins/            # colorscheme, treesitter, telescope, lsp, git, editor, ui, which-key, oil
     starship/
-      starship.toml       # Config del prompt
+      starship.toml           # Config del prompt
     direnv/
-      direnv.toml         # Whitelist de directorios confiables
+      direnv.toml             # Whitelist de directorios confiables
+    claude/
+      settings.json           # Config Claude Code (statusline, plugins)
+      statusline.sh           # Statusline portable Mac/Linux/WSL
+      settings.local.json.example  # Plantilla overrides locales
+    wezterm/
+      wezterm.lua             # Config terminal Mac + WSL2
+    ssh/
+      colors.conf             # Color de fondo por entorno SSH
+    bin/
+      cn                      # Wrapper de @continuedev/cli
 ```
 
 ## Symlinks creados por install.sh
 
 ```
-~/.zshrc           -> ~/dotfiles/zshrc
-~/.tmux.conf       -> ~/dotfiles/tmux.conf
-~/.gitconfig       -> ~/dotfiles/.gitconfig
-~/.config/nvim     -> ~/dotfiles/config/nvim
-~/.config/starship.toml -> ~/dotfiles/config/starship/starship.toml
-~/.config/direnv/direnv.toml -> ~/dotfiles/config/direnv/direnv.toml
+~/.zshrc                       -> ~/dotfiles/zshrc
+~/.tmux.conf                   -> ~/dotfiles/tmux.conf
+~/.gitconfig                   -> ~/dotfiles/.gitconfig
+~/.config/nvim                 -> ~/dotfiles/config/nvim
+~/.config/starship.toml        -> ~/dotfiles/config/starship/starship.toml
+~/.config/direnv/direnv.toml   -> ~/dotfiles/config/direnv/direnv.toml
+~/.claude/settings.json        -> ~/dotfiles/config/claude/settings.json
+~/.claude/statusline.sh        -> ~/dotfiles/config/claude/statusline.sh
+~/.ssh/colors.conf             -> ~/dotfiles/config/ssh/colors.conf
+~/.config/wezterm/wezterm.lua  -> ~/dotfiles/config/wezterm/wezterm.lua  (en WSL2: lado Windows)
+~/.local/bin/cn                -> ~/dotfiles/config/bin/cn
 ```
 
 ## WSL — Instalar Nerd Fonts en Windows
