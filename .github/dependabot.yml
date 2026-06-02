@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # Actualizaciones de dependencias para dotfiles
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "America/El_Salvador"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "kr0nicas"
+    labels:
+      - "dependencies"
+      - "npm"
+    allow:
+      - dependency-type: "development"
