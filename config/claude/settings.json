@@ -2,6 +2,7 @@
   "env": {
     "CLAUDE_CODE_AUTOCOMPACT_PCT_OVERRIDE": "80"
   },
+  "model": "sonnet",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline.sh"
@@ -20,5 +21,6 @@
     }
   },
   "autoUpdatesChannel": "stable",
+  "skipWorkflowUsageWarning": true,
   "theme": "dark"
 }
