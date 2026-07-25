@@ -27,3 +27,5 @@
 
 [includeIf "gitdir/i:/Users/"]
     path = ~/.gitconfig.macos
+[includeIf "gitdir:~/Documents/Development/ITProject41/"]
+	path = ~/.gitconfig-itproject41

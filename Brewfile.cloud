@@ -15,5 +15,8 @@ brew "hashicorp/tap/vault"
 brew "tflint"
 brew "tfsec"
 
+# --- Agentes IA / tokens ---
+brew "rtk"          # Rust Token Killer: comprime output de comandos para agentes (Claude Code hook)
+
 # --- Casks ---
 cask "gcloud-cli"

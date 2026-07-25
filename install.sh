@@ -794,6 +794,18 @@ if [[ -f "$DOTFILES_DIR/config/claude/settings.json" ]]; then
     fi
 fi
 
+# rtk (Rust Token Killer) config — ruta de config difiere por OS.
+# El hook de Claude Code se registra aparte con: rtk init -g --hook-only
+if [[ -f "$DOTFILES_DIR/config/rtk/config.toml" ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        RTK_CFG_DIR="$HOME/Library/Application Support/rtk"
+    else
+        RTK_CFG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/rtk"
+    fi
+    safe_mkdir "$RTK_CFG_DIR"
+    safe_link "$DOTFILES_DIR/config/rtk/config.toml" "$RTK_CFG_DIR/config.toml"
+fi
+
 # WezTerm config
 if [[ -f "$DOTFILES_DIR/config/wezterm/wezterm.lua" ]]; then
     if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then

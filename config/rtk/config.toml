@@ -1,0 +1,72 @@
+# ==============================================================================
+# rtk (Rust Token Killer) — config
+# Proxy que comprime la salida de comandos ANTES de que la lea un agente de IA
+# (Claude Code vía PreToolUse hook). NO afecta tu shell interactiva.
+#
+# Symlinked por install.sh:
+#   macOS -> ~/Library/Application Support/rtk/config.toml
+#   Linux -> ~/.config/rtk/config.toml
+#
+# Comandos útiles:  rtk gain   (ahorro de tokens)   ·   rtk init -g --uninstall
+# Desactivar puntual:  RTK_DISABLED=1 <cmd>
+# ==============================================================================
+
+[tracking]
+enabled = true       # historial local (sqlite) para `rtk gain`
+history_days = 90
+
+[display]
+colors = true
+emoji = true
+max_width = 120
+
+[filters]
+ignore_dirs = [
+    ".git",
+    "node_modules",
+    "target",
+    "__pycache__",
+    ".venv",
+    "vendor",
+]
+ignore_files = [
+    "*.lock",
+    "*.min.js",
+    "*.min.css",
+]
+
+[tee]
+enabled = true
+mode = "failures"
+max_files = 20
+max_file_size = 1048576
+
+[telemetry]
+enabled = false      # sin telemetría externa
+
+[hooks]
+# Comandos que el hook NUNCA reescribe (output verbatim, sin comprimir).
+# IaC / secretos / estado cloud: aquí el detalle exacto es crítico y un
+# resumen podría ocultar un warning de un plan o un drift.
+# Nota: rtk 0.43 aún NO proxya estos, así que hoy pasan intactos igualmente;
+# los fijamos como defensa por si una versión futura añade su proxy y empieza
+# a comprimir output de infra sin avisar.
+# kubectl/aws/docker/git SÍ se comprimen (read-only, alto ahorro, re-ejecutable).
+# Si en un incidente `kubectl logs`/`describe` sale demasiado recortado,
+# añade "kubectl" a esta lista.
+exclude_commands = [
+    "terraform",
+    "tofu",
+    "helm",
+    "vault",
+    "gcloud",
+    "gsutil",
+]
+transparent_prefixes = []
+
+[limits]
+grep_max_results = 200
+grep_max_per_file = 25
+status_max_files = 15
+status_max_untracked = 10
+passthrough_max_chars = 2000

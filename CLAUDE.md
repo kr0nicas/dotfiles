@@ -59,7 +59,16 @@ All config lives in `~/dotfiles/` and is symlinked into place:
 ~/.claude/statusline.sh     -> ~/dotfiles/config/claude/statusline.sh
 ~/.config/wezterm/wezterm.lua -> ~/dotfiles/config/wezterm/wezterm.lua
 ~/.ssh/colors.conf          -> ~/dotfiles/config/ssh/colors.conf
+rtk config.toml             -> ~/dotfiles/config/rtk/config.toml  (macOS: ~/Library/Application Support/rtk/, Linux: ~/.config/rtk/)
 ```
+
+### rtk (Rust Token Killer)
+
+`brew "rtk"` (en `Brewfile.cloud`). Proxy en Rust que comprime la salida de comandos (kubectl, aws, docker, git, grep…) **antes de que la lea un agente de IA** — reduce 60–90% de tokens. Solo actúa sobre las llamadas Bash de Claude Code vía un `PreToolUse` hook; **no toca la shell interactiva**.
+
+- **Config**: `config/rtk/config.toml` (symlinkeado por install.sh, ruta según OS). `[hooks].exclude_commands` excluye `terraform`/`tofu`/`helm`/`vault`/`gcloud`/`gsutil` para que el output de infra nunca se comprima (hoy rtk no los proxya; es defensa a futuro). `kubectl`/`aws` **sí** se comprimen.
+- **Hook en Claude Code**: se registra con `rtk init -g --hook-only` (añade `hooks.PreToolUse` → `rtk hook claude` a `~/.claude/settings.json`). Como `settings.json` puede tener `skip-worktree`, ese cambio no siempre se versiona — re-ejecutar el comando en cada máquina es idempotente.
+- **Uso**: `rtk gain` (ahorro de tokens), `RTK_DISABLED=1 <cmd>` (bypass puntual), `rtk init -g --uninstall` (quitar).
 
 ### zshrc load order
 
