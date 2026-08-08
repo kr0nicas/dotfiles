@@ -17,7 +17,32 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export CLOUDSDK_PYTHON="python3"
     export ANDROID_HOME=$HOME/Library/Android/sdk
     export GOPATH=$HOME/go
-    
+
+    # Homebrew según arquitectura, y por delante de /usr/local/bin.
+    #
+    # En Apple Silicon brew vive en /opt/homebrew y en Intel en /usr/local.
+    # Antes /usr/local/bin iba prepended arriba y /opt/homebrew/bin al final de
+    # esta lista, así que en un Mac ARM cualquier binario Intel que quedara en
+    # /usr/local/bin (residuo de Rosetta o de una migración) ganaba al nativo.
+    # En Intel el prefijo ES /usr/local, así que ahí no cambia nada.
+    #
+    # Se reantepone también ~/.local/bin para que siga ganando a brew: ahí viven
+    # los binarios standalone (claude), y `typeset -gU path` deduplica quedándose
+    # con la primera aparición, así que reanteponer reordena sin duplicar.
+    for _brew_prefix in /opt/homebrew /usr/local; do
+        if [[ -x "$_brew_prefix/bin/brew" ]]; then
+            path=(
+                $HOME/.fzf/bin
+                $HOME/.local/bin
+                $_brew_prefix/bin
+                $_brew_prefix/sbin
+                $path
+            )
+            break
+        fi
+    done
+    unset _brew_prefix
+
     path=(
         $path
         $HOME/.krew/bin
@@ -30,7 +55,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         $ANDROID_HOME/platform-tools
         $GOPATH/bin
         $HOME/.opencode/bin
-        /opt/homebrew/bin
         $HOME/google-cloud-sdk/bin
         /usr/local/share/google-cloud-sdk/bin
     )
