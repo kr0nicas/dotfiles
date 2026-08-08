@@ -473,18 +473,34 @@ assert_eq "0" "$(lint_staged "$LINT_TMP/no-existe.json" >/dev/null 2>&1; echo $?
 # rama. Los patrones son relativos a la raíz del repo, así que se usan rutas
 # reales del propio repo en vez de temporales.
 STUB_DIR="${TMPDIR:-/tmp}/hooks-test-stub-$$"
+STUB_LOG="$STUB_DIR/args.log"
+export STUB_LOG
 mkdir -p "$STUB_DIR"
-printf '#!/bin/sh\nexit 1\n' > "$STUB_DIR/shellcheck"
+# El stub REGISTRA sus argumentos además de fallar. Sin el registro, un test que
+# solo mira el código de salida pasa igual con el bug: el código viejo mandaba
+# «shellcheck install.sh» pasara lo que pasara, y un stub que siempre sale 1
+# habría dado rc=1 en ambas versiones. Lo que discrimina es QUÉ archivo recibe.
+printf '#!/bin/sh\nprintf "%%s\\n" "$@" >> "$STUB_LOG"\nexit 1\n' > "$STUB_DIR/shellcheck"
 chmod +x "$STUB_DIR/shellcheck"
 
 assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged '.githooks/commit-msg' >/dev/null 2>&1; echo $?)" \
     "analiza los hooks, que no llevan extensión .sh"
 assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged 'config/bin/cn' >/dev/null 2>&1; echo $?)" \
     "analiza config/bin/cn, que tampoco lleva extensión"
-assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged 'scripts/github-topics-manager.sh' >/dev/null 2>&1; echo $?)" \
-    "analiza los scripts de scripts/ individualmente, no vía install.sh"
 assert_eq "0" "$(PATH="$STUB_DIR:$PATH" lint_staged 'README.md' >/dev/null 2>&1; echo $?)" \
     "no manda a shellcheck lo que no es un script"
+
+: > "$STUB_LOG"
+PATH="$STUB_DIR:$PATH" lint_staged 'scripts/github-topics-manager.sh' >/dev/null 2>&1
+assert_contains "scripts/github-topics-manager.sh" "$(cat "$STUB_LOG")" \
+    "shellcheck recibe el script staged, no install.sh por delegación"
+
+: > "$STUB_LOG"
+PATH="$STUB_DIR:$PATH" lint_staged 'lib/symlinks.sh' >/dev/null 2>&1
+assert_contains "install.sh" "$(cat "$STUB_LOG")" \
+    "un lib/ staged sí delega en install.sh"
+assert_contains "-x" "$(cat "$STUB_LOG")" \
+    "el análisis de install.sh usa -x para arrastrar lib/"
 
 rm -rf "$STUB_DIR"
 rm -rf "$LINT_TMP"
@@ -603,7 +619,7 @@ Run:
 chmod +x .githooks/pre-commit
 bash .githooks/hooks.test.sh
 ```
-Expected: `41/41 tests pasaron`, código 0
+Expected: `44/44 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -763,7 +779,7 @@ assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1
 - [ ] **Step 5: Correr la suite**
 
 Run: `bash .githooks/hooks.test.sh`
-Expected: `51/51 tests pasaron`, código 0
+Expected: `54/54 tests pasaron`, código 0
 
 - [ ] **Step 6: Verificar shellcheck**
 
@@ -895,7 +911,7 @@ Run:
 chmod +x .githooks/pre-push
 bash .githooks/hooks.test.sh
 ```
-Expected: `57/57 tests pasaron`, código 0
+Expected: `60/60 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -1740,7 +1756,7 @@ Sin huecos.
 
 **Consistencia de nombres verificada:** `hook_err`/`hook_warn`/`hook_ok`/`hook_info`, `has`, `hook_scopes_file` (Task 1) se usan con esos mismos nombres en Tasks 2–5. `staged_files` y `lint_staged` (Task 3) los consume el bloque de ejecución de Task 4. `validate_commit_msg` (Task 2) lo invoca el job `commit-lint` de Task 8 vía `bash .githooks/commit-msg`. `check_push_ref` y `run_suites` (Task 5) solo se usan dentro de su archivo.
 
-**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 31, Task 3 → 41, Task 4 → 51, Task 5 → 57. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
+**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 31, Task 3 → 44, Task 4 → 54, Task 5 → 60. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
 
 **Corrección aplicada durante esta revisión.** El primer borrador de `scripts/changelog.sh` solo recorría `main`, así que no implementaba el camino "todavía en la rama" que exige la sección 5 del spec: en un PR el archivo habría salido vacío de la feature en curso y el check de drift habría pasado en falso. Además el encabezado incluía el número de PR, que no existe antes de mergear, de modo que el texto cambiaba al integrar y el archivo se desincronizaba solo. Resuelto así:
 
