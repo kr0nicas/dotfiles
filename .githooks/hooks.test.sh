@@ -54,5 +54,38 @@ assert_eq "0" "$(grep -qx 'gcp' "$(hook_scopes_file)"; echo $?)" \
 assert_eq "1" "$(grep -qx 'gcloud' "$(hook_scopes_file)"; echo $?)" \
     "gcloud NO está: el ámbito del dominio es gcp"
 
+printf '\ncommit-msg\n'
+# shellcheck source=.githooks/commit-msg
+. "$HOOKS_DIR/commit-msg"
+
+MSG_TMP="${TMPDIR:-/tmp}/hooks-test-msg-$$"
+check_msg() { printf '%s\n' "$1" > "$MSG_TMP"; validate_commit_msg "$MSG_TMP" 2>&1; }
+check_rc()  { printf '%s\n' "$1" > "$MSG_TMP"; validate_commit_msg "$MSG_TMP" >/dev/null 2>&1; echo $?; }
+
+assert_eq "0" "$(check_rc 'feat(iterm2): perfil dinámico SRE 2026')" "acepta tipo+ámbito+asunto"
+assert_eq "0" "$(check_rc 'docs: documentar la fuente por plataforma')" "acepta sin ámbito"
+assert_eq "0" "$(check_rc 'fix(zshrc): quitar alias que rompía du')" "acepta acentos en el asunto"
+assert_eq "0" "$(check_rc 'feat(gcp)!: cambiar el nombre del comando')" "acepta el ! de breaking change"
+
+assert_eq "1" "$(check_rc 'Update dots: 2026-07-24')" "rechaza el formato viejo de dots"
+assert_eq "1" "$(check_rc 'arreglar el prompt')" "rechaza mensaje sin tipo"
+assert_eq "1" "$(check_rc 'feature(iterm2): perfil')" "rechaza tipo desconocido"
+assert_eq "1" "$(check_rc 'feat(gcloud): algo')" "rechaza ámbito fuera de la lista"
+assert_eq "1" "$(check_rc 'feat(iterm2): Perfil dinámico')" "rechaza asunto en mayúscula"
+assert_eq "1" "$(check_rc 'feat(iterm2): perfil dinámico.')" "rechaza punto final"
+assert_eq "1" "$(check_rc '')" "rechaza mensaje vacío"
+assert_eq "1" "$(check_rc "feat(repo): $(printf 'x%.0s' $(seq 1 80))")" "rechaza asunto de más de 72"
+
+assert_eq "0" "$(check_rc "Merge pull request #12 from kr0nicas/feat/iterm2")" "exime los merges"
+assert_eq "0" "$(check_rc 'Revert "feat(iterm2): perfil dinámico"')" "exime los reverts"
+assert_eq "0" "$(check_rc 'fixup! feat(iterm2): perfil dinámico')" "exime los fixup!"
+
+assert_contains "gcloud" "$(check_msg 'feat(gcloud): algo')" "el error nombra el ámbito inválido"
+assert_contains "scopes.txt" "$(check_msg 'feat(gcloud): algo')" "el error dice dónde añadirlo"
+assert_contains "feature" "$(check_msg 'feature(iterm2): x')" "el error nombra el tipo inválido"
+assert_contains "72" "$(check_msg "feat(repo): $(printf 'x%.0s' $(seq 1 80))")" "el error cita el límite"
+
+rm -f "$MSG_TMP"
+
 printf '\n%s/%s tests pasaron\n' "$((TESTS_RUN - TESTS_FAILED))" "$TESTS_RUN"
 [ "$TESTS_FAILED" -eq 0 ]
