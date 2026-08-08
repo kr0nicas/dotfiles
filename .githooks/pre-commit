@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# Lint de lo que está en el índice, no del repo entero.
+# Spec: docs/superpowers/specs/2026-08-08-arnes-trazabilidad-design.md
+#
+# Degrada a propósito: si falta la herramienta, avisa y deja pasar. Estos
+# dotfiles se clonan en cajas sin nada y un hook que exige herramientas
+# rompería justo el caso de uso del repo.
+set -uo pipefail
+
+HOOK_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=.githooks/lib.sh
+. "$HOOK_LIB_DIR/lib.sh"
+
+# Archivos añadidos/copiados/modificados/renombrados en el índice, separados
+# por NUL. Sin -z, un nombre con espacios se partiría en dos y el archivo
+# real se saltaría todas las comprobaciones sin decir nada.
+staged_files() {
+    git diff --cached --name-only --diff-filter=ACMR -z
+}
+
+# lint_staged <archivo>... -> 1 si alguna comprobación falla de verdad
+lint_staged() {
+    local rc=0 f necesita_shellcheck=0
+
+    for f in "$@"; do
+        [ -f "$f" ] || continue   # borrado o renombrado: nada que mirar
+
+        case "$f" in
+            install.sh|lib/*.sh|scripts/*.sh|.githooks/*.sh)
+                necesita_shellcheck=1
+                ;;
+            zshrc|*.zsh)
+                if has zsh; then
+                    zsh -n "$f" || { hook_err "zsh -n falló: $f"; rc=1; }
+                else
+                    hook_warn "zsh no está instalado; no se comprobó $f"
+                fi
+                ;;
+            *.json)
+                if has python3; then
+                    python3 -m json.tool "$f" >/dev/null \
+                        || { hook_err "JSON inválido: $f"; rc=1; }
+                else
+                    hook_warn "python3 no está instalado; no se comprobó $f"
+                fi
+                ;;
+            *.lua)
+                if has luajit; then
+                    luajit -bl "$f" /dev/null \
+                        || { hook_err "Lua inválido: $f"; rc=1; }
+                else
+                    hook_warn "luajit no está instalado; no se comprobó $f"
+                fi
+                ;;
+        esac
+    done
+
+    # Nota: shellcheck se corre una vez sobre install.sh con -x, que arrastra lib/.
+    # Analizar los lib/ sueltos da SC2034 en cascada por las globales que
+    # define install.sh - ver CLAUDE.md.
+    if [ "$necesita_shellcheck" -eq 1 ]; then
+        if has shellcheck; then
+            shellcheck -x -S warning install.sh \
+                || { hook_err 'shellcheck falló sobre install.sh'; rc=1; }
+        else
+            hook_warn 'shellcheck no está instalado; no se analizaron los scripts'
+        fi
+    fi
+
+    return "$rc"
+}
+
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+    archivos=()
+    while IFS= read -r -d '' f; do
+        archivos+=("$f")
+    done < <(staged_files)
+    [ "${#archivos[@]}" -gt 0 ] || exit 0
+    lint_staged "${archivos[@]}" || exit 1
+fi

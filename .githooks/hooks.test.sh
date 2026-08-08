@@ -91,5 +91,37 @@ assert_contains "72" "$(check_msg "feat(repo): $(printf 'x%.0s' $(seq 1 80))")" 
 
 rm -f "$MSG_TMP"
 
+printf '\npre-commit — lint\n'
+# shellcheck source=.githooks/pre-commit
+. "$HOOKS_DIR/pre-commit"
+
+LINT_TMP="${TMPDIR:-/tmp}/hooks-test-lint-$$"
+mkdir -p "$LINT_TMP"
+
+printf 'esto no es json\n' > "$LINT_TMP/roto.json"
+printf '{"ok": true}\n'    > "$LINT_TMP/bueno.json"
+
+if has python3; then
+    assert_eq "1" "$(lint_staged "$LINT_TMP/roto.json" >/dev/null 2>&1; echo $?)" \
+        "rechaza un JSON inválido"
+    assert_eq "0" "$(lint_staged "$LINT_TMP/bueno.json" >/dev/null 2>&1; echo $?)" \
+        "acepta un JSON válido"
+    assert_contains "roto.json" "$(lint_staged "$LINT_TMP/roto.json" 2>&1)" \
+        "el error nombra el archivo"
+else
+    printf '  — python3 ausente, tests de JSON omitidos\n'
+fi
+
+# Degradación: con la herramienta fuera del PATH debe avisar, no bloquear.
+degradado_rc="$(PATH=/nonexistent lint_staged "$LINT_TMP/roto.json" >/dev/null 2>&1; echo $?)"
+assert_eq "0" "$degradado_rc" "sin herramientas disponibles deja pasar"
+assert_contains "⚠" "$(PATH=/nonexistent lint_staged "$LINT_TMP/roto.json" 2>&1)" \
+    "sin herramientas disponibles avisa"
+
+assert_eq "0" "$(lint_staged "$LINT_TMP/no-existe.json" >/dev/null 2>&1; echo $?)" \
+    "ignora archivos que ya no existen (borrados en el índice)"
+
+rm -rf "$LINT_TMP"
+
 printf '\n%s/%s tests pasaron\n' "$((TESTS_RUN - TESTS_FAILED))" "$TESTS_RUN"
 [ "$TESTS_FAILED" -eq 0 ]
