@@ -3,6 +3,25 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · feat/terminal-iterm2-fuentes
+
+### Features
+
+- **iterm2**: perfil dinámico SRE 2026 con Hack Nerd Font Mono (`4722a4d`)
+- **wezterm**: elegir la Nerd Font según el target_triple (`1c3d52e`)
+
+### Fixes
+
+- **starship**: aplicar la sustitución de ~/dotfiles con truncate_to_repo (`02d4413`)
+
+### Documentación
+
+- documentar el perfil de iTerm2 y la fuente por plataforma (`99f4271`)
+
+## 2026-08-08 · chore(repo): probar la protección del servidor
+
+- (`b0f7f24`)
+
 ## 2026-08-08 · chore/arnes-trazabilidad
 
 ### Features
