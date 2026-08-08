@@ -31,6 +31,7 @@
 - [🎨 Prompt — Starship](#-prompt--starship)
 - [🌐 SSH](#-ssh)
 - [🖥️ WezTerm](#️-wezterm)
+- [🖥️ iTerm2 (macOS)](#️-iterm2-macos)
 - [🤖 Claude Code](#-claude-code)
 - [🔧 Git](#-git)
 - [🗂️ Estructura de archivos](#️-estructura-de-archivos)
@@ -259,8 +260,34 @@ Mapeo por defecto:
 
 ## 🖥️ WezTerm
 
-Config cross-platform en `config/wezterm/wezterm.lua` (macOS + WSL2 Windows). Tema Catppuccin Mocha, fuente JetBrainsMono Nerd Font.
+Config cross-platform en `config/wezterm/wezterm.lua` (macOS + WSL2 Windows). Tema Catppuccin Mocha.
 En WSL2 el symlink se crea automaticamente en `%USERPROFILE%\.config\wezterm\` (requiere Modo Desarrollador o PowerShell admin).
+
+La fuente se elige por `target_triple`, porque no es la misma en cada plataforma:
+
+| Plataforma | Fuente | Quien la instala |
+|---|---|---|
+| macOS / Linux | Hack Nerd Font | `Brewfile` (`font-hack-nerd-font`) |
+| WSL2 | JetBrainsMono Nerd Font | `install-fonts-windows.ps1` (renderiza Windows, no WSL) |
+
+Va con `font_with_fallback`, asi que la caja que tenga la otra instalada tampoco se queda sin iconos.
+
+---
+
+## 🖥️ iTerm2 (macOS)
+
+`config/iterm2/dotfiles.json` es un **Dynamic Profile**: iTerm2 lee todo lo que haya en
+`~/Library/Application Support/iTerm2/DynamicProfiles/` y lo recarga en caliente, asi que basta el symlink — no hay que importar nada a mano ni exportar el plist.
+
+El perfil se llama **SRE 2026** y fija fuente `Hack Nerd Font Mono 14`, tema Catppuccin Mocha y `Option` como `Esc+` (sin eso los `M-h/j/k/l` de `tmux.conf` no llegan).
+
+Un paso manual, una sola vez por maquina: iTerm2 no permite marcar un dynamic profile como predeterminado desde el JSON.
+
+```
+Settings (⌘,) → Profiles → SRE 2026 → Other Actions… → Set as Default
+```
+
+Si ves `?` en lugar de iconos en `ls`/prompt, es que la ventana sigue con el perfil viejo: la fuente no tiene glifos Nerd.
 
 ---
 
@@ -325,6 +352,8 @@ Config en `.gitconfig` con:
     │   └── settings.local.json.example   # Plantilla overrides locales
     ├── wezterm/
     │   └── wezterm.lua          # Config terminal Mac + WSL2
+    ├── iterm2/
+    │   └── dotfiles.json        # Dynamic Profile "SRE 2026" (solo macOS)
     ├── ssh/
     │   └── colors.conf          # Color de fondo por entorno SSH
     ├── zsh/
@@ -351,6 +380,9 @@ Config en `.gitconfig` con:
 ~/.ssh/colors.conf              →  ~/dotfiles/config/ssh/colors.conf
 ~/.config/wezterm/wezterm.lua   →  ~/dotfiles/config/wezterm/wezterm.lua   (WSL2: lado Windows)
 ~/.local/bin/cn                 →  ~/dotfiles/config/bin/cn
+
+~/Library/Application Support/iTerm2/DynamicProfiles/dotfiles.json
+                                →  ~/dotfiles/config/iterm2/dotfiles.json   (solo macOS)
 ```
 
 ---

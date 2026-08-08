@@ -88,6 +88,7 @@ All config lives in `~/dotfiles/` and is symlinked into place:
 ~/.claude/settings.json     -> ~/dotfiles/config/claude/settings.json
 ~/.claude/statusline.sh     -> ~/dotfiles/config/claude/statusline.sh
 ~/.config/wezterm/wezterm.lua -> ~/dotfiles/config/wezterm/wezterm.lua
+~/Library/Application Support/iTerm2/DynamicProfiles/dotfiles.json -> ~/dotfiles/config/iterm2/dotfiles.json  (solo macOS)
 ~/.ssh/colors.conf          -> ~/dotfiles/config/ssh/colors.conf
 rtk config.toml             -> ~/dotfiles/config/rtk/config.toml  (macOS: ~/Library/Application Support/rtk/, Linux: ~/.config/rtk/)
 ```
@@ -184,5 +185,7 @@ Wrapper for `@continuedev/cli` — finds the fnm/nvm node binary without requiri
 - **`~/.zshrc.local`** — for machine-specific config that should not be committed (tokens, host-specific aliases, etc.).
 - **Consistent theme** — Catppuccin Mocha across nvim, tmux status bar, starship, and git delta. Keep new UI additions on this theme.
 - **`jenv` + `openjdk@17`** — only the pinned version is in Brewfile. Add explicit `openjdk@XX` entries if additional Java versions are needed; do not use the unversioned `openjdk` formula.
+- **Nerd Font por plataforma** — macOS/Linux usan **Hack** (`Brewfile` instala `font-hack-nerd-font`); WSL2 usa **JetBrainsMono**, porque ahí renderiza Windows y es lo que instala `install-fonts-windows.ps1`. `wezterm.lua` elige con `font_with_fallback` según `target_triple`; `config/iterm2/dotfiles.json` y la cabecera de `starship.toml` son macOS-only y fijan Hack. Si cambias la fuente de un lado, cambia también el `.ps1` o el Brewfile del otro. Si un terminal muestra `?` en vez de iconos, la causa es siempre la fuente del perfil, no la locale ni `eza`.
+- **El perfil de iTerm2 usa el nombre PostScript de la fuente**, no el visible: `"HackNFM-Regular 14"`, no `"Hack Nerd Font Mono 14"`. Con el nombre visible iTerm cae en silencio a la fuente por defecto y vuelven los `?`. Sácalo de la tabla `name` del `.ttf` (record 6), no lo adivines. iTerm tampoco deja marcar un dynamic profile como predeterminado desde el JSON: es un paso manual una vez por máquina.
 - **`shellcheck` no vale para zsh** — está instalado (lo usa nvim-lint para `.sh`), pero no soporta zsh. Para `zshrc` y `config/zsh/*.zsh` usa `zsh -n`.
 - **Estado leído, nunca hardcodeado** — cualquier comando que reporte estado de una herramienta externa (cuenta de gcloud, contexto de kubectl, etc.) debe leerlo de la herramienta, no repetirlo en un `echo`. Los aliases de GCP se desincronizaron precisamente así; ver la sección `gcx`.
