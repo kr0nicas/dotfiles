@@ -219,14 +219,37 @@ ssh-pick() {
 }
 alias sp='ssh-pick'
 
+# Resuelve el destino de una línea de ssh: el PRIMER argumento que no es un
+# flag ni el valor de uno, sin el "usuario@" delante.
+#
+# Antes esto era un bucle que se quedaba con el ÚLTIMO argumento no-flag, y eso
+# devuelve el comando en vez del host en cuanto pasas uno:
+#   ssh prod-web ls -la              -> "ls"
+#   ssh prod-web systemctl restart   -> "restart"
+# Degradaba en silencio (solo se perdía el color), pero se perdía justo al
+# ejecutar un comando suelto contra producción, que es cuando más quieres ver
+# el fondo rojo.
+#
+# La clase de caracteres son las opciones de ssh que llevan valor separado; sin
+# saltarse ese valor, `ssh -p 2222 host` tomaría "2222" como destino.
+_ssh_target() {
+    local skip_next=0 arg
+    for arg in "$@"; do
+        if (( skip_next )); then skip_next=0; continue; fi
+        case "$arg" in
+            -[BbcDEeFIiJLlmOopQRSWw]) skip_next=1 ;;
+            -*) ;;
+            *)  print -- "${arg#*@}"; return 0 ;;
+        esac
+    done
+    return 1
+}
+
 # SSH Color wrapper — cambia el fondo del terminal según el servidor
 # Compatible con iTerm2 (OSC 1337) y terminales estándar (OSC 11)
 ssh() {
-    # Extraer hostname (último argumento no-flag)
-    local host=""
-    for arg in "$@"; do
-        [[ "$arg" != -* ]] && host="$arg"
-    done
+    local host
+    host=$(_ssh_target "$@") || host=""
 
     # Leer mapa de colores desde dotfiles (o ~/.ssh/colors.conf como override local)
     local color_conf=""
