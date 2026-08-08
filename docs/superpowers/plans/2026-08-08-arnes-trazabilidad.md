@@ -1142,7 +1142,7 @@ solo_changelog() {
 
 # emite_rango <rango> — lista los commits del rango agrupados por tipo.
 emite_rango() {
-    local rango="$1" tipo linea shas sha
+    local rango="$1" tipo linea shas sha excluidos
     # Los commits que solo tocan CHANGELOG.md se descartan antes de agrupar.
     shas="$(git log "$rango" --no-merges --reverse --format='%H' 2>/dev/null)"
     excluidos=''
