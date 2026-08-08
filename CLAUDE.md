@@ -23,6 +23,9 @@ Cross-platform dotfiles for Jorge Ochoa (kr0nicas) — SRE 2026 setup targeting 
 
 brew bundle --file=~/dotfiles/Brewfile   # Install/sync base macOS packages (cloud/k8s/gui in Brewfile.{cloud,k8s,gui})
 source ~/.zshrc                          # Reload shell after config changes
+
+zsh config/zsh/gcp.test.zsh              # Test suite del switcher gcx (45 tests, corre sin gcloud instalado)
+zsh -n zshrc && zsh -n config/zsh/gcp.zsh  # Chequeo de sintaxis zsh (shellcheck NO sirve: no soporta zsh)
 ```
 
 Post-install:
@@ -62,6 +65,8 @@ All config lives in `~/dotfiles/` and is symlinked into place:
 rtk config.toml             -> ~/dotfiles/config/rtk/config.toml  (macOS: ~/Library/Application Support/rtk/, Linux: ~/.config/rtk/)
 ```
 
+`config/zsh/gcp.zsh` es la excepción: **no se symlinkea**. `zshrc` lo carga con un `source` por ruta directa (`$HOME/dotfiles/config/zsh/gcp.zsh`), igual que `~/.zshrc.local`. No añadas un symlink para él en `install.sh`.
+
 ### rtk (Rust Token Killer)
 
 `brew "rtk"` (en `Brewfile.cloud`). Proxy en Rust que comprime la salida de comandos (kubectl, aws, docker, git, grep…) **antes de que la lea un agente de IA** — reduce 60–90% de tokens. Solo actúa sobre las llamadas Bash de Claude Code vía un `PreToolUse` hook; **no toca la shell interactiva**.
@@ -70,17 +75,40 @@ rtk config.toml             -> ~/dotfiles/config/rtk/config.toml  (macOS: ~/Libr
 - **Hook en Claude Code**: se registra con `rtk init -g --hook-only` (añade `hooks.PreToolUse` → `rtk hook claude` a `~/.claude/settings.json`). Como `settings.json` puede tener `skip-worktree`, ese cambio no siempre se versiona — re-ejecutar el comando en cada máquina es idempotente.
 - **Uso**: `rtk gain` (ahorro de tokens), `RTK_DISABLED=1 <cmd>` (bypass puntual), `rtk init -g --uninstall` (quitar).
 
+### gcx — switcher de cuentas y proyectos de GCP
+
+`config/zsh/gcp.zsh`. Comando para saltar entre configuraciones (cuentas) y proyectos de Google Cloud con pickers `fzf`. Reemplazó a cuatro aliases que imprimían con `echo` una cuenta hardcodeada que ya no coincidía con la config que activaban.
+
+```
+gcx                Picker de configuraciones (cuenta + proyecto)
+gcx p [-r]         Picker de proyectos de la cuenta activa (caché; -r refresca desde la API)
+gcx use <config>   Activa una configuración por nombre
+gcx who            Config, cuenta y proyecto activos
+gcx -h             Hoja de referencia completa, con las configs listadas en vivo
+```
+
+El dispatcher acepta además `project` como sinónimo de `p`, y `--help`/`help` de `-h`. Aliases en `zshrc:278-282`: `gcpers`, `gcit`, `gcfact`, `gckel` (todos delegan en `gcx use`) y `gcwho`.
+
+- **Principio de diseño, no negociable**: ningún mensaje de **estado** hardcodea cuenta ni proyecto — todo se lee de `gcloud` en tiempo real. Es la causa raíz del defecto original. La única excepción es la sección ALIASES de `gcx -h`, que es documentación estática. Si añades un mensaje, léelo de `gcloud`, nunca de una constante.
+- **Se llama `gcx`, no `gcp`**: `gcp` es el `cp` de GNU que instala Homebrew coreutils (`/usr/local/bin/gcp`). El archivo `gcp.zsh`, los helpers `_gcp_*`, la variable `GCP_CACHE_DIR` y la caché `~/.cache/gcp` sí conservan el prefijo `gcp` a propósito: nombran el dominio (Google Cloud Platform), no el comando. No los "unifiques".
+- **Trampa de `gcloud config configurations list`**: hay que usar `properties.core.account` y `properties.core.project`. Las formas cortas `account`/`project` devuelven **cadena vacía sin dar error** — el picker sale con columnas en blanco y ningún test unitario lo detecta.
+- **Caché por cuenta, no por config**: `~/.cache/gcp/projects-<cuenta-sanitizada>.list`. Dos configs de la misma cuenta comparten archivo. Filtra los proyectos `^sys-` (autogenerados por Apps Script). Escritura atómica vía temporal + `mv`; si la API falla y hay caché previa, se conserva y se avisa.
+- **`_gcp_config_table` es fuente única** de la tabla de configuraciones: la usan el picker y `gcx -h`. No dupliques su bloque `awk`.
+- **Dependencia de `column`**: en Debian/Ubuntu viene en `bsdextrautils`, ya incluido en el bloque apt de `install.sh`. Sin él, los pickers y `gcx -h` fallan en los presets `--vps` y `--container`.
+- **Tests**: `config/zsh/gcp.test.zsh`, 45 tests con arnés propio (`assert_eq`, `assert_contains`). Corren **sin gcloud instalado** — los que necesitan `gcloud` o `fzf` usan stubs eliminados con `unfunction` al cerrar su bloque. Mantén esa propiedad: la suite debe pasar en un contenedor sin SDK.
+
 ### zshrc load order
 
 1. PATH setup (fzf bin and `~/.local/bin` prioritized to avoid version conflicts)
 2. OS-specific PATHs (macOS: Homebrew, jenv, Android, Go; Linux: `~/.local/go`)
 3. Tool init: `starship`, `direnv`
-4. Lazy-loaded: `gcloud`/`gsutil`/`bq` (deferred until first call), `fnm` (Node version manager)
-5. Plugins: `zsh-autosuggestions`, `zsh-syntax-highlighting` (searched across `/usr/share`, `/usr/local/share`, `/opt/homebrew/share`)
-6. FZF keybindings (version-guarded: requires ≥0.48 for `fzf --zsh`)
-7. Aliases and functions (`t` tmux sessionizer, `sp`/`ssh-pick`)
-8. `zoxide init` (must be last)
-9. Local overrides: `~/.zshrc.local` (not synced — host-specific config)
+4. Lazy-loaded: `gcloud`/`gsutil`/`bq` (deferred until first call via the shared `_gcloud_lazy_load` helper — do not pass the caller's args to it), `fnm` (Node version manager)
+5. `source config/zsh/gcp.zsh` — defines `gcx` and its `_gcp_*` helpers. Pure definitions, no gcloud calls at load time, so non-interactive shells and machines without the SDK are unaffected.
+6. Plugins: `zsh-autosuggestions`, `zsh-syntax-highlighting` (searched across `/usr/share`, `/usr/local/share`, `/opt/homebrew/share`)
+7. FZF keybindings (version-guarded: requires ≥0.48 for `fzf --zsh`)
+8. Aliases and functions (`t` tmux sessionizer, `sp`/`ssh-pick`, GCP aliases delegating to `gcx use`)
+9. `zoxide init` (must be last)
+10. Local overrides: `~/.zshrc.local` (not synced — host-specific config)
 
 ### Neovim config (`config/nvim/`)
 
@@ -129,3 +157,5 @@ Wrapper for `@continuedev/cli` — finds the fnm/nvm node binary without requiri
 - **`~/.zshrc.local`** — for machine-specific config that should not be committed (tokens, host-specific aliases, etc.).
 - **Consistent theme** — Catppuccin Mocha across nvim, tmux status bar, starship, and git delta. Keep new UI additions on this theme.
 - **`jenv` + `openjdk@17`** — only the pinned version is in Brewfile. Add explicit `openjdk@XX` entries if additional Java versions are needed; do not use the unversioned `openjdk` formula.
+- **`shellcheck` no vale para zsh** — está instalado (lo usa nvim-lint para `.sh`), pero no soporta zsh. Para `zshrc` y `config/zsh/*.zsh` usa `zsh -n`.
+- **Estado leído, nunca hardcodeado** — cualquier comando que reporte estado de una herramienta externa (cuenta de gcloud, contexto de kubectl, etc.) debe leerlo de la herramienta, no repetirlo en un `echo`. Los aliases de GCP se desincronizaron precisamente así; ver la sección `gcx`.
