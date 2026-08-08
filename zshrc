@@ -60,15 +60,20 @@ fi
 # ------------------------------------------------------------------------------
 # 4. CARGA DIFERIDA (LAZY LOADING)
 # ------------------------------------------------------------------------------
-gcloud() {
+# gcloud/gsutil/bq: el SDK tarda en cargar, así que diferimos path y completions
+# hasta la primera invocación. El helper NO recibe los argumentos del comando:
+# pasárselos hacía que `gsutil ls ...` ejecutase antes `gcloud ls ...` y
+# escupiera un error en cada primer uso.
+_gcloud_lazy_load() {
     unset -f gcloud gsutil bq
     local GCLOUD_PATH="$HOME/google-cloud-sdk"
     [ -f "$GCLOUD_PATH/path.zsh.inc" ] && . "$GCLOUD_PATH/path.zsh.inc"
     [ -f "$GCLOUD_PATH/completion.zsh.inc" ] && . "$GCLOUD_PATH/completion.zsh.inc"
-    gcloud "$@"
+    return 0   # el último [ -f ] puede ser falso; no propagar ese estado
 }
-gsutil() { gcloud "$@"; gsutil "$@" }
-bq() { gcloud "$@"; bq "$@" }
+gcloud() { _gcloud_lazy_load; gcloud "$@" }
+gsutil() { _gcloud_lazy_load; gsutil "$@" }
+bq()     { _gcloud_lazy_load; bq "$@" }
 
 # GCP: switcher de cuentas y proyectos (comando `gcx`, ver `gcx -h`)
 [ -f "$HOME/dotfiles/config/zsh/gcp.zsh" ] && source "$HOME/dotfiles/config/zsh/gcp.zsh"
