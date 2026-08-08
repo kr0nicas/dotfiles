@@ -55,6 +55,7 @@ All config lives in `~/dotfiles/` and is symlinked into place:
 ~/.zshrc                    -> ~/dotfiles/zshrc
 ~/.tmux.conf                -> ~/dotfiles/tmux.conf
 ~/.gitconfig                -> ~/dotfiles/.gitconfig
+~/.vimrc                    -> ~/dotfiles/vimrc          (fallback para cajas sin nvim, ver VIM_GUIA.md)
 ~/.config/nvim              -> ~/dotfiles/config/nvim/
 ~/.config/starship.toml     -> ~/dotfiles/config/starship/starship.toml
 ~/.config/direnv/direnv.toml -> ~/dotfiles/config/direnv/direnv.toml

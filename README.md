@@ -263,9 +263,11 @@ Config en `.gitconfig` con:
 ├── tmux.conf                    # Config de tmux
 ├── .gitconfig                   # Config de git + delta
 ├── install-fonts-windows.ps1    # Nerd Fonts para WSL/Windows
-├── get-docker.sh                # Helper instalacion Docker
-├── vimrc                        # Fallback vim (sin nvim)
+├── vimrc                        # Fallback vim (sin nvim) — symlinkeado a ~/.vimrc
 ├── CHEAT_CODES.md, VIM_GUIA.md  # Notas personales
+├── docs/
+│   ├── reports/                 # Informes puntuales (auditorias, inventarios)
+│   └── superpowers/             # Specs y planes de implementacion
 └── config/
     ├── nvim/                    # Config Neovim (Lua)
     │   ├── init.lua
@@ -284,6 +286,9 @@ Config en `.gitconfig` con:
     │   └── wezterm.lua          # Config terminal Mac + WSL2
     ├── ssh/
     │   └── colors.conf          # Color de fondo por entorno SSH
+    ├── zsh/
+    │   ├── gcp.zsh              # Comando gcx: switcher de cuentas/proyectos GCP
+    │   └── gcp.test.zsh         # Suite de gcx (45 tests, corre sin gcloud)
     └── bin/
         └── cn                   # Wrapper de @continuedev/cli
 ```
@@ -296,6 +301,7 @@ Config en `.gitconfig` con:
 ~/.zshrc                        →  ~/dotfiles/zshrc
 ~/.tmux.conf                    →  ~/dotfiles/tmux.conf
 ~/.gitconfig                    →  ~/dotfiles/.gitconfig
+~/.vimrc                        →  ~/dotfiles/vimrc
 ~/.config/nvim                  →  ~/dotfiles/config/nvim
 ~/.config/starship.toml         →  ~/dotfiles/config/starship/starship.toml
 ~/.config/direnv/direnv.toml    →  ~/dotfiles/config/direnv/direnv.toml

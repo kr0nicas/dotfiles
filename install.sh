@@ -773,6 +773,9 @@ safe_link "$DOTFILES_DIR/zshrc"                         "$HOME/.zshrc"
 safe_link "$DOTFILES_DIR/tmux.conf"                     "$HOME/.tmux.conf"
 safe_link "$DOTFILES_DIR/.gitconfig"                    "$HOME/.gitconfig"
 safe_link "$DOTFILES_DIR/config/starship/starship.toml" "$HOME/.config/starship.toml"
+# Fallback para cajas sin nvim (ver VIM_GUIA.md). Antes vivía en el repo sin
+# llegar nunca a la máquina, así que el "fallback" no existía en la práctica.
+safe_link "$DOTFILES_DIR/vimrc"                         "$HOME/.vimrc"
 
 # SSH color map (override local posible: ~/.ssh/colors.conf, sin symlink)
 if [[ -f "$DOTFILES_DIR/config/ssh/colors.conf" ]]; then
