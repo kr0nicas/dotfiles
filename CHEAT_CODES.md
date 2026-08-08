@@ -327,6 +327,23 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 
 ### GCP
 
+**Switcher `gcx`** — cambiar de cuenta y proyecto (referencia completa: `gcx -h`)
+
+| Comando | Acción |
+|---|---|
+| `gcx` | Picker de configuraciones (cuenta + proyecto) |
+| `gcx p` | Picker de proyectos de la cuenta activa (caché, instantáneo) |
+| `gcx p -r` | Refresca la caché desde la API y abre el picker |
+| `gcx use <config>` | Activa una configuración por nombre |
+| `gcx who` / `gcwho` | Config, cuenta y proyecto activos |
+| `gcpers` `gcit` `gcfact` `gckel` | Atajos a cada configuración |
+
+Configuraciones: `personal` (ochoa.j@gmail.com), `itproject` (jorge.ochoa@itproject41.com →
+itproject-n8n-customers), `facturaya` (administrator@facturayasv.com → factura-electronica-sv),
+`kelova` (jorge.ochoa@itproject41.com → kelova-app).
+
+La caché vive en `~/.cache/gcp/projects-<cuenta>.list` y oculta los proyectos `sys-*`.
+
 | Comando | Accion |
 |---|---|
 | `gcloud auth login` | Autenticarse |

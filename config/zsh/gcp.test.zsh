@@ -166,6 +166,17 @@ out="$(gcx subcomando-invalido 2>&1)"
 assert_eq "2" "$?" "subcomando desconocido devuelve código 2"
 assert_contains "subcomando desconocido" "$out" "nombra el subcomando inválido"
 
+print "\n_gcp_help"
+help_out="$(gcx -h 2>&1)"
+assert_contains "gcx p"    "$help_out" "documenta el picker de proyectos"
+assert_contains "gcx p -r" "$help_out" "documenta el refresco de caché"
+assert_contains "gcx use"  "$help_out" "documenta gcx use"
+assert_contains "gcx who"  "$help_out" "documenta gcx who"
+assert_contains "gcpers"   "$help_out" "documenta los aliases"
+assert_contains "gckel"    "$help_out" "documenta el alias nuevo"
+assert_contains "$GCP_CACHE_DIR" "$help_out" "muestra la ruta real de la caché"
+assert_contains "sys-"     "$help_out" "explica el filtrado de sys-*"
+
 rm -rf "$GCP_CACHE_DIR"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))

@@ -267,11 +267,14 @@ if grep -qi microsoft /proc/version 2>/dev/null; then
     alias expose-ports='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -File C:\\Scripts\\wsl-portproxy.ps1'
 fi
 
-# GCP: cambiar entre configuraciones/cuentas
-alias gcpers='gcloud config configurations activate personal && echo "→ personal (ochoa.j@gmail.com)"'
-alias gcit='gcloud config configurations activate itproject && echo "→ ITProject (jorge.ochoa@itproject41.com)"'
-alias gcfact='gcloud config configurations activate facturaya && echo "→ Facturaya (administrator@facturayasv.com)"'
-alias gcwho='gcloud config list --format="value(core.account,core.project)" 2>/dev/null | paste - - | column -t'
+# GCP: cambiar entre configuraciones/cuentas (ver `gcx -h`)
+# Delegan en `gcx use`, que valida e imprime el estado leído de gcloud.
+# Nunca vuelvas a poner la cuenta en un echo: es lo que hizo que mintieran.
+alias gcpers='gcx use personal'
+alias gcit='gcx use itproject'
+alias gcfact='gcx use facturaya'
+alias gckel='gcx use kelova'
+alias gcwho='gcx who'
 
 # Tools
 alias lg='lazygit'

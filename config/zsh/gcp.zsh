@@ -197,6 +197,43 @@ _gcp_pick_config() {
     _gcp_use "$(print -r -- "$sel" | awk '{print $2}')"
 }
 
+# --- ayuda --------------------------------------------------------------------
+
+_gcp_help() {
+    print -r -- ""
+    print -r -- "  gcx — switcher de cuentas y proyectos de Google Cloud"
+    print -r -- ""
+    print -r -- "  USO"
+    print -r -- "    gcx                Picker de configuraciones (cuenta + proyecto)"
+    print -r -- "    gcx p              Picker de proyectos de la cuenta activa (caché, instantáneo)"
+    print -r -- "    gcx p -r           Refresca la caché desde la API (~5s) y abre el picker"
+    print -r -- "    gcx use <config>   Activa una configuración por nombre, sin picker"
+    print -r -- "    gcx who            Config, cuenta y proyecto activos"
+    print -r -- "    gcx -h             Esta referencia"
+    print -r -- ""
+    print -r -- "  ALIASES"
+    print -r -- "    gcpers   gcx use personal      ochoa.j@gmail.com"
+    print -r -- "    gcit     gcx use itproject     jorge.ochoa@itproject41.com"
+    print -r -- "    gcfact   gcx use facturaya     administrator@facturayasv.com"
+    print -r -- "    gckel    gcx use kelova        jorge.ochoa@itproject41.com"
+    print -r -- "    gcwho    gcx who"
+    print -r -- ""
+    print -r -- "  CÓMO FUNCIONA"
+    print -r -- "    · El proyecto de cada config es solo dónde aterrizas: 'gcx p' salta a"
+    print -r -- "      cualquier otro proyecto sin cambiar de cuenta."
+    print -r -- "    · La caché es por cuenta, no por config:"
+    print -r -- "        $GCP_CACHE_DIR/projects-<cuenta>.list"
+    print -r -- "      Cambiar de config nunca mezcla listas."
+    print -r -- "    · Los proyectos sys-* (autogenerados por Apps Script) se ocultan."
+    print -r -- "    · Los mensajes se leen de gcloud, nunca están hardcodeados: no pueden"
+    print -r -- "      desincronizarse de la realidad."
+    print -r -- "    · Cancelar el fzf con Esc no cambia nada."
+    print -r -- ""
+    print -r -- "  CONFIGURACIONES ACTUALES"
+    _gcp_config_table | sed 's/^/    /'
+    print -r -- ""
+}
+
 # --- punto de entrada ---------------------------------------------------------
 
 gcx() {
