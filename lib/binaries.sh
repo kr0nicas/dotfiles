@@ -17,6 +17,23 @@ phase_binaries() {
             *)       GH_ARCH="x86_64"  ;;
         esac
 
+        # Extrae las URLs de descarga de una respuesta de la API, una por línea.
+        #
+        # La API NO garantiza el JSON indentado: koalaman/shellcheck lo devuelve
+        # minificado en una sola línea, mientras que ruff, delta o tflint vienen
+        # con un asset por línea. Filtrar con `grep <patrón>` asume lo segundo:
+        # sobre una respuesta minificada el patrón casa el documento entero y el
+        # `sed` —que es greedy— devuelve el ÚLTIMO asset del release en vez del
+        # que se pidió. Silencioso y con la arquitectura equivocada.
+        #
+        # `grep -o` deja una URL por línea en ambos formatos, así que el filtrado
+        # posterior se comporta igual venga como venga la respuesta.
+        gh_asset_urls() {
+            printf '%s' "$1" \
+                | grep -oE '"browser_download_url":[[:space:]]*"[^"]+"' \
+                | sed 's/.*"browser_download_url":[[:space:]]*"//;s/"$//'
+        }
+
         # Helper: descarga el último release de GitHub sin hardcodear versión
         # Compatible con Linux y macOS (sin grep -P)
         # Detecta rate-limit (60 req/h anónimo) y emite warning legible.
@@ -31,9 +48,7 @@ phase_binaries() {
                 warn "GitHub API rate-limit alcanzado (60 req/h anónimo). Auth: gh auth login. Saltando $repo."
                 return 1
             fi
-            printf '%s\n' "$response" \
-                | grep "browser_download_url" | grep "$pattern" | head -1 \
-                | sed 's/.*"browser_download_url": *"//;s/".*//'
+            gh_asset_urls "$response" | grep "$pattern" | head -1
         }
 
         # Descarga el archivo de checksums de un release, si el proyecto publica uno.
@@ -42,18 +57,22 @@ phase_binaries() {
         gh_checksums() {
             local repo=$1 asset=${2:-} response url
             response=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null) || return 1
-            url=$(printf '%s\n' "$response" \
-                | grep '"browser_download_url"' \
-                | grep -iE 'checksums?\.txt|sha256sums?|SHA256SUMS' \
-                | head -1 | sed 's/.*"browser_download_url": *"//;s/".*//')
+            url=$(gh_asset_urls "$response" \
+                | grep -iE 'checksums?\.txt|sha256sums?|SHA256SUMS' | head -1)
             # Algunos proyectos (ruff) no publican un archivo consolidado sino un
             # .sha256 por asset. Sin este fallback caeríamos en el warning de "no
             # publica checksums", que además de falso deja el binario sin verificar.
+            #
+            # La comparación es sobre el basename y no un grep del patrón: así
+            # "<asset>.sha256" casa exacto y no por subcadena.
             if [[ -z "$url" && -n "$asset" ]]; then
-                url=$(printf '%s\n' "$response" \
-                    | grep '"browser_download_url"' \
-                    | grep -F "${asset}.sha256\"" \
-                    | head -1 | sed 's/.*"browser_download_url": *"//;s/".*//')
+                local candidate
+                while read -r candidate; do
+                    if [[ "$(basename "$candidate")" == "${asset}.sha256" ]]; then
+                        url=$candidate
+                        break
+                    fi
+                done < <(gh_asset_urls "$response")
             fi
             [[ -n "$url" ]] || return 1
             curl -fsSL "$url" 2>/dev/null
@@ -142,9 +161,11 @@ phase_binaries() {
 
         # ARCH_TYPE y no GH_ARCH: ruff nombra sus assets con el triple de Rust
         # (aarch64-unknown-linux-gnu), mientras que GH_ARCH traduce eso a arm64.
-        # La comilla de cierre en el patrón evita matchear también el .sha256.
+        # El `$` final evita matchear también el .sha256 del mismo asset; antes
+        # ese papel lo hacía una comilla de cierre, que ya no está en la salida
+        # de gh_asset_urls.
         install_if_missing "ruff" \
-            "gh_latest_tar astral-sh/ruff '${ARCH_TYPE}-unknown-linux-gnu.tar.gz\"' $LOCAL_BIN '--strip-components=1 --wildcards */ruff'"
+            "gh_latest_tar astral-sh/ruff '${ARCH_TYPE}-unknown-linux-gnu.tar.gz\$' $LOCAL_BIN '--strip-components=1 --wildcards */ruff'"
 
         # --- K8s tools (gated por --no-k8s / --minimal) ---
         if [[ $INSTALL_K8S -eq 1 ]]; then
