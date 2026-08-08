@@ -36,6 +36,7 @@ No lo edites a mano: el CI regenera y compara.
 - **scripts**: excluir del CHANGELOG los commits que solo lo tocan (`5eb8ee7`)
 - **ci**: usar un fetch válido en commit-lint (`6acb671`)
 - **docs**: checkout por rama en changelog-drift (`e2999fe`)
+- **ci**: checkout por rama en changelog-drift (`7de68a4`)
 
 ### Documentación
 
