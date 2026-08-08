@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · feat/verify-ruff
+
+### Features
+
+- **lib**: verificar ruff en el resumen de instalación (`d1dd1cf`)
+
 ## 2026-08-08 · docs/claude-md-nvim-ruff
 
 ### Documentación
