@@ -3,6 +3,16 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · chore/nvim-lockfile
+
+### Fixes
+
+- **nvim**: fijar el tema de lualine a catppuccin-mocha (`5333e97`)
+
+### Mantenimiento
+
+- **nvim**: actualizar lockfile de lazy (`e236022`)
+
 ## 2026-08-08 · feat/tmux-nvim-navigator
 
 ### Features
