@@ -61,6 +61,40 @@ out="$(_gcp_use 'no-existe-jamas-xyz' 2>&1)"
 assert_eq "1" "$?" "config inexistente devuelve código 1"
 assert_contains "no existe la configuración" "$out" "config inexistente lo dice"
 
+print "\n_gcp_use (gcloud roto se distingue de «no existe»)"
+gcloud() {
+    print -r -- "ERROR: (gcloud.config.configurations.list) Reauthentication failed. Cannot refresh auth tokens." >&2
+    return 1
+}
+out="$(_gcp_use 'cualquier-config' 2>&1)"
+rc=$?
+unfunction gcloud
+assert_eq "1" "$rc" "gcloud roto al listar devuelve código 1"
+assert_contains "gcloud auth login" "$out" "gcloud roto sugiere gcloud auth login"
+assert_eq "" "$(print -r -- "$out" | grep 'no existe la configuración')" \
+          "gcloud roto no confunde el fallo con «no existe»"
+
+print "\n_gcp_use (activate falla no debe quedar muda)"
+gcloud() {
+    case "$*" in
+        "config configurations list --format=value(name)")
+            print -r -- "config-stub"
+            return 0
+            ;;
+        "config configurations activate config-stub")
+            print -r -- "ERROR: (gcloud.config.configurations.activate) Reauthentication failed." >&2
+            return 1
+            ;;
+    esac
+    return 0
+}
+out="$(_gcp_use 'config-stub' 2>&1)"
+rc=$?
+unfunction gcloud
+assert_eq "1" "$rc" "activate fallida devuelve código 1"
+assert_contains "no se pudo activar" "$out" "activate fallida imprime un mensaje propio"
+assert_contains "gcloud auth login" "$out" "activate fallida sugiere gcloud auth login"
+
 rm -rf "$GCP_CACHE_DIR"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))

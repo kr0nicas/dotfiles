@@ -41,9 +41,15 @@ _gcp_active_config() {
         --filter='is_active=true' --format='value(name)' 2>/dev/null
 }
 
+# Devuelve 0 si la config existe, 1 si genuinamente no existe, 2 si gcloud
+# falló al consultar (sesión caducada, sin red, SDK roto...). Distinguir 1 de
+# 2 es lo que permite a _gcp_use no confundir "escribiste mal el nombre" con
+# "gcloud está roto".
 _gcp_config_exists() {
-    gcloud config configurations list --format='value(name)' 2>/dev/null \
-        | grep -qx -- "$1"
+    local list
+    list="$(gcloud config configurations list --format='value(name)' 2>/dev/null)" \
+        || return 2
+    print -r -- "$list" | grep -qx -- "$1"
 }
 
 _gcp_who() {
@@ -64,12 +70,24 @@ _gcp_use() {
         print -r -- "uso: gcp use <config>" >&2
         return 2
     fi
-    if ! _gcp_config_exists "$name"; then
+    _gcp_config_exists "$name"
+    local exists_rc=$?
+    if (( exists_rc == 2 )); then
+        print -r -- "  ✗ no se pudo consultar gcloud (¿sesión caducada, sin red o SDK roto?)" >&2
+        print -r -- "    prueba: gcloud auth login" >&2
+        return 1
+    elif (( exists_rc != 0 )); then
         print -r -- "  ✗ no existe la configuración «$name»" >&2
         print -r -- "    disponibles: $(gcloud config configurations list \
             --format='value(name)' 2>/dev/null | paste -sd' ' -)" >&2
         return 1
     fi
-    gcloud config configurations activate "$name" >/dev/null 2>&1 || return 1
+    local activate_err
+    if ! activate_err="$(gcloud config configurations activate "$name" 2>&1 >/dev/null)"; then
+        print -r -- "  ✗ no se pudo activar la configuración «$name»" >&2
+        [[ -n "$activate_err" ]] && print -r -- "    $activate_err" >&2
+        print -r -- "    prueba: gcloud auth login" >&2
+        return 1
+    fi
     _gcp_who
 }
