@@ -92,6 +92,17 @@ lint_staged() {
 scan_secrets() {
     local rc=0 f base
 
+    # grep es un ejecutable externo: si no está, la detección por CONTENIDO no
+    # puede correr. Esta función tiene prohibido degradar, así que falla
+    # CERRADA en vez de dejar pasar. Sin esto un PATH roto la convierte en un
+    # no-op silencioso: grep devuelve 127, el `if` lo lee como falso, y el
+    # 2>/dev/null se traga hasta el «command not found».
+    if ! has grep; then
+        hook_err 'grep no disponible: no se puede barrer el contenido en busca de secretos.'
+        hook_info 'Arregla el PATH. Si de verdad lo quieres saltar: git commit --no-verify'
+        return 1
+    fi
+
     for f in "$@"; do
         [ -f "$f" ] || continue
         base="${f##*/}"

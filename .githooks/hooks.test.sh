@@ -161,9 +161,9 @@ mkdir -p "$SEC_TMP/.ssh"
 
 printf 'contenido cualquiera\n' > "$SEC_TMP/.ssh/id_rsa"
 printf 'contenido cualquiera\n' > "$SEC_TMP/cert.pem"
-printf 'AWS_KEY=AKIAIOSFODNN7EXAMPLE\n' > "$SEC_TMP/config.env.txt"
-printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n' > "$SEC_TMP/inocente.txt"
-printf 'export TOKEN=ghp_0123456789abcdefghijklmnopqrstuvwxyz\n' > "$SEC_TMP/notas.md"
+printf 'AWS_KEY=AKIA%s\n' 'IOSFODNN7EXAMPLE' > "$SEC_TMP/config.env.txt"
+printf -- '-----BEGIN %s PRIVATE KEY-----\n' 'OPENSSH' > "$SEC_TMP/inocente.txt"
+printf 'export TOKEN=ghp_%s\n' '0123456789abcdefghijklmnopqrstuvwxyz' > "$SEC_TMP/notas.md"
 printf '# dotfiles\nnada sensible aquí\n' > "$SEC_TMP/README.md"
 
 assert_eq "1" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" >/dev/null 2>&1; echo $?)" \
@@ -188,7 +188,13 @@ assert_contains "--no-verify" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" 2>&1)" \
 assert_eq "1" "$(PATH=/nonexistent scan_secrets "$SEC_TMP/.ssh/id_rsa" >/dev/null 2>&1; echo $?)" \
     "el barrido de secretos no degrada"
 
-printf 'AWS_KEY=AKIAIOSFODNN7EXAMPLE\n' > "$SEC_TMP/nombre con espacios.txt"
+# El test de arriba solo prueba la rama por NOMBRE, que hace `continue` antes de
+# tocar grep. Este prueba la rama por CONTENIDO: con un archivo limpio, un rc=0
+# significaría que el barrido se volvió un no-op silencioso.
+assert_eq "1" "$(PATH=/nonexistent scan_secrets "$SEC_TMP/README.md" >/dev/null 2>&1; echo $?)" \
+    "sin grep falla cerrada en vez de dejar pasar en silencio"
+
+printf 'AWS_KEY=AKIA%s\n' 'IOSFODNN7EXAMPLE' > "$SEC_TMP/nombre con espacios.txt"
 assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1; echo $?)" \
     "detecta secretos en archivos con espacios en el nombre"
 
