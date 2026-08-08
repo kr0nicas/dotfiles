@@ -296,6 +296,7 @@ Si ves `?` en lugar de iconos en `ls`/prompt, es que la ventana sigue con el per
 
 - `config/claude/settings.json` → symlinked a `~/.claude/settings.json`. Statusline custom, plugins habilitados (superpowers, frontend-design, code-review), marketplaces extra.
 - `config/claude/statusline.sh` → statusline portable (Mac + Linux + WSL).
+- `config/claude/CLAUDE.md` → symlinked a `~/.claude/CLAUDE.md`. Instrucciones globales de usuario: solo los comandos propios (`gcx`, `dots`, `t`, `sp`, `cn`) y las reglas que Claude no puede deducir. Deliberadamente corto — se carga en cada sesion de cada proyecto.
 - `config/claude/settings.local.json.example` → plantilla para overrides locales por maquina (no commiteada, sembrada en primer install).
 - `install.sh` ancla `claude` al build nativo (`~/.local/bin/claude`) para evitar que fnm/npm rompa el `PATH` al cambiar de version de Node.
 
@@ -354,6 +355,7 @@ Config en `.gitconfig` con:
     ├── claude/
     │   ├── settings.json        # Config Claude Code (statusline, plugins)
     │   ├── statusline.sh        # Statusline portable Mac/Linux/WSL
+    │   ├── CLAUDE.md            # Instrucciones globales de usuario
     │   └── settings.local.json.example   # Plantilla overrides locales
     ├── wezterm/
     │   └── wezterm.lua          # Config terminal Mac + WSL2
@@ -382,6 +384,7 @@ Config en `.gitconfig` con:
 ~/.config/direnv/direnv.toml    →  ~/dotfiles/config/direnv/direnv.toml
 ~/.claude/settings.json         →  ~/dotfiles/config/claude/settings.json
 ~/.claude/statusline.sh         →  ~/dotfiles/config/claude/statusline.sh
+~/.claude/CLAUDE.md             →  ~/dotfiles/config/claude/CLAUDE.md
 ~/.ssh/colors.conf              →  ~/dotfiles/config/ssh/colors.conf
 ~/.config/wezterm/wezterm.lua   →  ~/dotfiles/config/wezterm/wezterm.lua   (WSL2: lado Windows)
 ~/.local/bin/cn                 →  ~/dotfiles/config/bin/cn
