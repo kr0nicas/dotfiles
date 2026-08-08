@@ -78,6 +78,8 @@ source "$SCRIPT_DIR/lib/binaries.sh"
 source "$SCRIPT_DIR/lib/editors.sh"
 # shellcheck source=lib/symlinks.sh
 source "$SCRIPT_DIR/lib/symlinks.sh"
+# shellcheck source=lib/repo.sh
+source "$SCRIPT_DIR/lib/repo.sh"
 # shellcheck source=lib/verify.sh
 source "$SCRIPT_DIR/lib/verify.sh"
 
@@ -120,4 +122,5 @@ phase_runtimes    # fnm+Node, fzf, starship, zoxide, uv
 phase_binaries    # binarios SRE desde GitHub Releases (solo Linux)
 phase_editors     # tmux/TPM, Neovim/lazy.nvim, Claude Code
 phase_symlinks    # symlinks de dotfiles
+phase_repo        # hooks de git (core.hooksPath)
 phase_verify      # limpieza de caché zsh + resumen final
