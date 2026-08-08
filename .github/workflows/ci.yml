@@ -72,6 +72,12 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          # Por defecto actions/checkout deja el merge commit sintético del PR
+          # («Merge <sha> into <sha>»), que entra en el rango y no es ninguna
+          # de las formas que genera git, así que el hook lo rechaza y el job
+          # se suspende a sí mismo. Checkear la rama por nombre lo saca del
+          # rango, que es mejor que ensanchar la exención de «Merge *».
+          ref: ${{ github.head_ref }}
 
       # Misma lógica que en local: se reutiliza el hook, no una copia.
       # LC_ALL fijo porque «${#subject}» cuenta caracteres o bytes según el
