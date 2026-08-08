@@ -161,6 +161,11 @@ leftover="$(print -rl -- "${cache_file}".*(N) "${cache_file}"(N))"
 assert_eq "" "$leftover" "refresco fallido sin caché previa no deja temporales huérfanos"
 unfunction gcloud
 
+print "\ngcp (dispatcher)"
+out="$(gcp subcomando-invalido 2>&1)"
+assert_eq "2" "$?" "subcomando desconocido devuelve código 2"
+assert_contains "subcomando desconocido" "$out" "nombra el subcomando inválido"
+
 rm -rf "$GCP_CACHE_DIR"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))

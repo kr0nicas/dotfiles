@@ -159,3 +159,54 @@ _gcp_pick_project() {
     }
     _gcp_who
 }
+
+# --- picker de configuraciones ------------------------------------------------
+# Lista TODAS las configs sin filtrar, incluida la 'default' vacía que gcloud
+# exige: el picker refleja lo que gcloud tiene, sin excepciones ocultas.
+
+# Tabla de configuraciones, alineada y con la activa marcada. Fuente única para
+# el picker y para `gcp -h`.
+_gcp_config_table() {
+    gcloud config configurations list \
+        --format='value(name,is_active,properties.core.account,properties.core.project)' 2>/dev/null \
+    | awk -F'\t' '{
+          printf "%s\t%s\t%s\t%s\n",
+              ($2 == "True" ? "●" : "○"),
+              $1,
+              ($3 == "" ? "—" : $3),
+              ($4 == "" ? "—" : $4)
+      }' \
+    | column -t -s $'\t'
+}
+
+_gcp_pick_config() {
+    local sel
+
+    command -v fzf >/dev/null 2>&1 || {
+        print -r -- "  ✗ gcp requiere fzf" >&2; return 1
+    }
+
+    sel="$(_gcp_config_table \
+        | fzf --prompt='gcp config > ' --height=40% --reverse)" || return 0
+    [[ -z "$sel" ]] && return 0
+
+    # campo 1 = marca ●/○, campo 2 = nombre de la config
+    _gcp_use "$(print -r -- "$sel" | awk '{print $2}')"
+}
+
+# --- punto de entrada ---------------------------------------------------------
+
+gcp() {
+    case "$1" in
+        '')             _gcp_pick_config ;;
+        p|project)      shift; _gcp_pick_project "$@" ;;
+        use)            shift; _gcp_use "$@" ;;
+        who)            _gcp_who ;;
+        -h|--help|help) _gcp_help ;;
+        *)
+            print -r -- "  ✗ subcomando desconocido: $1" >&2
+            print -r -- "    prueba: gcp -h" >&2
+            return 2
+            ;;
+    esac
+}
