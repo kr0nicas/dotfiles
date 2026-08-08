@@ -91,3 +91,64 @@ _gcp_use() {
     fi
     _gcp_who
 }
+
+# --- caché de proyectos -------------------------------------------------------
+# Clave por cuenta, no por configuración: dos configs de la misma cuenta
+# comparten lista, y cambiar de cuenta nunca mezcla resultados.
+
+_gcp_refresh_cache() {
+    local account="$1" cache tmp n
+    cache="$(_gcp_cache_path "$account")"
+    tmp="${cache}.tmp"
+    mkdir -p "$GCP_CACHE_DIR"
+
+    if gcloud projects list --format='value(projectId,name)' >"$tmp" 2>/dev/null; then
+        _gcp_filter_projects <"$tmp" >"$cache"
+        rm -f "$tmp"
+        n="$(grep -c . <"$cache")"
+        print -r -- "  ↻ $n proyectos cacheados para $account"
+        return 0
+    fi
+
+    rm -f "$tmp"
+    if [[ -s "$cache" ]]; then
+        print -r -- "  ⚠ no se pudo consultar GCP; usando la caché anterior de $account" >&2
+        return 0
+    fi
+    print -r -- "  ✗ no se pudo consultar GCP y no hay caché para $account" >&2
+    print -r -- "    ¿autenticado? prueba: gcloud auth login" >&2
+    return 1
+}
+
+# --- picker de proyectos ------------------------------------------------------
+
+_gcp_pick_project() {
+    local refresh=0 account cache sel proj
+    [[ "$1" == "-r" || "$1" == "--refresh" ]] && refresh=1
+
+    command -v fzf >/dev/null 2>&1 || {
+        print -r -- "  ✗ gcp requiere fzf" >&2; return 1
+    }
+
+    account="$(_gcp_active_account)"
+    if [[ -z "$account" ]]; then
+        print -r -- "  ✗ no hay cuenta activa. prueba: gcloud auth login" >&2
+        return 1
+    fi
+
+    cache="$(_gcp_cache_path "$account")"
+    if (( refresh )) || [[ ! -s "$cache" ]]; then
+        (( refresh )) || print -r -- "  primera carga para $account, consultando GCP..."
+        _gcp_refresh_cache "$account" || return 1
+    fi
+
+    sel="$(column -t -s $'\t' <"$cache" \
+        | fzf --prompt='gcp project > ' --height=40% --reverse)" || return 0
+    [[ -z "$sel" ]] && return 0
+
+    proj="${sel%% *}"
+    gcloud config set project "$proj" >/dev/null 2>&1 || {
+        print -r -- "  ✗ no se pudo fijar el proyecto $proj" >&2; return 1
+    }
+    _gcp_who
+}

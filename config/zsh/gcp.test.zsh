@@ -95,6 +95,24 @@ assert_eq "1" "$rc" "activate fallida devuelve código 1"
 assert_contains "no se pudo activar" "$out" "activate fallida imprime un mensaje propio"
 assert_contains "gcloud auth login" "$out" "activate fallida sugiere gcloud auth login"
 
+print "\n_gcp_refresh_cache (degradación sin red)"
+# Simulamos un gcloud que siempre falla, para probar el camino de error.
+gcloud() { return 1 }
+cache_file="$(_gcp_cache_path 'test@example.com')"
+
+mkdir -p "$GCP_CACHE_DIR"
+rm -f "$cache_file"
+out="$(_gcp_refresh_cache 'test@example.com' 2>&1)"
+assert_eq "1" "$?" "sin caché previa y sin red devuelve 1"
+assert_contains "gcloud auth login" "$out" "sugiere autenticarse"
+
+print -r -- $'viejo-proyecto\tviejo' > "$cache_file"
+out="$(_gcp_refresh_cache 'test@example.com' 2>&1)"
+assert_eq "0" "$?" "con caché previa y sin red devuelve 0"
+assert_contains "caché anterior" "$out" "avisa de que usa caché vieja"
+assert_contains "viejo-proyecto" "$(<"$cache_file")" "no destruye la caché previa"
+unfunction gcloud
+
 rm -rf "$GCP_CACHE_DIR"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))
