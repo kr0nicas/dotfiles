@@ -36,7 +36,15 @@ jobs:
             bash -n "$f"
           done
           bash -n scripts/github-topics-manager.sh
+          bash -n scripts/changelog.sh
           bash -n config/bin/cn
+          # La capa que hace cumplir todo el arnés: si esto no se analiza,
+          # CI no comprueba justo lo que valida a CI.
+          for f in .githooks/commit-msg .githooks/pre-commit .githooks/pre-push \
+                   .githooks/lib.sh .githooks/hooks.test.sh; do
+            echo "  → $f"
+            bash -n "$f"
+          done
 
       # -x hace que shellcheck siga los `source` de install.sh y analice lib/ como
       # un conjunto. Sin él, cada lib se ve aislada y las globales que install.sh
@@ -44,7 +52,9 @@ jobs:
       - name: Shellcheck
         run: |
           shellcheck -x -S warning install.sh
-          shellcheck -S warning scripts/*.sh config/bin/cn
+          shellcheck -S warning scripts/*.sh config/bin/cn \
+            .githooks/commit-msg .githooks/pre-commit .githooks/pre-push \
+            .githooks/lib.sh .githooks/hooks.test.sh
 
       # Las suites corren sin gcloud, sin fzf y sin shellcheck (usan stubs y
       # degradación): es intencional, para que valgan igual en un runner
@@ -64,7 +74,12 @@ jobs:
           fetch-depth: 0
 
       # Misma lógica que en local: se reutiliza el hook, no una copia.
+      # LC_ALL fijo porque «${#subject}» cuenta caracteres o bytes según el
+      # locale (medido: 68 vs 73 para la misma cadena con acentos); sin
+      # esto el límite de 72 significa cosas distintas en local y en CI.
       - name: Validar mensajes del PR
+        env:
+          LC_ALL: C.UTF-8
         run: |
           set -euo pipefail
           base="origin/${{ github.base_ref }}"
