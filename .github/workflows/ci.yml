@@ -31,11 +31,20 @@ jobs:
       - name: Sintaxis bash
         run: |
           bash -n install.sh
+          for f in lib/*.sh; do
+            echo "  → $f"
+            bash -n "$f"
+          done
           bash -n scripts/github-topics-manager.sh
           bash -n config/bin/cn
 
+      # -x hace que shellcheck siga los `source` de install.sh y analice lib/ como
+      # un conjunto. Sin él, cada lib se ve aislada y las globales que install.sh
+      # define parecen sin usar (SC2034 en cascada).
       - name: Shellcheck
-        run: shellcheck -S warning install.sh scripts/*.sh config/bin/cn
+        run: |
+          shellcheck -x -S warning install.sh
+          shellcheck -S warning scripts/*.sh config/bin/cn
 
       # La suite corre sin gcloud ni fzf instalados (usa stubs): es intencional,
       # para que valga igual en un runner limpio, en un contenedor y en un VPS.

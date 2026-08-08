@@ -45,8 +45,34 @@ dots    # alias: git add . && commit with date && push from ~/dotfiles
 
 The OS split is the core architectural decision:
 - **Brewfile** + **Brewfile.cloud** + **Brewfile.k8s** + **Brewfile.gui** — macOS only. `install.sh` calls `brew bundle` for the base file always, and the others conditionally based on `--no-cloud`/`--no-k8s`/`--no-gui` flags.
-- **install.sh section 6b** — Linux only. Downloads SRE tool binaries (k9s, lazygit, stern, delta, etc.) directly from GitHub releases into `$HOME/.local/bin` — no sudo required. K8s tools gated by `$INSTALL_K8S`, cloud tools by `$INSTALL_CLOUD`.
+- **`lib/binaries.sh`** — Linux only. Downloads SRE tool binaries (k9s, lazygit, stern, delta, etc.) from GitHub releases into `$HOME/.local/bin` — no sudo required. K8s tools gated by `$INSTALL_K8S`, cloud tools by `$INSTALL_CLOUD`. Verifica checksums; ver la nota de seguridad en la cabecera de `install.sh`.
 - **zshrc** — single file with `if [[ "$OSTYPE" == "darwin"* ]]` guards for macOS-specific PATH entries and tools.
+
+### install.sh + `lib/` (orquestador y fases)
+
+`install.sh` (~120 líneas) decide **qué** se hace y en qué orden; el **cómo** vive en `lib/`, una fase por archivo. Para añadir una herramienta, toca el `lib/` que le corresponde, no el orquestador.
+
+| Archivo | Responsabilidad |
+|---|---|
+| `install.sh` | Flags, presets, `SCRIPT_DIR`, carga de fases, orden de ejecución |
+| `lib/common.sh` | Colores, logging (`log`/`ok`/`warn`/`err`), `sha256_of`, `verify_sha256`, banner |
+| `lib/menu.sh` | `print_help`, menús interactivos, detección de instalación previa, `git pull` |
+| `lib/detect.sh` | `phase_detect` — SO, arquitectura, dependencias críticas |
+| `lib/packages.sh` | `phase_packages` — `brew bundle` (macOS) / `apt` (Debian-Ubuntu) |
+| `lib/runtimes.sh` | `phase_runtimes` — fnm+Node, fzf, starship, zoxide, uv |
+| `lib/binaries.sh` | `phase_binaries` — GitHub Releases + verificación de checksums (solo Linux) |
+| `lib/editors.sh` | `phase_editors` — tmux/TPM, Neovim/lazy.nvim, Claude Code |
+| `lib/symlinks.sh` | `phase_symlinks` — todos los symlinks |
+| `lib/verify.sh` | `phase_verify` — limpieza de caché zsh + resumen final |
+
+Convenciones que hay que respetar al tocar esto:
+
+- **`DOTFILES_DIR` se deriva de `SCRIPT_DIR`**, nunca de `$HOME/dotfiles`. Antes estaba fijo y clonar en otra ruta rompía todos los symlinks.
+- **Las fases comparten globales a propósito.** `phase_detect` fija `IS_MAC`, `ARCH_TYPE`, `GH_ARCH` y los consumen las fases siguientes. No añadas `local` a esas asignaciones.
+- **Los `source` en `install.sh` son explícitos, no un bucle**, para que `shellcheck -x` siga cada uno y analice el conjunto. Con un `source` construido por variable, shellcheck ve cada archivo aislado y reporta SC2034 en cascada.
+- **`shellcheck -x -S warning install.sh`** es lo que exige el CI, y cubre todo `lib/`. No analices los `lib/` sueltos: darán falsos positivos.
+- **Nada de `cd` suelto dentro de una fase.** Envuélvelo en un subshell; si no, un `cd` fallido deja las fases siguientes en el directorio equivocado.
+- **Equivalencia al refactorizar**: `./install.sh --dry-run [flags]` es determinista. Captura la salida antes y después y compárala — es el oráculo que prueba que no cambiaste comportamiento.
 
 ### Symlinks (created by install.sh)
 

@@ -288,7 +288,17 @@ Config en `.gitconfig` con:
 
 ```
 ~/dotfiles/
-├── install.sh                   # Instalador cross-platform
+├── install.sh                   # Orquestador: flags, presets y orden de las fases
+├── lib/                         # Una fase por archivo (el "como" del instalador)
+│   ├── common.sh                # Logging, verificacion de checksums, banner
+│   ├── menu.sh                  # Ayuda, menus interactivos, deteccion de update
+│   ├── detect.sh                # SO, arquitectura, dependencias criticas
+│   ├── packages.sh              # brew bundle (macOS) / apt (Debian-Ubuntu)
+│   ├── runtimes.sh              # fnm+Node, fzf, starship, zoxide, uv
+│   ├── binaries.sh              # GitHub Releases + checksums (solo Linux)
+│   ├── editors.sh               # tmux/TPM, Neovim/lazy.nvim, Claude Code
+│   ├── symlinks.sh              # Todos los symlinks
+│   └── verify.sh                # Limpieza de cache zsh + resumen final
 ├── Brewfile                     # Paquetes macOS (brew bundle)
 ├── zshrc                        # Config de zsh
 ├── tmux.conf                    # Config de tmux
