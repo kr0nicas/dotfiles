@@ -52,6 +52,15 @@ assert_contains "itproject-n8n-customers" "$filtered" "conserva proyectos con gu
 assert_eq "2" "$(print -r -- "$filtered" | grep -c .)" "elimina exactamente los sys-*"
 assert_eq "" "$(print -r -- "$filtered" | grep '^sys-')" "no queda ningún sys-*"
 
+print "\n_gcp_use (validación de argumentos)"
+out="$(_gcp_use 2>&1)"
+assert_eq "2" "$?" "sin argumento devuelve código 2"
+assert_contains "uso: gcp use" "$out" "sin argumento imprime el uso"
+
+out="$(_gcp_use 'no-existe-jamas-xyz' 2>&1)"
+assert_eq "1" "$?" "config inexistente devuelve código 1"
+assert_contains "no existe la configuración" "$out" "config inexistente lo dice"
+
 rm -rf "$GCP_CACHE_DIR"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))

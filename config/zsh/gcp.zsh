@@ -22,3 +22,54 @@ _gcp_cache_path() {
 _gcp_filter_projects() {
     grep -v '^sys-'
 }
+
+# --- lectura de estado --------------------------------------------------------
+# OJO: en `configurations list` hay que usar las rutas completas
+# properties.core.account y properties.core.project. Las formas cortas
+# (account, project) devuelven cadena vacía sin dar error.
+
+_gcp_active_account() {
+    gcloud config list --format='value(core.account)' 2>/dev/null
+}
+
+_gcp_active_project() {
+    gcloud config list --format='value(core.project)' 2>/dev/null
+}
+
+_gcp_active_config() {
+    gcloud config configurations list \
+        --filter='is_active=true' --format='value(name)' 2>/dev/null
+}
+
+_gcp_config_exists() {
+    gcloud config configurations list --format='value(name)' 2>/dev/null \
+        | grep -qx -- "$1"
+}
+
+_gcp_who() {
+    local cfg acct proj
+    cfg="$(_gcp_active_config)"
+    acct="$(_gcp_active_account)"
+    proj="$(_gcp_active_project)"
+    print -r -- "  config    ${cfg:-—}"
+    print -r -- "  cuenta    ${acct:-—}"
+    print -r -- "  proyecto  ${proj:-—}"
+}
+
+# --- activación ---------------------------------------------------------------
+
+_gcp_use() {
+    local name="$1"
+    if [[ -z "$name" ]]; then
+        print -r -- "uso: gcp use <config>" >&2
+        return 2
+    fi
+    if ! _gcp_config_exists "$name"; then
+        print -r -- "  ✗ no existe la configuración «$name»" >&2
+        print -r -- "    disponibles: $(gcloud config configurations list \
+            --format='value(name)' 2>/dev/null | paste -sd' ' -)" >&2
+        return 1
+    fi
+    gcloud config configurations activate "$name" >/dev/null 2>&1 || return 1
+    _gcp_who
+}
