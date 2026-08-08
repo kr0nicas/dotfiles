@@ -61,11 +61,12 @@ phase_symlinks() {
         safe_link "$DOTFILES_DIR/config/ssh/colors.conf" "$HOME/.ssh/colors.conf"
     fi
 
-    # Claude Code settings + statusline
+    # Claude Code settings + statusline + CLAUDE.md global
     if [[ -f "$DOTFILES_DIR/config/claude/settings.json" ]]; then
         safe_mkdir "$HOME/.claude"
         safe_link "$DOTFILES_DIR/config/claude/settings.json" "$HOME/.claude/settings.json"
         safe_link "$DOTFILES_DIR/config/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
+        safe_link "$DOTFILES_DIR/config/claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
 
         # settings.local.json: overrides por máquina (no versionado). Sembrar desde example si falta.
         if [[ ! -e "$HOME/.claude/settings.local.json" ]]; then

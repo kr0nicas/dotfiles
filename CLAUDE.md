@@ -116,6 +116,7 @@ All config lives in `~/dotfiles/` and is symlinked into place:
 ~/.config/direnv/direnv.toml -> ~/dotfiles/config/direnv/direnv.toml
 ~/.claude/settings.json     -> ~/dotfiles/config/claude/settings.json
 ~/.claude/statusline.sh     -> ~/dotfiles/config/claude/statusline.sh
+~/.claude/CLAUDE.md         -> ~/dotfiles/config/claude/CLAUDE.md   (instrucciones globales de usuario)
 ~/.config/wezterm/wezterm.lua -> ~/dotfiles/config/wezterm/wezterm.lua
 ~/Library/Application Support/iTerm2/DynamicProfiles/dotfiles.json -> ~/dotfiles/config/iterm2/dotfiles.json  (solo macOS)
 ~/.ssh/colors.conf          -> ~/dotfiles/config/ssh/colors.conf
