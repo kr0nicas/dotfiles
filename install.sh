@@ -346,7 +346,7 @@ else
     if [[ $DRY_RUN -eq 0 ]]; then
         sudo apt update -qq
         sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop zstd \
-            zsh-autosuggestions zsh-syntax-highlighting 2>/dev/null || true
+            zsh-autosuggestions zsh-syntax-highlighting bsdextrautils 2>/dev/null || true
 
         # gh (GitHub CLI) — necesita su propio repo
         if ! command -v gh >/dev/null 2>&1; then

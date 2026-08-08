@@ -329,7 +329,7 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 
 **Switcher `gcx`** — cambiar de cuenta y proyecto (referencia completa: `gcx -h`)
 
-| Comando | Acción |
+| Comando | Accion |
 |---|---|
 | `gcx` | Picker de configuraciones (cuenta + proyecto) |
 | `gcx p` | Picker de proyectos de la cuenta activa (caché, instantáneo) |

@@ -48,6 +48,11 @@ _gcp_active_config() {
 # falló al consultar (sesión caducada, sin red, SDK roto...). Distinguir 1 de
 # 2 es lo que permite a _gcp_use no confundir "escribiste mal el nombre" con
 # "gcloud está roto".
+#
+# OJO: este 2 es un código interno de esta función, no el código de salida
+# público de gcx. La convención pública del archivo es 2=error de uso,
+# 1=error de ejecución; _gcp_use nunca deja pasar este 2 tal cual, lo mapea
+# siempre a 1 (error de ejecución) antes de devolverlo al usuario.
 _gcp_config_exists() {
     local list
     list="$(gcloud config configurations list --format='value(name)' 2>/dev/null)" \
@@ -70,7 +75,7 @@ _gcp_who() {
 _gcp_use() {
     local name="$1"
     if [[ -z "$name" ]]; then
-        print -r -- "uso: gcx use <config>" >&2
+        print -r -- "  ✗ uso: gcx use <config>" >&2
         return 2
     fi
     _gcp_config_exists "$name"
@@ -183,13 +188,22 @@ _gcp_config_table() {
 }
 
 _gcp_pick_config() {
-    local sel
+    local table sel
 
     command -v fzf >/dev/null 2>&1 || {
         print -r -- "  ✗ gcx requiere fzf" >&2; return 1
     }
 
-    sel="$(_gcp_config_table \
+    # Capturamos la tabla antes de invocar fzf: si gcloud está roto o sin
+    # sesión, _gcp_config_table devuelve cadena vacía y no hay que abrir un
+    # picker vacío sin decir nada (gcx a secas es la invocación más común).
+    table="$(_gcp_config_table)"
+    if [[ -z "$table" ]]; then
+        print -r -- "  ✗ no se pudo consultar gcloud. prueba: gcloud auth login" >&2
+        return 1
+    fi
+
+    sel="$(print -r -- "$table" \
         | fzf --prompt='gcx config > ' --height=40% --reverse)" || return 0
     [[ -z "$sel" ]] && return 0
 

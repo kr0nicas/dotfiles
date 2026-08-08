@@ -56,9 +56,15 @@ print "\n_gcp_use (validación de argumentos)"
 out="$(_gcp_use 2>&1)"
 assert_eq "2" "$?" "sin argumento devuelve código 2"
 assert_contains "uso: gcx use" "$out" "sin argumento imprime el uso"
+assert_contains "  ✗ uso: gcx use" "$out" \
+    "el mensaje de uso sigue el estilo de error (prefijo ✗ y sangría de dos espacios)"
 
+print "\n_gcp_use (config inexistente, sin tocar la red)"
+gcloud() { print -r -- $'config-a\nconfig-b'; return 0 }
 out="$(_gcp_use 'no-existe-jamas-xyz' 2>&1)"
-assert_eq "1" "$?" "config inexistente devuelve código 1"
+rc=$?
+unfunction gcloud
+assert_eq "1" "$rc" "config inexistente devuelve código 1"
 assert_contains "no existe la configuración" "$out" "config inexistente lo dice"
 
 print "\n_gcp_use (gcloud roto se distingue de «no existe»)"
@@ -160,6 +166,38 @@ out="$(_gcp_refresh_cache 'huerfanos@example.com' 2>&1)"
 leftover="$(print -rl -- "${cache_file}".*(N) "${cache_file}"(N))"
 assert_eq "" "$leftover" "refresco fallido sin caché previa no deja temporales huérfanos"
 unfunction gcloud
+
+print "\n_gcp_who (el estado sale de gcloud, nunca hardcodeado)"
+gcloud() {
+    case "$*" in
+        "config configurations list --filter=is_active=true --format=value(name)")
+            print -r -- "config-stub-xyz"
+            ;;
+        "config list --format=value(core.account)")
+            print -r -- "cuenta-stub@example.com"
+            ;;
+        "config list --format=value(core.project)")
+            print -r -- "proyecto-stub-123"
+            ;;
+    esac
+    return 0
+}
+out="$(_gcp_who 2>&1)"
+unfunction gcloud
+assert_contains "config-stub-xyz" "$out" "la config sale del stub de gcloud"
+assert_contains "cuenta-stub@example.com" "$out" "la cuenta sale del stub de gcloud"
+assert_contains "proyecto-stub-123" "$out" "el proyecto sale del stub de gcloud"
+
+print "\n_gcp_pick_config (gcloud roto no debe abrir un fzf vacío)"
+gcloud() { return 1 }
+fzf() { print -r -- "FZF-NO-DEBERIA-EJECUTARSE"; return 0 }
+out="$(_gcp_pick_config 2>&1)"
+rc=$?
+unfunction gcloud fzf
+assert_eq "1" "$rc" "tabla de configuraciones vacía devuelve código distinto de cero"
+assert_contains "gcloud auth login" "$out" "sugiere gcloud auth login, como _gcp_pick_project"
+assert_eq "" "$(print -r -- "$out" | grep 'FZF-NO-DEBERIA-EJECUTARSE')" \
+    "no invoca fzf cuando la tabla viene vacía"
 
 print "\ngcx (dispatcher)"
 out="$(gcx subcomando-invalido 2>&1)"
