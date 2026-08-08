@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · fix/scopes-deps
+
+### Fixes
+
+- **repo**: añadir el ámbito deps para dependabot (`b51ec8e`)
+
 ## 2026-08-08 · feat/terminal-iterm2-fuentes
 
 ### Features
