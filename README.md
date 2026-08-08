@@ -24,6 +24,7 @@
 - [🦀 CLIs modernas (Rust-powered)](#-clis-modernas-rust-powered)
 - [📝 Editor — Neovim](#-editor--neovim)
 - [☁️ Cloud e infraestructura](#️-cloud-e-infraestructura)
+  - [`gcx` — cambiar de cuenta y proyecto en GCP](#gcx--cambiar-de-cuenta-y-proyecto-en-gcp)
 - [☸️ Kubernetes](#️-kubernetes)
 - [🔐 Seguridad](#-seguridad)
 - [💻 Lenguajes](#-lenguajes)
@@ -150,6 +151,36 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**. Lea
 | **awscli** | CLI de Amazon Web Services |
 | **azure-cli** | CLI de Microsoft Azure |
 | **gcloud** | CLI de Google Cloud (lazy-loaded en zshrc) |
+| **rtk** | Comprime la salida de comandos para agentes IA |
+
+### `gcx` — cambiar de cuenta y proyecto en GCP
+
+Pickers `fzf` sobre tus configuraciones y proyectos de Google Cloud. Referencia
+completa siempre a mano con `gcx -h`.
+
+| Comando | Accion |
+|---|---|
+| `gcx` | Picker de configuraciones (cuenta + proyecto) |
+| `gcx p` | Picker de proyectos de la cuenta activa (cache, instantaneo) |
+| `gcx p -r` | Refresca la cache desde la API y abre el picker |
+| `gcx use <config>` | Activa una configuracion por nombre |
+| `gcx who` | Config, cuenta y proyecto activos |
+| `gcx -h` | Hoja de referencia, con las configs listadas en vivo |
+
+Atajos: `gcpers`, `gcit`, `gcfact`, `gckel` (delegan en `gcx use`) y `gcwho`.
+
+Detalles que importan:
+
+- **Ningun mensaje de estado esta hardcodeado** — todo se lee de `gcloud` en
+  tiempo real, asi que la salida no puede desincronizarse de la realidad. Es el
+  motivo por el que existe: los alias anteriores imprimian una cuenta fija que
+  dejo de coincidir con la configuracion que activaban.
+- **Cache por cuenta**, no por config: `~/.cache/gcp/projects-<cuenta>.list`.
+  Dos configs de la misma cuenta comparten lista. Oculta los proyectos `sys-*`
+  que autogenera Apps Script.
+- **Se llama `gcx` y no `gcp`** porque `gcp` es el `cp` de GNU que instala
+  coreutils.
+- Suite propia: `zsh config/zsh/gcp.test.zsh` (45 tests, corren sin gcloud).
 
 ---
 
@@ -343,7 +374,9 @@ Luego configura la fuente en tu terminal:
 - Verifica que todas las URLs sean HTTPS desde hosts oficiales (lo son hoy).
 - Si necesitas un entorno hardened, reemplaza cada bloque por descarga + verificación SHA256.
 
-Binarios descargados desde GitHub releases (k9s, delta, lazygit, stern, etc.) viajan por HTTPS pero no se valida el checksum publicado en cada release. Mismo trade-off.
+Los binarios de GitHub Releases (k9s, lazygit, stern, sops, etc.) **sí se verifican**: se descargan a disco y se comparan contra el `checksums.txt` del propio release antes de instalarse. Un checksum que no coincide **aborta el instalador entero** — distinguir eso de "no se pudo comprobar" es lo único que separa una descarga corrupta de una manipulada.
+
+Algunos proyectos no publican checksums en sus releases (`delta` y `dust`, hoy). Esos se instalan igual, pero con un warning visible por herramienta: el hueco queda auditable en la salida, no escondido.
 
 ---
 
