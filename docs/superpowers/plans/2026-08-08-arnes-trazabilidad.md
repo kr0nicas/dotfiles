@@ -55,7 +55,7 @@
   - `hook_err <msg>`, `hook_warn <msg>`, `hook_ok <msg>`, `hook_info <msg>` — escriben a stderr, devuelven 0.
   - `has <cmd>` — 0 si el comando existe.
   - `hook_scopes_file` — imprime la ruta absoluta de `scopes.txt`.
-  - `assert_eq <esperado> <obtenido> <nombre>`, `assert_contains <aguja> <pajar> <nombre>`, `assert_fails <nombre> <cmd...>` en la suite.
+  - `assert_eq <esperado> <obtenido> <nombre>` y `assert_contains <aguja> <pajar> <nombre>` en la suite. Son los dos únicos que usan las tasks 2–5; no añadas más "por si acaso".
   - Variables de la suite: `TESTS_RUN`, `TESTS_FAILED`.
 
 - [ ] **Step 1: Escribir la suite con los primeros tests (fallarán: no hay `lib.sh`)**
