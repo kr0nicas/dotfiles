@@ -45,6 +45,10 @@ No lo edites a mano: el CI regenera y compara.
 
 - **repo**: que el stub de shellcheck registre qué archivo recibe (`7324319`)
 
+### CI
+
+- validar mensajes y CHANGELOG en CI, y plantilla de PR (`bdfd7a1`)
+
 ## 2026-08-08 · refactor(install): partir el instalador en orquestador + lib/ por fases
 
 - (`f70301a`)
