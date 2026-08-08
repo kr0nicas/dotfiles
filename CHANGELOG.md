@@ -13,6 +13,7 @@ No lo edites a mano: el CI regenera y compara.
 - **repo**: barrido de secretos en pre-commit (`31cd071`)
 - **repo**: guardia de main y suites en pre-push (`fd2ea1b`)
 - **install**: activar los hooks del repo con phase_repo (`bda7f31`)
+- **scripts**: generar CHANGELOG.md desde el historial (`a719e8c`)
 
 ### Fixes
 
@@ -30,6 +31,9 @@ No lo edites a mano: el CI regenera y compara.
 - **repo**: que el barrido de secretos falle cerrado sin grep (`bc7145b`)
 - **docs**: comprobar hook por hook en phase_repo en vez de chmod || true (`5e95912`)
 - **install**: comprobar hook por hook en vez de chmod con || true (`bde724e`)
+- **docs**: excluir del CHANGELOG los commits que solo lo tocan (`47d6258`)
+- **docs**: declarar excluidos como local en emite_rango (`0315077`)
+- **scripts**: excluir del CHANGELOG los commits que solo lo tocan (`afb72a3`)
 
 ### Documentación
 
