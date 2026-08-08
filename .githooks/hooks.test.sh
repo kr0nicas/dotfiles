@@ -121,23 +121,35 @@ assert_contains "⚠" "$(PATH=/nonexistent lint_staged "$LINT_TMP/roto.json" 2>&
 assert_eq "0" "$(lint_staged "$LINT_TMP/no-existe.json" >/dev/null 2>&1; echo $?)" \
     "ignora archivos que ya no existen (borrados en el índice)"
 
-# Enrutado del `case`: con un shellcheck de mentira que siempre falla, un rc=1
-# prueba que la ruta llegó a analizarse y un rc=0 que no coincidió con ninguna
-# rama. Los patrones son relativos a la raíz del repo, así que se usan rutas
-# reales del propio repo en vez de temporales.
 STUB_DIR="${TMPDIR:-/tmp}/hooks-test-stub-$$"
+STUB_LOG="$STUB_DIR/args.log"
+export STUB_LOG
 mkdir -p "$STUB_DIR"
-printf '#!/bin/sh\nexit 1\n' > "$STUB_DIR/shellcheck"
+# El stub REGISTRA sus argumentos además de fallar. Sin el registro, un test que
+# solo mira el código de salida pasa igual con el bug: el código viejo mandaba
+# «shellcheck install.sh» pasara lo que pasara, y un stub que siempre sale 1
+# habría dado rc=1 en ambas versiones. Lo que discrimina es QUÉ archivo recibe.
+printf '#!/bin/sh\nprintf "%%s\\n" "$@" >> "$STUB_LOG"\nexit 1\n' > "$STUB_DIR/shellcheck"
 chmod +x "$STUB_DIR/shellcheck"
 
 assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged '.githooks/commit-msg' >/dev/null 2>&1; echo $?)" \
     "analiza los hooks, que no llevan extensión .sh"
 assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged 'config/bin/cn' >/dev/null 2>&1; echo $?)" \
     "analiza config/bin/cn, que tampoco lleva extensión"
-assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged 'scripts/github-topics-manager.sh' >/dev/null 2>&1; echo $?)" \
-    "analiza los scripts de scripts/ individualmente, no vía install.sh"
 assert_eq "0" "$(PATH="$STUB_DIR:$PATH" lint_staged 'README.md' >/dev/null 2>&1; echo $?)" \
     "no manda a shellcheck lo que no es un script"
+
+: > "$STUB_LOG"
+PATH="$STUB_DIR:$PATH" lint_staged 'scripts/github-topics-manager.sh' >/dev/null 2>&1
+assert_contains "scripts/github-topics-manager.sh" "$(cat "$STUB_LOG")" \
+    "shellcheck recibe el script staged, no install.sh por delegación"
+
+: > "$STUB_LOG"
+PATH="$STUB_DIR:$PATH" lint_staged 'lib/symlinks.sh' >/dev/null 2>&1
+assert_contains "install.sh" "$(cat "$STUB_LOG")" \
+    "un lib/ staged sí delega en install.sh"
+assert_contains "-x" "$(cat "$STUB_LOG")" \
+    "el análisis de install.sh usa -x para arrastrar lib/"
 
 rm -rf "$STUB_DIR"
 
