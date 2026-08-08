@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · dependabot/github_actions/actions/checkout-7
+
+### Mantenimiento
+
+- **deps**: bump actions/checkout from 5 to 7 (`b484a9f`)
+
 ## 2026-08-08 · fix/scopes-deps
 
 ### Fixes
