@@ -418,6 +418,7 @@ git commit -m "feat(gcp): caché por cuenta y picker de proyectos"
 **Interfaces:**
 - Consumes: `_gcp_use`, `_gcp_who`, `_gcp_pick_project`.
 - Produces:
+  - `_gcp_config_table` → imprime la tabla de configuraciones ya formateada y alineada (marca `●`/`○`, nombre, cuenta, proyecto). La usan **tanto** `_gcp_pick_config` como `_gcp_help` (Task 5); no dupliques el bloque `awk` en ninguna de las dos.
   - `_gcp_pick_config` → picker fzf de configuraciones; marca la activa con `●`.
   - `gcp [subcomando]` → punto de entrada. Sin argumentos abre `_gcp_pick_config`.
 
@@ -448,6 +449,21 @@ Añade al final de `config/zsh/gcp.zsh`:
 # Lista TODAS las configs sin filtrar, incluida la 'default' vacía que gcloud
 # exige: el picker refleja lo que gcloud tiene, sin excepciones ocultas.
 
+# Tabla de configuraciones, alineada y con la activa marcada. Fuente única para
+# el picker y para `gcp -h`.
+_gcp_config_table() {
+    gcloud config configurations list \
+        --format='value(name,is_active,properties.core.account,properties.core.project)' 2>/dev/null \
+    | awk -F'\t' '{
+          printf "%s\t%s\t%s\t%s\n",
+              ($2 == "True" ? "●" : "○"),
+              $1,
+              ($3 == "" ? "—" : $3),
+              ($4 == "" ? "—" : $4)
+      }' \
+    | column -t -s $'\t'
+}
+
 _gcp_pick_config() {
     local sel
 
@@ -455,16 +471,7 @@ _gcp_pick_config() {
         print -r -- "  ✗ gcp requiere fzf" >&2; return 1
     }
 
-    sel="$(gcloud config configurations list \
-            --format='value(name,is_active,properties.core.account,properties.core.project)' 2>/dev/null \
-        | awk -F'\t' '{
-              printf "%s\t%s\t%s\t%s\n",
-                  ($2 == "True" ? "●" : "○"),
-                  $1,
-                  ($3 == "" ? "—" : $3),
-                  ($4 == "" ? "—" : $4)
-          }' \
-        | column -t -s $'\t' \
+    sel="$(_gcp_config_table \
         | fzf --prompt='gcp config > ' --height=40% --reverse)" || return 0
     [[ -z "$sel" ]] && return 0
 
@@ -535,7 +542,7 @@ git commit -m "feat(gcp): picker de configuraciones y dispatcher gcp"
 - Modify: `CHEAT_CODES.md:328` (sección GCP)
 
 **Interfaces:**
-- Consumes: todo lo anterior.
+- Consumes: `_gcp_config_table` de la Task 4 — **reutilízala**, no vuelvas a escribir el bloque `awk`.
 - Produces: `_gcp_help` → imprime la referencia completa.
 
 - [ ] **Step 1: Escribe el test que falla**
@@ -598,17 +605,7 @@ _gcp_help() {
     print -r -- "    · Cancelar el fzf con Esc no cambia nada."
     print -r -- ""
     print -r -- "  CONFIGURACIONES ACTUALES"
-    gcloud config configurations list \
-        --format='value(name,is_active,properties.core.account,properties.core.project)' 2>/dev/null \
-        | awk -F'\t' '{
-              printf "%s\t%s\t%s\t%s\n",
-                  ($2 == "True" ? "●" : "○"),
-                  $1,
-                  ($3 == "" ? "—" : $3),
-                  ($4 == "" ? "—" : $4)
-          }' \
-        | column -t -s $'\t' \
-        | sed 's/^/    /'
+    _gcp_config_table | sed 's/^/    /'
     print -r -- ""
 }
 ```
