@@ -112,11 +112,19 @@ explícitamente: entra en este PR o sale en el suyo, pero no se arregla de tapad
 `pyproject.toml` o `ruff.toml`, que es como ya se gestiona Python en este repo (`uv`, un
 entorno por proyecto).
 
-Consecuencia aceptada explícitamente: el set por defecto de ruff (`E4`, `E7`, `E9`, `F`)
-es más estrecho que el de flake8 (pyflakes + pycodestyle completo + mccabe). Fuera de un
-proyecto con configuración propia se pierde `E501` (línea demasiado larga) y casi todo
-pycodestyle de estilo. A cambio no hay un archivo más que mantener ni un symlink más en
-`phase_symlinks`.
+Consecuencia, medida sobre ruff 0.16.2 con `ruff check --show-settings --isolated`: el
+set por defecto habilita **413 reglas**, entre ellas `I` (isort), `B` (bugbear), `S`
+(bandit) y `BLE`. No es más estrecho que el de flake8 (pyflakes + pycodestyle + mccabe),
+es bastante más ancho.
+
+Corrige una afirmación previa de este mismo spec, que daba el default como `E4`, `E7`,
+`E9`, `F`: eso era cierto en versiones antiguas de ruff, no en la actual. La parte que sí
+se mantiene es que **`E501` no se dispara** —verificado con una línea de 105 caracteres—
+porque el límite de longitud lo resuelve el formateador.
+
+Efecto secundario que hay que decidir aparte: `I001` (bloque de imports desordenado) **sí**
+se reporta, pero como `ruff_organize_imports` no entra en el guardado, el aviso aparece y
+no se corrige solo. Ver «Imports: aviso sin arreglo automático».
 
 ## Verificación
 
