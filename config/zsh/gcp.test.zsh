@@ -113,6 +113,54 @@ assert_contains "caché anterior" "$out" "avisa de que usa caché vieja"
 assert_contains "viejo-proyecto" "$(<"$cache_file")" "no destruye la caché previa"
 unfunction gcloud
 
+print "\n_gcp_refresh_cache (escritura atómica: reemplaza la caché, no la trunca en vivo)"
+gcloud() { print -r -- $'proj1\tuno\nproj2\tdos'; return 0 }
+cache_file="$(_gcp_cache_path 'atomic@example.com')"
+print -r -- "viejo-contenido" > "$cache_file"
+old_inode="$(ls -i "$cache_file" | awk '{print $1}')"
+_gcp_refresh_cache 'atomic@example.com' >/dev/null 2>&1
+new_inode="$(ls -i "$cache_file" | awk '{print $1}')"
+assert_eq "1" "$(( old_inode != new_inode ))" \
+    "la caché se reemplaza atómicamente (nuevo inodo vía mv), no se trunca en el mismo archivo"
+unfunction gcloud
+rm -f "$cache_file"
+
+print "\n_gcp_refresh_cache (nombre de temporal único por proceso)"
+gcloud() { print -r -- $'proj1\tuno\nproj2\tdos'; return 0 }
+cache_file="$(_gcp_cache_path 'concurrente@example.com')"
+rm -f "$cache_file"
+stray_tmp="${cache_file}.tmp"
+print -r -- "otro-proceso-en-vuelo" > "$stray_tmp"
+_gcp_refresh_cache 'concurrente@example.com' >/dev/null 2>&1
+assert_eq "otro-proceso-en-vuelo" "$(<"$stray_tmp")" \
+    "no pisa el temporal fijo (sin PID) que pueda estar usando otro proceso concurrente"
+unfunction gcloud
+rm -f "$stray_tmp" "$cache_file"
+
+print "\n_gcp_refresh_cache (sin archivos temporales huérfanos)"
+gcloud() { print -r -- $'proj1\tuno\nproj2\tdos'; return 0 }
+cache_file="$(_gcp_cache_path 'huerfanos@example.com')"
+rm -f "$cache_file"
+_gcp_refresh_cache 'huerfanos@example.com' >/dev/null 2>&1
+leftover="$(print -rl -- "${cache_file}".*(N))"
+assert_eq "" "$leftover" "refresco exitoso no deja temporales huérfanos"
+unfunction gcloud
+
+gcloud() { return 1 }
+out="$(_gcp_refresh_cache 'huerfanos@example.com' 2>&1)"
+rc=$?
+leftover="$(print -rl -- "${cache_file}".*(N))"
+assert_eq "0" "$rc" "refresco fallido con caché previa sigue devolviendo 0"
+assert_eq "" "$leftover" "refresco fallido con caché previa no deja temporales huérfanos"
+unfunction gcloud
+
+rm -f "$cache_file"
+gcloud() { return 1 }
+out="$(_gcp_refresh_cache 'huerfanos@example.com' 2>&1)"
+leftover="$(print -rl -- "${cache_file}".*(N) "${cache_file}"(N))"
+assert_eq "" "$leftover" "refresco fallido sin caché previa no deja temporales huérfanos"
+unfunction gcloud
+
 rm -rf "$GCP_CACHE_DIR"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))

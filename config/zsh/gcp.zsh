@@ -97,20 +97,27 @@ _gcp_use() {
 # comparten lista, y cambiar de cuenta nunca mezcla resultados.
 
 _gcp_refresh_cache() {
-    local account="$1" cache tmp n
+    local account="$1" cache tmp tmp_filtered n
     cache="$(_gcp_cache_path "$account")"
-    tmp="${cache}.tmp"
+    # Sufijo con el PID: dos refrescos concurrentes de la misma cuenta (dos
+    # terminales) no comparten nombre de temporal y no pueden pisarse.
+    tmp="${cache}.tmp.$$"
+    tmp_filtered="${cache}.tmp2.$$"
     mkdir -p "$GCP_CACHE_DIR"
 
     if gcloud projects list --format='value(projectId,name)' >"$tmp" 2>/dev/null; then
-        _gcp_filter_projects <"$tmp" >"$cache"
+        _gcp_filter_projects <"$tmp" >"$tmp_filtered"
         rm -f "$tmp"
+        # mv dentro del mismo directorio es atómico: la caché nunca queda
+        # truncada a medias si el proceso se interrumpe (Ctrl-C, disco
+        # lleno, terminal cerrada).
+        mv -f "$tmp_filtered" "$cache"
         n="$(grep -c . <"$cache")"
         print -r -- "  ↻ $n proyectos cacheados para $account"
         return 0
     fi
 
-    rm -f "$tmp"
+    rm -f "$tmp" "$tmp_filtered"
     if [[ -s "$cache" ]]; then
         print -r -- "  ⚠ no se pudo consultar GCP; usando la caché anterior de $account" >&2
         return 0
