@@ -33,8 +33,13 @@ validate_commit_msg() {
     fi
 
     # Exenciones: git genera estos mensajes, no los escribimos nosotros.
+    #
+    # "Merge *" era demasiado ancho: cualquier mensaje que empezara por
+    # "Merge " —escrito por una persona, no por git— se saltaba TODAS las
+    # reglas. Solo se eximen las formas que git genera de verdad.
     case "$subject" in
-        Merge\ *|Revert\ *|fixup!\ *|squash!\ *) return 0 ;;
+        Merge\ branch\ *|Merge\ pull\ request\ *|Merge\ remote-tracking\ *|Revert\ *|fixup!\ *|squash!\ *)
+            return 0 ;;
     esac
 
     # Estructura general: tipo(ámbito opcional)!: asunto

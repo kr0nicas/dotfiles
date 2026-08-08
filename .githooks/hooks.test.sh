@@ -80,6 +80,9 @@ assert_eq "1" "$(check_rc '')" "rechaza mensaje vacío"
 assert_eq "1" "$(check_rc "feat(repo): $(printf 'x%.0s' $(seq 1 80))")" "rechaza asunto de más de 72"
 
 assert_eq "0" "$(check_rc "Merge pull request #12 from kr0nicas/feat/iterm2")" "exime los merges"
+assert_eq "0" "$(check_rc "Merge branch 'feat/x'")" "exime un merge de rama real"
+assert_eq "1" "$(check_rc 'Merge esto no es un merge de verdad')" \
+    "«Merge » suelto ya no es un bypass total de las reglas"
 assert_eq "0" "$(check_rc 'Revert "feat(iterm2): perfil dinámico"')" "exime los reverts"
 assert_eq "0" "$(check_rc 'fixup! feat(iterm2): perfil dinámico')" "exime los fixup!"
 assert_eq "0" "$(check_rc 'squash! feat(iterm2): perfil dinámico')" "exime los squash!"
