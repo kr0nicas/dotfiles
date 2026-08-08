@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · feat/claude-md-global
+
+### Features
+
+- **claude**: añadir CLAUDE.md global de usuario (`d015913`)
+
 ## 2026-08-08 · feat/verify-ruff
 
 ### Features
