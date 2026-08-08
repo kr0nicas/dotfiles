@@ -14,7 +14,7 @@ jobs:
     name: Lint y tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Instalar zsh
         run: sudo apt-get update && sudo apt-get install -y zsh
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           # Por defecto actions/checkout deja el merge commit sintético del PR
@@ -110,7 +110,7 @@ jobs:
     name: CHANGELOG al día
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           # ref es obligatorio, no cosmético: por defecto actions/checkout deja
