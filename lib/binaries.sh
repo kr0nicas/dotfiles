@@ -40,12 +40,21 @@ phase_binaries() {
         # No todos lo hacen (delta y dust, por ejemplo, no publican ninguno), así que
         # fallar aquí es normal y no es un error: significa "no hay nada que comparar".
         gh_checksums() {
-            local repo=$1 response url
+            local repo=$1 asset=${2:-} response url
             response=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null) || return 1
             url=$(printf '%s\n' "$response" \
                 | grep '"browser_download_url"' \
                 | grep -iE 'checksums?\.txt|sha256sums?|SHA256SUMS' \
                 | head -1 | sed 's/.*"browser_download_url": *"//;s/".*//')
+            # Algunos proyectos (ruff) no publican un archivo consolidado sino un
+            # .sha256 por asset. Sin este fallback caeríamos en el warning de "no
+            # publica checksums", que además de falso deja el binario sin verificar.
+            if [[ -z "$url" && -n "$asset" ]]; then
+                url=$(printf '%s\n' "$response" \
+                    | grep '"browser_download_url"' \
+                    | grep -F "${asset}.sha256\"" \
+                    | head -1 | sed 's/.*"browser_download_url": *"//;s/".*//')
+            fi
             [[ -n "$url" ]] || return 1
             curl -fsSL "$url" 2>/dev/null
         }
@@ -64,7 +73,7 @@ phase_binaries() {
             file="$tmp/$(basename "$url")"
             curl -fsSL -o "$file" "$url" || { rm -rf "$tmp"; return 1; }
 
-            if sums=$(gh_checksums "$repo"); then
+            if sums=$(gh_checksums "$repo" "$(basename "$file")"); then
                 verify_sha256 "$file" "$sums" && rc=0 || rc=$?
                 case $rc in
                     0) ok "checksum verificado: $(basename "$file")" ;;
@@ -94,7 +103,7 @@ phase_binaries() {
             file="$tmp/$(basename "$url")"
             curl -fsSL -o "$file" "$url" || { rm -rf "$tmp"; return 1; }
 
-            if sums=$(gh_checksums "$repo"); then
+            if sums=$(gh_checksums "$repo" "$(basename "$file")"); then
                 verify_sha256 "$file" "$sums" && rc=0 || rc=$?
                 case $rc in
                     0) ok "checksum verificado: $(basename "$file")" ;;
@@ -130,6 +139,12 @@ phase_binaries() {
 
         install_if_missing "curlie" \
             "gh_latest_tar rs/curlie 'linux_${ARCH}.tar.gz' $LOCAL_BIN curlie"
+
+        # ARCH_TYPE y no GH_ARCH: ruff nombra sus assets con el triple de Rust
+        # (aarch64-unknown-linux-gnu), mientras que GH_ARCH traduce eso a arm64.
+        # La comilla de cierre en el patrón evita matchear también el .sha256.
+        install_if_missing "ruff" \
+            "gh_latest_tar astral-sh/ruff '${ARCH_TYPE}-unknown-linux-gnu.tar.gz\"' $LOCAL_BIN '--strip-components=1 --wildcards */ruff'"
 
         # --- K8s tools (gated por --no-k8s / --minimal) ---
         if [[ $INSTALL_K8S -eq 1 ]]; then
