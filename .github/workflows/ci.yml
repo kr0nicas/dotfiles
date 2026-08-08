@@ -46,7 +46,46 @@ jobs:
           shellcheck -x -S warning install.sh
           shellcheck -S warning scripts/*.sh config/bin/cn
 
-      # La suite corre sin gcloud ni fzf instalados (usa stubs): es intencional,
-      # para que valga igual en un runner limpio, en un contenedor y en un VPS.
+      # Las suites corren sin gcloud, sin fzf y sin shellcheck (usan stubs y
+      # degradación): es intencional, para que valgan igual en un runner
+      # limpio, en un contenedor y en un VPS.
       - name: Suite de tests
-        run: zsh config/zsh/gcp.test.zsh
+        run: |
+          zsh config/zsh/gcp.test.zsh
+          bash .githooks/hooks.test.sh
+
+  commit-lint:
+    name: Mensajes de commit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # Misma lógica que en local: se reutiliza el hook, no una copia.
+      - name: Validar mensajes del PR
+        run: |
+          set -e
+          base="origin/${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}" --depth=0
+          rc=0
+          for sha in $(git rev-list "$base..HEAD"); do
+            git log -1 --format=%B "$sha" > /tmp/msg.txt
+            if ! bash .githooks/commit-msg /tmp/msg.txt; then
+              echo "  ↑ en $sha"
+              rc=1
+            fi
+          done
+          exit $rc
+
+  changelog-drift:
+    name: CHANGELOG al día
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Comprobar que CHANGELOG.md está regenerado
+        run: ./scripts/changelog.sh --check
