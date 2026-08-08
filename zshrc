@@ -165,7 +165,10 @@ elif command -v bat > /dev/null; then
 fi
 
 alias gs="git status -sb"
-alias ga="git add ."
+# `git add -A` y no `git add .`: el segundo se limita al directorio actual, así
+# que desde un subdirectorio staged solo una parte del cambio sin avisar. -A es
+# lo que hace `dots`, y al menos es predecible mires desde donde mires.
+alias ga="git add -A"
 alias gp="git push"
 alias gpl="git pull"
 alias gl="git log --oneline --graph --all"
