@@ -66,14 +66,17 @@ jobs:
       # Misma lógica que en local: se reutiliza el hook, no una copia.
       - name: Validar mensajes del PR
         run: |
-          set -e
+          set -euo pipefail
           base="origin/${{ github.base_ref }}"
-          # El checkout ya trae el historial completo (fetch-depth: 0); este
-          # fetch solo es una red de seguridad, así que no lleva --depth: con
-          # 0 git lo rechaza («fatal: depth 0 is not a positive number»).
+          # Sin --depth: el checkout ya trae todo con fetch-depth 0, y
+          # «--depth=0» aborta con «depth 0 is not a positive number».
           git fetch origin "${{ github.base_ref }}"
+          # Se captura ANTES del for. Un fallo de git rev-list dentro de la
+          # sustitución de comandos no dispara errexit, así que el for
+          # iteraría en vacío y el job pasaría en verde sin validar nada.
+          shas="$(git rev-list "$base..HEAD")"
           rc=0
-          for sha in $(git rev-list "$base..HEAD"); do
+          for sha in $shas; do
             git log -1 --format=%B "$sha" > /tmp/msg.txt
             if ! bash .githooks/commit-msg /tmp/msg.txt; then
               echo "  ↑ en $sha"
@@ -89,6 +92,12 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          # ref es obligatorio, no cosmético: por defecto actions/checkout deja
+          # el repo en detached HEAD, «git rev-parse --abbrev-ref HEAD» devuelve
+          # literalmente «HEAD», y changelog.sh omite la sección de la rama en
+          # curso. El check fallaría en TODO PR real por mucho que el autor
+          # regenerara. Verificado reproduciendo el detached HEAD en un clon.
+          ref: ${{ github.head_ref }}
 
       - name: Comprobar que CHANGELOG.md está regenerado
         run: ./scripts/changelog.sh --check
