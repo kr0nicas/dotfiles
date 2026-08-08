@@ -10,7 +10,7 @@ HOOK_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=.githooks/lib.sh
 . "$HOOK_LIB_DIR/lib.sh"
 
-# check_push_ref <ref-local> -> 1 si la ref es main
+# check_push_ref <ref> -> 1 si la ref es main
 check_push_ref() {
     case "$1" in
         refs/heads/main)
@@ -46,10 +46,13 @@ run_suites() {
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     rc=0
-    # git pasa por stdin: <ref-local> <sha-local> <ref-remota> <sha-remoto>
-    while read -r local_ref _ _ _; do
-        [ -n "$local_ref" ] || continue
-        check_push_ref "$local_ref" || rc=1
+    # git pasa: <ref-local> <sha-local> <ref-remota> <sha-remoto>
+    # Se mira la ref REMOTA: es la que se va a escribir. Mirando la local,
+    # «git push origin HEAD:main» se colaba (la local es HEAD, no main) y
+    # «git push origin main:backup» se bloqueaba sin motivo.
+    while read -r _ _ remote_ref _; do
+        [ -n "$remote_ref" ] || continue
+        check_push_ref "$remote_ref" || rc=1
     done
     [ "$rc" -eq 0 ] || exit 1
     run_suites || exit 1
