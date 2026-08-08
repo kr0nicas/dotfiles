@@ -30,3 +30,6 @@ git
 brew
 # Transversal
 docs
+# Dependabot usa chore(deps): por convención propia; sin este ámbito
+# todos sus PRs quedarían en rojo para siempre.
+deps
