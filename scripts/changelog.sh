@@ -48,7 +48,8 @@ solo_changelog() {
 
 # emite_rango <rango> — lista los commits del rango agrupados por tipo.
 emite_rango() {
-    local rango="$1" tipo linea shas sha excluidos
+    local rango="$1" tipo linea shas sha excluidos entradas matched=''
+
     # Los commits que solo tocan CHANGELOG.md se descartan antes de agrupar.
     shas="$(git log "$rango" --no-merges --reverse --format='%H' 2>/dev/null)"
     excluidos=''
@@ -58,34 +59,63 @@ emite_rango() {
         fi
     done
 
-    for tipo in feat fix perf refactor docs test ci chore revert; do
-        linea="$(git log "$rango" --no-merges --reverse \
+    # (sha completo, sha corto, asunto) de todo el rango, ya sin los
+    # commits que solo tocan CHANGELOG.md. Se calcula una sola vez y se
+    # reutiliza por tipo, en vez de repetir el filtrado por exclusión en
+    # cada vuelta del for de abajo.
+    entradas="$(git log "$rango" --no-merges --reverse \
                     --format='%H%x09%h%x09%s' 2>/dev/null \
-                 | while IFS="$(printf '\t')" read -r full corto asunto; do
-                       case " $excluidos " in
-                           *" $full "*) continue ;;
-                       esac
-                       printf '%s\t%s\n' "$corto" "$asunto"
-                   done \
-                 | grep -E "$(printf '^[0-9a-f]+\t%s(\(|!|:)' "$tipo")" || true)"
+                | while IFS="$(printf '\t')" read -r full corto asunto; do
+                      case " $excluidos " in
+                          *" $full "*) continue ;;
+                      esac
+                      printf '%s\t%s\t%s\n' "$full" "$corto" "$asunto"
+                  done)"
+
+    for tipo in feat fix perf refactor docs test ci build chore revert; do
+        linea="$(printf '%s\n' "$entradas" \
+                 | grep -E "$(printf '\t%s(\\(|!|:)' "$tipo")" || true)"
         [ -n "$linea" ] || continue
 
+        # Se registran los sha completos que ya casaron con un tipo, para
+        # el barrido de "Otros" de más abajo.
+        matched="$matched $(printf '%s\n' "$linea" | cut -f1 | tr '\n' ' ')"
+
         printf '\n### %s\n\n' "$(titulo_de_tipo "$tipo")"
-        printf '%s\n' "$linea" | while IFS=$'\t' read -r sha asunto; do
+        printf '%s\n' "$linea" | while IFS=$'\t' read -r full corto asunto; do
             # «feat(iterm2): perfil» -> «**iterm2**: perfil»
             case "$asunto" in
                 *\(*\)*)
                     ambito="$(printf '%s' "$asunto" | sed -E 's/^[a-z]+\(([^)]+)\).*/\1/')"
                     texto="$(printf '%s' "$asunto" | sed -E 's/^[a-z]+\([^)]+\)!?: //')"
-                    printf -- '- **%s**: %s (`%s`)\n' "$ambito" "$texto" "$sha"
+                    printf -- '- **%s**: %s (`%s`)\n' "$ambito" "$texto" "$corto"
                     ;;
                 *)
                     texto="$(printf '%s' "$asunto" | sed -E 's/^[a-z]+!?: //')"
-                    printf -- '- %s (`%s`)\n' "$texto" "$sha"
+                    printf -- '- %s (`%s`)\n' "$texto" "$corto"
                     ;;
             esac
         done
     done
+
+    # Nada puede desaparecer en silencio: cualquier commit del rango que no
+    # haya casado con ningún tipo conocido —el `Revert "..."` que genera git
+    # es el caso real, pero también cubre un tipo nuevo que aún no esté en
+    # la lista de arriba— se emite tal cual bajo Otros, sin intentar
+    # extraerle un ámbito a un mensaje que no sigue el formato convencional.
+    linea="$(printf '%s\n' "$entradas" | while IFS=$'\t' read -r full corto asunto; do
+                  [ -n "$full" ] || continue
+                  case " $matched " in
+                      *" $full "*) continue ;;
+                  esac
+                  printf '%s\t%s\n' "$corto" "$asunto"
+              done)"
+    if [ -n "$linea" ]; then
+        printf '\n### Otros\n\n'
+        printf '%s\n' "$linea" | while IFS=$'\t' read -r corto asunto; do
+            printf -- '- %s (`%s`)\n' "$asunto" "$corto"
+        done
+    fi
 }
 
 # La ref base: main local si existe, si no origin/main. En CI el checkout
