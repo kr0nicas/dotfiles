@@ -3,6 +3,20 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · ci/smoke-instalacion-real
+
+### Features
+
+- **lib**: autenticar contra la API de GitHub si hay token en el entorno (`ebd9c89`)
+
+### Fixes
+
+- **lib**: no depender de wget ni gpg sin instalarlos (`ffde759`)
+
+### CI
+
+- **ci**: instalar de verdad en un Debian mínimo y verificar el resultado (`b0ab18d`)
+
 ## 2026-08-08 · feat/linters-linux
 
 ### Features
