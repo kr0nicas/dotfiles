@@ -299,7 +299,11 @@ Config en `.gitconfig` con:
 │   ├── binaries.sh              # GitHub Releases + checksums (solo Linux)
 │   ├── editors.sh               # tmux/TPM, Neovim/lazy.nvim, Claude Code
 │   ├── symlinks.sh              # Todos los symlinks
+│   ├── repo.sh                  # Hooks de git (core.hooksPath -> .githooks)
 │   └── verify.sh                # Limpieza de cache zsh + resumen final
+├── .githooks/                   # commit-msg, pre-commit, pre-push + suite propia
+├── scripts/                     # changelog.sh, github-topics-manager.sh
+├── CHANGELOG.md                 # Generado por scripts/changelog.sh, no se edita a mano
 ├── Brewfile                     # Paquetes macOS (brew bundle)
 ├── zshrc                        # Config de zsh
 ├── tmux.conf                    # Config de tmux

@@ -91,6 +91,7 @@ The OS split is the core architectural decision:
 | `lib/binaries.sh` | `phase_binaries` — GitHub Releases + verificación de checksums (solo Linux) |
 | `lib/editors.sh` | `phase_editors` — tmux/TPM, Neovim/lazy.nvim, Claude Code |
 | `lib/symlinks.sh` | `phase_symlinks` — todos los symlinks |
+| `lib/repo.sh` | `phase_repo` — hooks de git (`core.hooksPath` → `.githooks`) |
 | `lib/verify.sh` | `phase_verify` — limpieza de caché zsh + resumen final |
 
 Convenciones que hay que respetar al tocar esto:
