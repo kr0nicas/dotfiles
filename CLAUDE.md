@@ -36,8 +36,36 @@ tmux && prefix + I      # Install tmux plugins via TPM (prefix is C-a)
 
 Update dotfiles:
 ```bash
-dots    # alias: git add . && commit with date && push from ~/dotfiles
+dots 'fix(zshrc): quitar alias que rompía du'   # rama + commit + push + PR
 ```
+
+## Flujo de trabajo (obligatorio)
+
+Nunca se commitea directo a `main`: está protegido en GitHub y `pre-push` lo rechaza antes.
+
+1. **Rama antes de tocar código.** `git switch -c feat/<ámbito>-<asunto>`. Si ya empezaste en `main`, mueve el trabajo a una rama antes de commitear.
+2. **Commit al cerrar cada unidad de trabajo**, sin esperar a que te lo pidan. El cuerpo explica el *porqué*; el diff ya dice el qué.
+3. **PR al terminar.** `gh pr create --fill`, y `gh pr merge --merge --delete-branch` (`--no-ff`, nunca squash: el CHANGELOG se genera de esa estructura).
+4. **Regenerar el CHANGELOG** con `./scripts/changelog.sh` como último paso antes del push final. El CI falla si difiere. Va **siempre en su propio commit**, que no toca nada más — de lo contrario el archivo es insatisfacible: el commit que lo regenera se excluye de su propio listado, así que mezclarlo con otro cambio deja el CHANGELOG desactualizado en el momento en que se genera.
+
+Convención de commits, validada por `.githooks/commit-msg`:
+
+```
+<tipo>(<ámbito>): <asunto>
+
+<el porqué>
+
+Spec: docs/superpowers/specs/<archivo>.md
+Refs: #12
+```
+
+- Tipos: `feat`, `fix`, `docs`, `refactor`, `chore`, `ci`, `test`, `perf`, `build`, `revert`
+- Ámbitos: lista cerrada en `.githooks/scopes.txt`. Si falta uno, añádelo ahí — no te saltes la regla.
+- Asunto en minúscula, imperativo, sin punto final, ≤72 caracteres.
+
+Los hooks se activan solos con `./install.sh` (`phase_repo` → `core.hooksPath`). Verificar con `git config --get core.hooksPath` → `.githooks`.
+
+`git commit --no-verify` existe para emergencias reales, no para saltarse un mensaje mal escrito.
 
 ## Architecture
 
@@ -63,6 +91,7 @@ The OS split is the core architectural decision:
 | `lib/binaries.sh` | `phase_binaries` — GitHub Releases + verificación de checksums (solo Linux) |
 | `lib/editors.sh` | `phase_editors` — tmux/TPM, Neovim/lazy.nvim, Claude Code |
 | `lib/symlinks.sh` | `phase_symlinks` — todos los symlinks |
+| `lib/repo.sh` | `phase_repo` — hooks de git (`core.hooksPath` → `.githooks`) |
 | `lib/verify.sh` | `phase_verify` — limpieza de caché zsh + resumen final |
 
 Convenciones que hay que respetar al tocar esto:

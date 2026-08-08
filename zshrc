@@ -149,7 +149,66 @@ alias gcb='git branch -a | fzf | xargs git checkout'
 alias py='python3'
 alias venv='python3 -m venv venv'
 alias va='source venv/bin/activate'
-alias dots='cd ~/dotfiles && git add . && git commit -m "Update dots: $(date +%Y-%m-%d)" && git push && cd -'
+# dots — guardar cambios de los dotfiles bajo el flujo de rama + PR.
+# Antes era un alias que hacía `git add . && commit "Update dots: $(date)" && push`
+# sobre main: bajo las reglas del repo falla en tres sitios a la vez (rama
+# prohibida, mensaje inválido y add indiscriminado).
+dots() {
+    local msg="$1" rama
+    if [[ -z "$msg" ]]; then
+        print -u2 "  ✗ uso: dots '<tipo>(<ámbito>): <asunto>'"
+        print -u2 "     ej: dots 'fix(zshrc): quitar alias que rompía du'"
+        return 2
+    fi
+
+    ( cd "$HOME/dotfiles" || return 1
+
+      if [[ "$(git branch --show-current)" == "main" ]]; then
+          # feat(iterm2): perfil dinámico  ->  feat/iterm2-perfil-dinamico
+          #
+          # El `tr -d` de abajo NO es redundante con el `sed` final: el iconv
+          # de BSD (macOS) no transcribe "á" a "a", antepone la marca
+          # diacrítica suelta ("á"->"'a", "ñ"->"~n", "ü"/"ö"->"\"u"/"\"o",
+          # "â"/"ê"->"^a"/"^e"). Sin borrarlas aquí, el sed final las trata
+          # como carácter no válido y las convierte en guion, partiendo la
+          # palabra ("dinámico" -> "din-amico" en vez de "dinamico"). En
+          # Linux (glibc) iconv ya transcribe limpio y el `tr` no hace nada.
+          rama=$(print -r -- "$msg" \
+              | sed -E 's/^([a-z]+)\(([a-z0-9.-]+)\): /\1\/\2-/; s/^([a-z]+): /\1\//' \
+              | tr '[:upper:]' '[:lower:]' \
+              | iconv -f utf-8 -t ascii//TRANSLIT 2>/dev/null \
+              | tr -d "'~^\"\`" \
+              | sed -E 's/[^a-z0-9\/-]+/-/g; s/-+/-/g; s/-$//' \
+              | cut -c1-60)
+          git switch -c "$rama" || return 1
+      fi
+
+      git add -A
+      if ! git commit -m "$msg"; then
+          print -u2 "  ✗ el commit falló; los cambios siguen en stage."
+          print -u2 "     rama: $(git branch --show-current)"
+          print -u2 "     arregla el mensaje (mira el error del hook arriba) y corre:"
+          print -u2 "       git commit -m '$msg'"
+          return 1
+      fi
+
+      # El CHANGELOG queda obsoleto en cuanto entra el commit de código, y
+      # changelog-drift es un check requerido. Va en su propio commit: si se
+      # mezcla con el de código, el archivo no converge.
+      if [[ -x scripts/changelog.sh ]]; then
+          ./scripts/changelog.sh > /dev/null
+          if [[ -n "$(git status --porcelain CHANGELOG.md)" ]]; then
+              git add CHANGELOG.md && git commit -m 'chore(repo): regenerar CHANGELOG'
+          fi
+      fi
+
+      git push -u origin HEAD || return 1
+
+      if command -v gh > /dev/null && [[ -z "$(gh pr view --json number 2>/dev/null)" ]]; then
+          gh pr create --fill
+      fi
+    )
+}
 
 # SSH: lista hosts y conecta con fzf
 ssh-pick() {
