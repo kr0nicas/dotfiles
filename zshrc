@@ -183,7 +183,25 @@ dots() {
           git switch -c "$rama" || return 1
       fi
 
-      git add -A && git commit -m "$msg" || return 1
+      git add -A
+      if ! git commit -m "$msg"; then
+          print -u2 "  ✗ el commit falló; los cambios siguen en stage."
+          print -u2 "     rama: $(git branch --show-current)"
+          print -u2 "     arregla el mensaje (mira el error del hook arriba) y corre:"
+          print -u2 "       git commit -m '$msg'"
+          return 1
+      fi
+
+      # El CHANGELOG queda obsoleto en cuanto entra el commit de código, y
+      # changelog-drift es un check requerido. Va en su propio commit: si se
+      # mezcla con el de código, el archivo no converge.
+      if [[ -x scripts/changelog.sh ]]; then
+          ./scripts/changelog.sh > /dev/null
+          if [[ -n "$(git status --porcelain CHANGELOG.md)" ]]; then
+              git add CHANGELOG.md && git commit -m 'chore(repo): regenerar CHANGELOG'
+          fi
+      fi
+
       git push -u origin HEAD || return 1
 
       if command -v gh > /dev/null && [[ -z "$(gh pr view --json number 2>/dev/null)" ]]; then
