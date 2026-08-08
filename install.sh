@@ -10,16 +10,24 @@
 #   ./install.sh --dry-run   → simula sin hacer cambios
 #
 # ------------------------------------------------------------------------------
-# NOTA DE SEGURIDAD — Riesgo aceptado:
-# Este instalador usa `curl … | bash` para varios upstream installers oficiales
-# (fnm, starship, zoxide, uv, trivy, helm, claude) sin verificación de checksum.
-# Es la vía oficial documentada por cada proyecto; aceptamos el trade-off por
-# ergonomía. Si te preocupa supply chain:
+# NOTA DE SEGURIDAD — postura de integridad:
+#
+# VERIFICADO. Los binarios de GitHub Releases (sección 6b) se descargan a disco
+# y se comparan contra el checksums.txt del propio release antes de instalarse.
+# Un checksum que NO coincide aborta el instalador entero: es la única señal que
+# distingue una descarga corrupta de una manipulada, y no se traga en silencio.
+#
+# NO VERIFICABLE. Algunos proyectos no publican checksums en sus releases
+# (delta y dust, hoy). Esos se instalan igual, pero con un warning visible por
+# herramienta — el hueco queda auditable en la salida, no escondido.
+#
+# RIESGO ACEPTADO. Los `curl … | bash` de upstream installers oficiales (fnm,
+# starship, zoxide, uv, trivy, helm, claude) siguen sin verificación: son
+# scripts vivos, sin versión ni checksum publicado, y es la vía documentada por
+# cada proyecto. Si te preocupa supply chain:
 #   1. Revisa cada URL antes de ejecutar (todos son HTTPS, hosts oficiales).
 #   2. Usa --dry-run para auditar qué se descarga.
-#   3. Reemplaza el bloque correspondiente por download + sha256 verificado.
-# Binarios descargados desde GitHub releases (sección 6b) viajan por HTTPS
-# pero tampoco verifican checksum publicado en el release.
+#   3. Sustituye ese bloque por una descarga pineada a versión + sha256.
 # ==============================================================================
 
 set -euo pipefail
@@ -108,6 +116,32 @@ ok()   { echo -e "${GREEN}  ✅ $*${NC}"; }
 warn() { echo -e "${YELLOW}  ⚠️  $*${NC}"; }
 err()  { echo -e "${RED}  ❌ $*${NC}"; exit 1; }
 section() { echo -e "\n${CYAN}━━━ $* ${NC}"; }
+
+# --- Verificación de integridad ------------------------------------------------
+# sha256 portable: Linux trae sha256sum, macOS trae shasum.
+sha256_of() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" | awk '{print $1}'
+    else
+        return 1
+    fi
+}
+
+# Compara un archivo contra una lista de checksums en formato "<sha256>  <nombre>".
+# Códigos: 0 = coincide · 1 = NO coincide · 2 = el archivo no aparece en la lista.
+# El 1 y el 2 se distinguen a propósito: "no coincide" es un incidente de
+# seguridad, "no aparece" solo significa que no se pudo comprobar.
+verify_sha256() {
+    local file=$1 sums=$2 name expected actual
+    name=$(basename "$file")
+    expected=$(printf '%s\n' "$sums" \
+        | awk -v n="$name" '$2 == n || $2 == "*" n { print $1; exit }')
+    [[ -n "$expected" ]] || return 2
+    actual=$(sha256_of "$file") || return 2
+    [[ "$expected" == "$actual" ]]
+}
 
 banner() {
     printf "\n"
@@ -532,15 +566,80 @@ if [[ $IS_MAC -eq 0 ]]; then
             | sed 's/.*"browser_download_url": *"//;s/".*//'
     }
 
+    # Descarga el archivo de checksums de un release, si el proyecto publica uno.
+    # No todos lo hacen (delta y dust, por ejemplo, no publican ninguno), así que
+    # fallar aquí es normal y no es un error: significa "no hay nada que comparar".
+    gh_checksums() {
+        local repo=$1 response url
+        response=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null) || return 1
+        url=$(printf '%s\n' "$response" \
+            | grep '"browser_download_url"' \
+            | grep -iE 'checksums?\.txt|sha256sums?|SHA256SUMS' \
+            | head -1 | sed 's/.*"browser_download_url": *"//;s/".*//')
+        [[ -n "$url" ]] || return 1
+        curl -fsSL "$url" 2>/dev/null
+    }
+
+    # Descarga a disco, verifica contra los checksums del release cuando existen,
+    # y solo entonces extrae. Antes hacía `curl | tar`, que no deja nada que
+    # comprobar. Un checksum que NO coincide aborta la instalación entera: es la
+    # única señal que distingue una descarga corrupta de una manipulada.
     gh_latest_tar() {
         local repo=$1 pattern=$2 dest=$3 extra_tar_args=${4:-}
-        local url
+        local url tmp file sums rc
         url=$(gh_latest_url "$repo" "$pattern")
-        if [[ -n "$url" ]]; then
-            curl -fsSL "$url" | tar -xz -C "$dest" $extra_tar_args
+        [[ -n "$url" ]] || return 1
+
+        tmp=$(mktemp -d) || return 1
+        file="$tmp/$(basename "$url")"
+        curl -fsSL -o "$file" "$url" || { rm -rf "$tmp"; return 1; }
+
+        if sums=$(gh_checksums "$repo"); then
+            verify_sha256 "$file" "$sums" && rc=0 || rc=$?
+            case $rc in
+                0) ok "checksum verificado: $(basename "$file")" ;;
+                1) rm -rf "$tmp"
+                   err "CHECKSUM NO COINCIDE en $(basename "$file") ($repo). Descarga corrupta o manipulada — abortando." ;;
+                *) warn "$repo publica checksums pero $(basename "$file") no aparece en la lista; instalado sin verificar" ;;
+            esac
         else
-            return 1
+            warn "$repo no publica checksums en su release; $(basename "$file") instalado sin verificar"
         fi
+
+        # shellcheck disable=SC2086  # extra_tar_args son flags, deben expandirse
+        tar -xz -C "$dest" -f "$file" $extra_tar_args
+        rc=$?
+        rm -rf "$tmp"
+        return $rc
+    }
+
+    # Igual que gh_latest_tar pero para binarios sueltos (sin tar).
+    gh_latest_bin() {
+        local repo=$1 pattern=$2 dest=$3
+        local url tmp file sums rc
+        url=$(gh_latest_url "$repo" "$pattern")
+        [[ -n "$url" ]] || return 1
+
+        tmp=$(mktemp -d) || return 1
+        file="$tmp/$(basename "$url")"
+        curl -fsSL -o "$file" "$url" || { rm -rf "$tmp"; return 1; }
+
+        if sums=$(gh_checksums "$repo"); then
+            verify_sha256 "$file" "$sums" && rc=0 || rc=$?
+            case $rc in
+                0) ok "checksum verificado: $(basename "$file")" ;;
+                1) rm -rf "$tmp"
+                   err "CHECKSUM NO COINCIDE en $(basename "$file") ($repo). Descarga corrupta o manipulada — abortando." ;;
+                *) warn "$repo publica checksums pero $(basename "$file") no aparece en la lista; instalado sin verificar" ;;
+            esac
+        else
+            warn "$repo no publica checksums en su release; $(basename "$file") instalado sin verificar"
+        fi
+
+        install -m 0755 "$file" "$dest"
+        rc=$?
+        rm -rf "$tmp"
+        return $rc
     }
 
     # --- Always: dev ergonomics + security (no gating) ---
@@ -554,7 +653,7 @@ if [[ $IS_MAC -eq 0 ]]; then
         "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $LOCAL_BIN"
 
     install_if_missing "sops" \
-        "gh_latest_url getsops/sops 'linux.${ARCH}' | xargs -I{} curl -fsSL -o $LOCAL_BIN/sops {} && chmod +x $LOCAL_BIN/sops"
+        "gh_latest_bin getsops/sops 'linux.${ARCH}' $LOCAL_BIN/sops"
 
     install_if_missing "dust" \
         "gh_latest_tar bootandy/dust '${GH_ARCH}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */dust'"
