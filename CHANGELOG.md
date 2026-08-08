@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · fix/ssh-extraccion-host
+
+### Fixes
+
+- **zshrc**: resolver el destino real de ssh, no el último argumento (`c6c1f88`)
+
 ## 2026-08-08 · ci/smoke-instalacion-real
 
 ### Features
