@@ -1,0 +1,32 @@
+# Ámbitos válidos para el commit. Uno por línea; # inicia comentario.
+# Si el tuyo no está, añádelo aquí — cuesta menos que saltarse la regla.
+#
+# Infraestructura del repo
+install
+lib
+repo
+ci
+scripts
+# Shell
+zshrc
+zsh
+gcp
+bin
+# Editores
+nvim
+vim
+tmux
+# Terminal y prompt
+starship
+wezterm
+iterm2
+fonts
+# Herramientas
+claude
+rtk
+ssh
+direnv
+git
+brew
+# Transversal
+docs
