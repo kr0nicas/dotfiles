@@ -187,6 +187,14 @@ restricciones que no son negociables:
 Los commits directos sobre `main` anteriores al arnés se listan como entradas sueltas,
 sin PR asociado.
 
+**Los commits que solo tocan `CHANGELOG.md` se excluyen del listado.** No es cosmético:
+sin esa exclusión el archivo es insatisfacible. El commit que regenera el CHANGELOG
+entraría en su propio listado con su propio SHA, así que regenerar volvería a diferir;
+amendarlo cambia el SHA y vuelve a diferir. Regresión infinita, comprobada
+empíricamente. El corolario para el flujo: **regenerar el CHANGELOG va en su propio
+commit**, que no toca nada más. Si se mezcla con código, el check vuelve a fallar y la
+salida es añadir ese commit aparte.
+
 Al ser 100% generado, CI lo regenera en cada PR y **falla si difiere** del commiteado.
 Sin criterio subjetivo: si falla, se corre el script. Regenerarlo es por tanto el
 último paso antes del push final de un PR, y la plantilla lo recoge en su checklist.

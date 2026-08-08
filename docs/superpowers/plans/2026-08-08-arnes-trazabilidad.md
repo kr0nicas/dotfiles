@@ -398,7 +398,7 @@ Expected: `31/31 tests pasaron`, código 0
 Run: `shellcheck -x -S warning .githooks/commit-msg`
 Expected: sin salida, código 0
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add .githooks/commit-msg .githooks/hooks.test.sh
@@ -1127,12 +1127,40 @@ titulo_de_tipo() {
     esac
 }
 
+# solo_changelog <sha> -> 0 si el commit toca únicamente CHANGELOG.md
+#
+# Estos commits se excluyen del listado, y no es cosmético: sin la exclusión el
+# archivo es INSATISFACIBLE. El commit que regenera el CHANGELOG entraría en su
+# propio listado con su propio SHA, así que al regenerar volvería a diferir;
+# amendarlo cambia el SHA y vuelve a diferir. Regresión infinita, y el job
+# changelog-drift no podría pasar jamás. Verificado empíricamente.
+solo_changelog() {
+    local tocados
+    tocados="$(git show --name-only --format= "$1" 2>/dev/null | sed '/^$/d')"
+    [ "$tocados" = "CHANGELOG.md" ]
+}
+
 # emite_rango <rango> — lista los commits del rango agrupados por tipo.
 emite_rango() {
-    local rango="$1" tipo linea
+    local rango="$1" tipo linea shas sha
+    # Los commits que solo tocan CHANGELOG.md se descartan antes de agrupar.
+    shas="$(git log "$rango" --no-merges --reverse --format='%H' 2>/dev/null)"
+    excluidos=''
+    for sha in $shas; do
+        if solo_changelog "$sha"; then
+            excluidos="$excluidos $sha"
+        fi
+    done
+
     for tipo in feat fix perf refactor docs test ci chore revert; do
         linea="$(git log "$rango" --no-merges --reverse \
-                    --format='%h%x09%s' 2>/dev/null \
+                    --format='%H%x09%h%x09%s' 2>/dev/null \
+                 | while IFS="$(printf '\t')" read -r full corto asunto; do
+                       case " $excluidos " in
+                           *" $full "*) continue ;;
+                       esac
+                       printf '%s\t%s\n' "$corto" "$asunto"
+                   done \
                  | grep -E "$(printf '^[0-9a-f]+\t%s(\(|!|:)' "$tipo")" || true)"
         [ -n "$linea" ] || continue
 
@@ -1289,7 +1317,22 @@ cd "$OLDPWD" && rm -rf "$T"
 ```
 Expected: `ESTABLE`, con ambas líneas iguales (`## <fecha> · feat/prueba-encabezado`). Si sale `INESTABLE`, el `sed` de `encabezado_de_merge` o la fecha de `fecha_de` no coinciden entre los dos caminos — arreglar antes de seguir, porque el job `changelog-drift` depende de esto.
 
-- [ ] **Step 5: Verificar shellcheck**
+- [ ] **Step 5: Verificar que `--check` converge**
+
+Es la propiedad que hace posible el job `changelog-drift`. Sin la exclusión de los commits
+que solo tocan `CHANGELOG.md`, esto no converge nunca.
+
+Run:
+```bash
+./scripts/changelog.sh
+git add CHANGELOG.md && git commit -m 'chore(repo): regenerar CHANGELOG'
+./scripts/changelog.sh --check; echo "rc=$?"
+```
+Expected: `rc=0`. El commit de regeneración no aparece en el archivo, así que regenerar
+después de commitearlo produce el mismo texto. Si sale `rc=1`, el archivo es
+insatisfacible y el CI fallaría para siempre: para y reporta.
+
+- [ ] **Step 6: Verificar shellcheck**
 
 Run: `shellcheck -S warning scripts/changelog.sh`
 Expected: sin salida, código 0
