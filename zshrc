@@ -70,7 +70,7 @@ gcloud() {
 gsutil() { gcloud "$@"; gsutil "$@" }
 bq() { gcloud "$@"; bq "$@" }
 
-# GCP: switcher de cuentas y proyectos (comando `gcp`, ver `gcp -h`)
+# GCP: switcher de cuentas y proyectos (comando `gcx`, ver `gcx -h`)
 [ -f "$HOME/dotfiles/config/zsh/gcp.zsh" ] && source "$HOME/dotfiles/config/zsh/gcp.zsh"
 
 # fnm — Node version manager (rápido, lee .nvmrc y .node-version por proyecto)

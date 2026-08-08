@@ -55,7 +55,7 @@ assert_eq "" "$(print -r -- "$filtered" | grep '^sys-')" "no queda ningún sys-*
 print "\n_gcp_use (validación de argumentos)"
 out="$(_gcp_use 2>&1)"
 assert_eq "2" "$?" "sin argumento devuelve código 2"
-assert_contains "uso: gcp use" "$out" "sin argumento imprime el uso"
+assert_contains "uso: gcx use" "$out" "sin argumento imprime el uso"
 
 out="$(_gcp_use 'no-existe-jamas-xyz' 2>&1)"
 assert_eq "1" "$?" "config inexistente devuelve código 1"
@@ -161,8 +161,8 @@ leftover="$(print -rl -- "${cache_file}".*(N) "${cache_file}"(N))"
 assert_eq "" "$leftover" "refresco fallido sin caché previa no deja temporales huérfanos"
 unfunction gcloud
 
-print "\ngcp (dispatcher)"
-out="$(gcp subcomando-invalido 2>&1)"
+print "\ngcx (dispatcher)"
+out="$(gcx subcomando-invalido 2>&1)"
 assert_eq "2" "$?" "subcomando desconocido devuelve código 2"
 assert_contains "subcomando desconocido" "$out" "nombra el subcomando inválido"
 

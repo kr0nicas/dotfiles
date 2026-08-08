@@ -1,7 +1,10 @@
 # ------------------------------------------------------------------------------
-# gcp — switcher de cuentas y proyectos de Google Cloud
+# gcx — switcher de cuentas y proyectos de Google Cloud
 # ------------------------------------------------------------------------------
 # Cargado desde zshrc. Requiere gcloud; los pickers requieren fzf.
+#
+# El comando se llama `gcx` y no `gcp`: `gcp` es el `cp` de GNU coreutils que
+# Homebrew instala con prefijo `g`, y ya vive en /usr/local/bin/gcp.
 #
 # Principio de diseño: ningún mensaje hardcodea cuenta ni proyecto. Todo se lee
 # de gcloud, para que la salida no pueda desincronizarse de la realidad.
@@ -67,7 +70,7 @@ _gcp_who() {
 _gcp_use() {
     local name="$1"
     if [[ -z "$name" ]]; then
-        print -r -- "uso: gcp use <config>" >&2
+        print -r -- "uso: gcx use <config>" >&2
         return 2
     fi
     _gcp_config_exists "$name"
@@ -134,7 +137,7 @@ _gcp_pick_project() {
     [[ "$1" == "-r" || "$1" == "--refresh" ]] && refresh=1
 
     command -v fzf >/dev/null 2>&1 || {
-        print -r -- "  ✗ gcp requiere fzf" >&2; return 1
+        print -r -- "  ✗ gcx requiere fzf" >&2; return 1
     }
 
     account="$(_gcp_active_account)"
@@ -150,7 +153,7 @@ _gcp_pick_project() {
     fi
 
     sel="$(column -t -s $'\t' <"$cache" \
-        | fzf --prompt='gcp project > ' --height=40% --reverse)" || return 0
+        | fzf --prompt='gcx project > ' --height=40% --reverse)" || return 0
     [[ -z "$sel" ]] && return 0
 
     proj="${sel%% *}"
@@ -165,7 +168,7 @@ _gcp_pick_project() {
 # exige: el picker refleja lo que gcloud tiene, sin excepciones ocultas.
 
 # Tabla de configuraciones, alineada y con la activa marcada. Fuente única para
-# el picker y para `gcp -h`.
+# el picker y para `gcx -h`.
 _gcp_config_table() {
     gcloud config configurations list \
         --format='value(name,is_active,properties.core.account,properties.core.project)' 2>/dev/null \
@@ -183,11 +186,11 @@ _gcp_pick_config() {
     local sel
 
     command -v fzf >/dev/null 2>&1 || {
-        print -r -- "  ✗ gcp requiere fzf" >&2; return 1
+        print -r -- "  ✗ gcx requiere fzf" >&2; return 1
     }
 
     sel="$(_gcp_config_table \
-        | fzf --prompt='gcp config > ' --height=40% --reverse)" || return 0
+        | fzf --prompt='gcx config > ' --height=40% --reverse)" || return 0
     [[ -z "$sel" ]] && return 0
 
     # campo 1 = marca ●/○, campo 2 = nombre de la config
@@ -196,7 +199,7 @@ _gcp_pick_config() {
 
 # --- punto de entrada ---------------------------------------------------------
 
-gcp() {
+gcx() {
     case "$1" in
         '')             _gcp_pick_config ;;
         p|project)      shift; _gcp_pick_project "$@" ;;
@@ -205,7 +208,7 @@ gcp() {
         -h|--help|help) _gcp_help ;;
         *)
             print -r -- "  ✗ subcomando desconocido: $1" >&2
-            print -r -- "    prueba: gcp -h" >&2
+            print -r -- "    prueba: gcx -h" >&2
             return 2
             ;;
     esac
