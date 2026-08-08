@@ -10,10 +10,10 @@ No lo edites a mano: el CI regenera y compara.
 - **repo**: base del arnés de hooks con su suite de tests (`64bf677`)
 - **repo**: validar el mensaje de commit en commit-msg (`cbd503b`)
 - **repo**: lint de lo staged en pre-commit (`a70d7c0`)
-- **repo**: barrido de secretos en pre-commit (`31cd071`)
-- **repo**: guardia de main y suites en pre-push (`fd2ea1b`)
-- **install**: activar los hooks del repo con phase_repo (`bda7f31`)
-- **scripts**: generar CHANGELOG.md desde el historial (`a719e8c`)
+- **repo**: barrido de secretos en pre-commit (`8fc6c84`)
+- **repo**: guardia de main y suites en pre-push (`312f8c9`)
+- **install**: activar los hooks del repo con phase_repo (`be75307`)
+- **scripts**: generar CHANGELOG.md desde el historial (`9c5628c`)
 
 ### Fixes
 
@@ -21,20 +21,20 @@ No lo edites a mano: el CI regenera y compara.
 - **docs**: exigir llaves en las comillas angulares del plan (`965aa64`)
 - **docs**: anclar el chequeo de mayúscula al asunto en el plan (`9a3213f`)
 - **repo**: anclar el chequeo de mayúscula al asunto del commit (`5d352b0`)
-- **docs**: evitar que un comentario del plan parezca directiva de shellcheck (`f7abcde`)
-- **docs**: analizar en pre-commit los scripts que no son install.sh ni lib/ (`e91dc39`)
-- **repo**: analizar los scripts que no son install.sh ni lib/ (`951872d`)
-- **docs**: que el stub de shellcheck registre sus argumentos (`142505d`)
-- **docs**: corregir la cuenta de tests de la Task 3 en cascada (`0c41019`)
-- **docs**: usar ${f##*/} en vez de basename en el barrido de secretos (`e351dd5`)
-- **docs**: que el barrido de secretos falle cerrado sin grep (`9ef768e`)
-- **repo**: que el barrido de secretos falle cerrado sin grep (`bc7145b`)
-- **docs**: comprobar hook por hook en phase_repo en vez de chmod || true (`5e95912`)
-- **install**: comprobar hook por hook en vez de chmod con || true (`bde724e`)
-- **docs**: excluir del CHANGELOG los commits que solo lo tocan (`47d6258`)
-- **docs**: declarar excluidos como local en emite_rango (`0315077`)
-- **scripts**: excluir del CHANGELOG los commits que solo lo tocan (`afb72a3`)
-- **ci**: usar un fetch válido en commit-lint (`829771f`)
+- **docs**: que un comentario no parezca directiva de shellcheck (`2aa0875`)
+- **docs**: analizar los scripts que no son install.sh ni lib/ (`49c4846`)
+- **repo**: analizar los scripts que no son install.sh ni lib/ (`b4f5e1a`)
+- **docs**: que el stub de shellcheck registre sus argumentos (`7a0e128`)
+- **docs**: corregir la cuenta de tests de la Task 3 en cascada (`7474039`)
+- **docs**: usar ${f##*/} en vez de basename en el barrido de secretos (`ecde031`)
+- **docs**: que el barrido de secretos falle cerrado sin grep (`5e33751`)
+- **repo**: que el barrido de secretos falle cerrado sin grep (`dfebebe`)
+- **docs**: comprobar hook por hook en phase_repo en vez de chmod || true (`9b007ec`)
+- **install**: comprobar hook por hook en vez de chmod con || true (`936446e`)
+- **docs**: excluir del CHANGELOG los commits que solo lo tocan (`0b7516c`)
+- **docs**: declarar excluidos como local en emite_rango (`9de6b46`)
+- **scripts**: excluir del CHANGELOG los commits que solo lo tocan (`5eb8ee7`)
+- **ci**: usar un fetch válido en commit-lint (`6acb671`)
 
 ### Documentación
 
@@ -44,11 +44,11 @@ No lo edites a mano: el CI regenera y compara.
 
 ### Tests
 
-- **repo**: que el stub de shellcheck registre qué archivo recibe (`7324319`)
+- **repo**: que el stub de shellcheck registre qué archivo recibe (`aef38af`)
 
 ### CI
 
-- validar mensajes y CHANGELOG en CI, y plantilla de PR (`bdfd7a1`)
+- validar mensajes y CHANGELOG en CI, y plantilla de PR (`ef42f3a`)
 
 ## 2026-08-08 · refactor(install): partir el instalador en orquestador + lib/ por fases
 
