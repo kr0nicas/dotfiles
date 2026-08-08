@@ -66,6 +66,9 @@ assert_eq "0" "$(check_rc 'feat(iterm2): perfil dinámico SRE 2026')" "acepta ti
 assert_eq "0" "$(check_rc 'docs: documentar la fuente por plataforma')" "acepta sin ámbito"
 assert_eq "0" "$(check_rc 'fix(zshrc): quitar alias que rompía du')" "acepta acentos en el asunto"
 assert_eq "0" "$(check_rc 'feat(gcp)!: cambiar el nombre del comando')" "acepta el ! de breaking change"
+assert_eq "0" "$(check_rc 'fix(zshrc): nota: revisar el README')" "acepta un segundo «: » en el asunto"
+assert_eq "0" "$(check_rc 'fix(zshrc): nota: Revisar el README')" \
+    "el chequeo de mayúscula mira el asunto, no la línea entera"
 
 assert_eq "1" "$(check_rc 'Update dots: 2026-07-24')" "rechaza el formato viejo de dots"
 assert_eq "1" "$(check_rc 'arreglar el prompt')" "rechaza mensaje sin tipo"
@@ -79,6 +82,7 @@ assert_eq "1" "$(check_rc "feat(repo): $(printf 'x%.0s' $(seq 1 80))")" "rechaza
 assert_eq "0" "$(check_rc "Merge pull request #12 from kr0nicas/feat/iterm2")" "exime los merges"
 assert_eq "0" "$(check_rc 'Revert "feat(iterm2): perfil dinámico"')" "exime los reverts"
 assert_eq "0" "$(check_rc 'fixup! feat(iterm2): perfil dinámico')" "exime los fixup!"
+assert_eq "0" "$(check_rc 'squash! feat(iterm2): perfil dinámico')" "exime los squash!"
 
 assert_contains "gcloud" "$(check_msg 'feat(gcloud): algo')" "el error nombra el ámbito inválido"
 assert_contains "scopes.txt" "$(check_msg 'feat(gcloud): algo')" "el error dice dónde añadirlo"

@@ -21,7 +21,7 @@ hook_ejemplo() {
 
 # validate_commit_msg <archivo> -> 0 válido, 1 inválido
 validate_commit_msg() {
-    local file="$1" subject tipo scope
+    local file="$1" subject tipo scope asunto
 
     # Primera línea con contenido, ignorando los comentarios que mete git.
     subject="$(grep -v '^#' "$file" 2>/dev/null | sed '/^[[:space:]]*$/d' | head -1)"
@@ -65,8 +65,13 @@ validate_commit_msg() {
     fi
 
     # Asunto: minúscula inicial, sin punto final.
-    if printf '%s' "$subject" | grep -qE ': [A-ZÁÉÍÓÚÑ]'; then
-        hook_err 'El asunto empieza en mayúscula; va en minúscula.'
+    #
+    # Se extrae el asunto del prefijo ANTES de mirarlo. Buscar «: [A-Z]» sobre
+    # la línea entera da un falso positivo en cuanto el asunto lleva un segundo
+    # «: » — «fix(zshrc): nota: Revisar el README» es válido y se rechazaba.
+    asunto="$(printf '%s' "$subject" | sed -E "s/^($HOOK_TYPES)(\([a-z0-9.-]+\))?!?: //")"
+    if printf '%s' "$asunto" | grep -qE '^[A-ZÁÉÍÓÚÑ]'; then
+        hook_err "El asunto empieza en mayúscula: «${asunto}»"
         return 1
     fi
 
