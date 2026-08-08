@@ -127,7 +127,7 @@ return {
     event = "BufWritePre",
     opts = {
       formatters_by_ft = {
-        python = { "black" },
+        python = { "ruff_format" },
         go = { "goimports", "gofmt" },
         json = { "jq" },
         terraform = { "terraform_fmt" },
@@ -144,7 +144,7 @@ return {
     config = function()
       local lint = require("lint")
       lint.linters_by_ft = {
-        python = { "flake8" },
+        python = { "ruff" },
         yaml = { "yamllint" },
         sh = { "shellcheck" },
         terraform = { "tflint" },

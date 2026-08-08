@@ -45,7 +45,7 @@ brew "tree-sitter-cli"
 brew "shellcheck"
 brew "yamllint"
 brew "stylua"
-brew "black"
+brew "ruff"
 brew "pre-commit"
 
 # --- Security ---

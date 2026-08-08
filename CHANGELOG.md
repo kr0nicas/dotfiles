@@ -3,6 +3,24 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · feat/nvim-ruff
+
+### Features
+
+- **nvim**: usar ruff como linter y formateador de python (`a693db6`)
+- **brew**: cambiar black por ruff (`c455391`)
+- **lib**: instalar ruff en linux con checksum verificado (`d3cf851`)
+
+### Fixes
+
+- **lib**: usar ARCH_TYPE para delta y dust en linux arm (`371d388`)
+
+### Documentación
+
+- **nvim**: diseñar la migración de flake8+black a ruff (`7a095ee`)
+- **nvim**: planificar la implementación de ruff (`34f42f5`)
+- **nvim**: corregir el set de reglas por defecto de ruff (`c187683`)
+
 ## 2026-08-08 · chore/nvim-lockfile
 
 ### Fixes
