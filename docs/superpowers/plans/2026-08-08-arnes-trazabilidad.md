@@ -468,6 +468,25 @@ assert_contains "⚠" "$(PATH=/nonexistent lint_staged "$LINT_TMP/roto.json" 2>&
 assert_eq "0" "$(lint_staged "$LINT_TMP/no-existe.json" >/dev/null 2>&1; echo $?)" \
     "ignora archivos que ya no existen (borrados en el índice)"
 
+# Enrutado del `case`: con un shellcheck de mentira que siempre falla, un rc=1
+# prueba que la ruta llegó a analizarse y un rc=0 que no coincidió con ninguna
+# rama. Los patrones son relativos a la raíz del repo, así que se usan rutas
+# reales del propio repo en vez de temporales.
+STUB_DIR="${TMPDIR:-/tmp}/hooks-test-stub-$$"
+mkdir -p "$STUB_DIR"
+printf '#!/bin/sh\nexit 1\n' > "$STUB_DIR/shellcheck"
+chmod +x "$STUB_DIR/shellcheck"
+
+assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged '.githooks/commit-msg' >/dev/null 2>&1; echo $?)" \
+    "analiza los hooks, que no llevan extensión .sh"
+assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged 'config/bin/cn' >/dev/null 2>&1; echo $?)" \
+    "analiza config/bin/cn, que tampoco lleva extensión"
+assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged 'scripts/github-topics-manager.sh' >/dev/null 2>&1; echo $?)" \
+    "analiza los scripts de scripts/ individualmente, no vía install.sh"
+assert_eq "0" "$(PATH="$STUB_DIR:$PATH" lint_staged 'README.md' >/dev/null 2>&1; echo $?)" \
+    "no manda a shellcheck lo que no es un script"
+
+rm -rf "$STUB_DIR"
 rm -rf "$LINT_TMP"
 ```
 
@@ -501,14 +520,30 @@ staged_files() {
 
 # lint_staged <archivo>... -> 1 si alguna comprobación falla de verdad
 lint_staged() {
-    local rc=0 f necesita_shellcheck=0
+    local rc=0 f necesita_shellcheck_x=0
 
     for f in "$@"; do
         [ -f "$f" ] || continue   # borrado o renombrado: nada que mirar
 
         case "$f" in
-            install.sh|lib/*.sh|scripts/*.sh|.githooks/*.sh)
-                necesita_shellcheck=1
+            # install.sh arrastra lib/ vía -x. Analizar los lib/ sueltos da
+            # SC2034 en cascada por las globales que define install.sh.
+            install.sh|lib/*.sh)
+                necesita_shellcheck_x=1
+                ;;
+            # El resto de scripts se analiza individualmente, igual que en
+            # ci.yml. Los hooks y config/bin/cn NO llevan extensión .sh, así
+            # que van nombrados uno a uno: sin eso no coincidirían con ninguna
+            # rama y nunca se analizarían — justo la infraestructura que más
+            # falta hace comprobar.
+            scripts/*.sh|config/bin/cn|.githooks/*.sh|\
+            .githooks/commit-msg|.githooks/pre-commit|.githooks/pre-push)
+                if has shellcheck; then
+                    shellcheck -S warning "$f" \
+                        || { hook_err "shellcheck falló: $f"; rc=1; }
+                else
+                    hook_warn "shellcheck no está instalado; no se analizó $f"
+                fi
                 ;;
             zshrc|*.zsh)
                 if has zsh; then
@@ -536,12 +571,10 @@ lint_staged() {
         esac
     done
 
-    # Nota: shellcheck se corre una vez sobre install.sh con -x, que arrastra
-    # lib/. El prefijo "Nota:" no es decorativo: un comentario que empieza por
-    # "# shellcheck" lo interpreta shellcheck como directiva y falla.
-    # Analizar los lib/ sueltos da SC2034 en cascada por las globales que
-    # define install.sh — ver CLAUDE.md.
-    if [ "$necesita_shellcheck" -eq 1 ]; then
+    # Nota: el prefijo "Nota:" no es decorativo — un comentario que empieza
+    # por "# shellcheck" lo interpreta shellcheck como directiva y aborta el
+    # análisis del archivo entero con SC1073/SC1072.
+    if [ "$necesita_shellcheck_x" -eq 1 ]; then
         if has shellcheck; then
             shellcheck -x -S warning install.sh \
                 || { hook_err 'shellcheck falló sobre install.sh'; rc=1; }
@@ -570,7 +603,7 @@ Run:
 chmod +x .githooks/pre-commit
 bash .githooks/hooks.test.sh
 ```
-Expected: `37/37 tests pasaron`, código 0
+Expected: `41/41 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -730,7 +763,7 @@ assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1
 - [ ] **Step 5: Correr la suite**
 
 Run: `bash .githooks/hooks.test.sh`
-Expected: `47/47 tests pasaron`, código 0
+Expected: `51/51 tests pasaron`, código 0
 
 - [ ] **Step 6: Verificar shellcheck**
 
@@ -862,7 +895,7 @@ Run:
 chmod +x .githooks/pre-push
 bash .githooks/hooks.test.sh
 ```
-Expected: `53/53 tests pasaron`, código 0
+Expected: `57/57 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -1707,7 +1740,7 @@ Sin huecos.
 
 **Consistencia de nombres verificada:** `hook_err`/`hook_warn`/`hook_ok`/`hook_info`, `has`, `hook_scopes_file` (Task 1) se usan con esos mismos nombres en Tasks 2–5. `staged_files` y `lint_staged` (Task 3) los consume el bloque de ejecución de Task 4. `validate_commit_msg` (Task 2) lo invoca el job `commit-lint` de Task 8 vía `bash .githooks/commit-msg`. `check_push_ref` y `run_suites` (Task 5) solo se usan dentro de su archivo.
 
-**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 31, Task 3 → 37, Task 4 → 47, Task 5 → 53. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
+**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 31, Task 3 → 41, Task 4 → 51, Task 5 → 57. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
 
 **Corrección aplicada durante esta revisión.** El primer borrador de `scripts/changelog.sh` solo recorría `main`, así que no implementaba el camino "todavía en la rama" que exige la sección 5 del spec: en un PR el archivo habría salido vacío de la feature en curso y el check de drift habría pasado en falso. Además el encabezado incluía el número de PR, que no existe antes de mergear, de modo que el texto cambiaba al integrar y el archivo se desincronizaba solo. Resuelto así:
 
