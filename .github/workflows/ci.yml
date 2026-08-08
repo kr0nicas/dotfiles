@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    name: Lint y tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Instalar zsh
+        run: sudo apt-get update && sudo apt-get install -y zsh
+
+      # shellcheck no soporta zsh; para los archivos zsh la comprobación es `zsh -n`.
+      - name: Sintaxis zsh
+        run: |
+          zsh -n zshrc
+          for f in config/zsh/*.zsh; do
+            echo "  → $f"
+            zsh -n "$f"
+          done
+
+      - name: Sintaxis bash
+        run: |
+          bash -n install.sh
+          bash -n scripts/github-topics-manager.sh
+          bash -n config/bin/cn
+
+      - name: Shellcheck
+        run: shellcheck -S warning install.sh scripts/*.sh config/bin/cn
+
+      # La suite corre sin gcloud ni fzf instalados (usa stubs): es intencional,
+      # para que valga igual en un runner limpio, en un contenedor y en un VPS.
+      - name: Suite de tests
+        run: zsh config/zsh/gcp.test.zsh

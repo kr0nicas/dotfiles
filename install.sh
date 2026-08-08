@@ -169,7 +169,10 @@ git_status_summary() {
     current_msg=$(git -C "$DOTFILES_DIR" log -1 --pretty=format:'%s' 2>/dev/null | head -c 60)
 
     if git -C "$DOTFILES_DIR" fetch --quiet 2>/dev/null; then
+        # @{u} es sintaxis de git (upstream), no expansión de shell — de ahí el disable.
+        # shellcheck disable=SC1083
         behind_count=$(git -C "$DOTFILES_DIR" rev-list --count HEAD..@{u} 2>/dev/null || echo "0")
+        # shellcheck disable=SC1083
         remote_commit=$(git -C "$DOTFILES_DIR" rev-parse --short @{u} 2>/dev/null || echo "?")
         REMOTE_STATUS="ok"
     else
@@ -745,7 +748,8 @@ safe_link() {
         elif [[ -L "$dest" ]]; then
             rm -f "$dest"
         else
-            local backup="${dest}.bak.$(date +%Y%m%d-%H%M%S)"
+            local backup
+            backup="${dest}.bak.$(date +%Y%m%d-%H%M%S)"
             mv "$dest" "$backup"
             warn "Config existente respaldada: $backup"
         fi
