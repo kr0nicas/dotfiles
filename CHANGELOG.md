@@ -35,6 +35,7 @@ No lo edites a mano: el CI regenera y compara.
 - **docs**: declarar excluidos como local en emite_rango (`9de6b46`)
 - **scripts**: excluir del CHANGELOG los commits que solo lo tocan (`5eb8ee7`)
 - **ci**: usar un fetch válido en commit-lint (`6acb671`)
+- **docs**: checkout por rama en changelog-drift (`e2999fe`)
 
 ### Documentación
 
