@@ -43,6 +43,7 @@ No lo edites a mano: el CI regenera y compara.
 - **scripts**: changelog agrupa build y no pierde reverts (`9970ceb`)
 - **zshrc**: dots regenera CHANGELOG y reporta commit fallido (`fd468cf`)
 - **repo**: que Merge* no sea un bypass total de commit-msg (`5e05498`)
+- **ci**: checkout por rama también en commit-lint (`790a1f9`)
 
 ### Refactors
 
