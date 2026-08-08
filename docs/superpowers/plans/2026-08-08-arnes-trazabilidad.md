@@ -269,9 +269,14 @@ assert_eq "1" "$(check_rc 'feat(iterm2): perfil dinámico.')" "rechaza punto fin
 assert_eq "1" "$(check_rc '')" "rechaza mensaje vacío"
 assert_eq "1" "$(check_rc "feat(repo): $(printf 'x%.0s' $(seq 1 80))")" "rechaza asunto de más de 72"
 
+assert_eq "0" "$(check_rc 'fix(zshrc): nota: revisar el README')" "acepta un segundo «: » en el asunto"
+assert_eq "0" "$(check_rc 'fix(zshrc): nota: Revisar el README')" \
+    "el chequeo de mayúscula mira el asunto, no la línea entera"
+
 assert_eq "0" "$(check_rc "Merge pull request #12 from kr0nicas/feat/iterm2")" "exime los merges"
 assert_eq "0" "$(check_rc 'Revert "feat(iterm2): perfil dinámico"')" "exime los reverts"
 assert_eq "0" "$(check_rc 'fixup! feat(iterm2): perfil dinámico')" "exime los fixup!"
+assert_eq "0" "$(check_rc 'squash! feat(iterm2): perfil dinámico')" "exime los squash!"
 
 assert_contains "gcloud" "$(check_msg 'feat(gcloud): algo')" "el error nombra el ámbito inválido"
 assert_contains "scopes.txt" "$(check_msg 'feat(gcloud): algo')" "el error dice dónde añadirlo"
@@ -312,7 +317,7 @@ hook_ejemplo() {
 
 # validate_commit_msg <archivo> -> 0 válido, 1 inválido
 validate_commit_msg() {
-    local file="$1" subject tipo scope
+    local file="$1" subject tipo scope asunto
 
     # Primera línea con contenido, ignorando los comentarios que mete git.
     subject="$(grep -v '^#' "$file" 2>/dev/null | sed '/^[[:space:]]*$/d' | head -1)"
@@ -356,8 +361,13 @@ validate_commit_msg() {
     fi
 
     # Asunto: minúscula inicial, sin punto final.
-    if printf '%s' "$subject" | grep -qE ': [A-ZÁÉÍÓÚÑ]'; then
-        hook_err 'El asunto empieza en mayúscula; va en minúscula.'
+    #
+    # Se extrae el asunto del prefijo ANTES de mirarlo. Buscar «: [A-Z]» sobre
+    # la línea entera da un falso positivo en cuanto el asunto lleva un segundo
+    # «: » — «fix(zshrc): nota: Revisar el README» es válido y se rechazaba.
+    asunto="$(printf '%s' "$subject" | sed -E "s/^($HOOK_TYPES)(\([a-z0-9.-]+\))?!?: //")"
+    if printf '%s' "$asunto" | grep -qE '^[A-ZÁÉÍÓÚÑ]'; then
+        hook_err "El asunto empieza en mayúscula: «${asunto}»"
         return 1
     fi
 
@@ -381,7 +391,7 @@ Run:
 chmod +x .githooks/commit-msg
 bash .githooks/hooks.test.sh
 ```
-Expected: `28/28 tests pasaron`, código 0
+Expected: `31/31 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -558,7 +568,7 @@ Run:
 chmod +x .githooks/pre-commit
 bash .githooks/hooks.test.sh
 ```
-Expected: `34/34 tests pasaron`, código 0
+Expected: `37/37 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -718,7 +728,7 @@ assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1
 - [ ] **Step 5: Correr la suite**
 
 Run: `bash .githooks/hooks.test.sh`
-Expected: `44/44 tests pasaron`, código 0
+Expected: `47/47 tests pasaron`, código 0
 
 - [ ] **Step 6: Verificar shellcheck**
 
@@ -850,7 +860,7 @@ Run:
 chmod +x .githooks/pre-push
 bash .githooks/hooks.test.sh
 ```
-Expected: `50/50 tests pasaron`, código 0
+Expected: `53/53 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -1695,7 +1705,7 @@ Sin huecos.
 
 **Consistencia de nombres verificada:** `hook_err`/`hook_warn`/`hook_ok`/`hook_info`, `has`, `hook_scopes_file` (Task 1) se usan con esos mismos nombres en Tasks 2–5. `staged_files` y `lint_staged` (Task 3) los consume el bloque de ejecución de Task 4. `validate_commit_msg` (Task 2) lo invoca el job `commit-lint` de Task 8 vía `bash .githooks/commit-msg`. `check_push_ref` y `run_suites` (Task 5) solo se usan dentro de su archivo.
 
-**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 28, Task 3 → 34, Task 4 → 44, Task 5 → 50. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
+**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 31, Task 3 → 37, Task 4 → 47, Task 5 → 53. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
 
 **Corrección aplicada durante esta revisión.** El primer borrador de `scripts/changelog.sh` solo recorría `main`, así que no implementaba el camino "todavía en la rama" que exige la sección 5 del spec: en un PR el archivo habría salido vacío de la feature en curso y el check de drift habría pasado en falso. Además el encabezado incluía el número de PR, que no existe antes de mergear, de modo que el texto cambiaba al integrar y el archivo se desincronizaba solo. Resuelto así:
 
