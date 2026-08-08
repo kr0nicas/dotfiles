@@ -59,6 +59,7 @@ No lo edites a mano: el CI regenera y compara.
 ### Tests
 
 - **repo**: que el stub de shellcheck registre qué archivo recibe (`aef38af`)
+- **repo**: extraer el bucle de pre-push para poder probarlo (`dcd01d7`)
 
 ### CI
 
