@@ -33,12 +33,40 @@ titulo_de_tipo() {
     esac
 }
 
+# solo_changelog <sha> -> 0 si el commit toca únicamente CHANGELOG.md
+#
+# Estos commits se excluyen del listado, y no es cosmético: sin la exclusión el
+# archivo es INSATISFACIBLE. El commit que regenera el CHANGELOG entraría en su
+# propio listado con su propio SHA, así que al regenerar volvería a diferir;
+# amendarlo cambia el SHA y vuelve a diferir. Regresión infinita, y el job
+# changelog-drift no podría pasar jamás. Verificado empíricamente.
+solo_changelog() {
+    local tocados
+    tocados="$(git show --name-only --format= "$1" 2>/dev/null | sed '/^$/d')"
+    [ "$tocados" = "CHANGELOG.md" ]
+}
+
 # emite_rango <rango> — lista los commits del rango agrupados por tipo.
 emite_rango() {
-    local rango="$1" tipo linea
+    local rango="$1" tipo linea shas sha excluidos
+    # Los commits que solo tocan CHANGELOG.md se descartan antes de agrupar.
+    shas="$(git log "$rango" --no-merges --reverse --format='%H' 2>/dev/null)"
+    excluidos=''
+    for sha in $shas; do
+        if solo_changelog "$sha"; then
+            excluidos="$excluidos $sha"
+        fi
+    done
+
     for tipo in feat fix perf refactor docs test ci chore revert; do
         linea="$(git log "$rango" --no-merges --reverse \
-                    --format='%h%x09%s' 2>/dev/null \
+                    --format='%H%x09%h%x09%s' 2>/dev/null \
+                 | while IFS="$(printf '\t')" read -r full corto asunto; do
+                       case " $excluidos " in
+                           *" $full "*) continue ;;
+                       esac
+                       printf '%s\t%s\n' "$corto" "$asunto"
+                   done \
                  | grep -E "$(printf '^[0-9a-f]+\t%s(\(|!|:)' "$tipo")" || true)"
         [ -n "$linea" ] || continue
 
