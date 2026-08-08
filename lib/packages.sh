@@ -44,9 +44,10 @@ phase_packages() {
         if [[ $DRY_RUN -eq 0 ]]; then
             sudo apt update -qq
             # unzip: lo necesitan jless y tflint para desempaquetar sus releases.
-            # No estaba en la lista y se daba por presente; en una imagen mínima
-            # de Debian no lo está y ambas instalaciones fallaban en silencio.
-            sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop zstd unzip \
+            # gnupg: lo necesita el bloque de eza de más abajo para el keyring.
+            # Ninguno estaba en la lista y ambos se daban por presentes; en una
+            # imagen mínima de Debian no están.
+            sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop zstd unzip gnupg \
                 zsh-autosuggestions zsh-syntax-highlighting bsdextrautils 2>/dev/null || true
 
             # gh (GitHub CLI) — necesita su propio repo
@@ -109,10 +110,17 @@ phase_packages() {
             fi
 
             # eza (no está en apt por defecto)
+            #
+            # curl y no wget: curl ya es dependencia crítica (la valida
+            # check_deps), mientras que wget no está ni en la lista de apt de
+            # arriba ni entre los prerrequisitos. En una imagen mínima de Debian
+            # no existe, y como esto es una tubería bajo `pipefail`, el
+            # "command not found" abortaba el instalador entero en los presets
+            # --vps y --container. gpg tampoco estaba: ahora se instala arriba.
             if ! command -v eza >/dev/null 2>&1; then
                 log "Instalando eza..."
                 sudo mkdir -p /etc/apt/keyrings
-                wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
+                curl -fsSL https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
                     | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
                 echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] https://deb.gierens.de stable main" \
                     | sudo tee /etc/apt/sources.list.d/gierens.list
