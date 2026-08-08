@@ -156,17 +156,25 @@ esté:
 - **Ya en `main`**: `git log --first-parent` da los merge commits; dentro de cada uno,
   `<merge>^1..<merge>^2` lista los commits reales de la feature.
 - **Todavía en la rama**: los commits de `main..HEAD`, bajo un encabezado derivado del
-  nombre de la rama y del `Refs: #N` si ya hay PR abierto.
+  nombre de la rama.
 
 Esa agrupación es exactamente lo que `--no-ff` hace posible; con squash no existiría.
 
 Los dos caminos tienen que producir el **mismo encabezado** antes y después del merge,
-o el archivo cambiaría solo por mergear. Por eso el merge commit se crea con el número
-de PR y el nombre de rama en el asunto (`gh pr merge --merge` lo hace por defecto), y
-el script extrae de ahí la misma clave que usó en la rama.
+o el archivo cambiaría solo por mergear y el check de drift no valdría nada. De ahí dos
+restricciones que no son negociables:
+
+- **El encabezado es solo el nombre de rama.** El número de PR queda fuera: antes de
+  mergear no existe sin consultar la API, así que incluirlo haría cambiar el texto al
+  integrar. Se extrae del asunto del merge commit (`Merge pull request #N from
+  owner/rama`) por el camino ya integrado, y de `git rev-parse --abbrev-ref HEAD` por
+  el otro.
+- **La fecha sale del último commit del rango**, nunca de `date`. Con la fecha de hoy,
+  el archivo cambiaría solo por pasar la medianoche y el CI empezaría a fallar sin que
+  nadie tocara nada.
 
 ```markdown
-## 2026-08-08 · #13 Perfil de iTerm2 y fuente por SO
+## 2026-08-08 · feat/terminal-iterm2-fuentes
 
 ### Features
 - **iterm2**: perfil dinámico SRE 2026 (`a1b2c3d`)
