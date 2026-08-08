@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+# Lint de lo que está en el índice, no del repo entero.
+# Spec: docs/superpowers/specs/2026-08-08-arnes-trazabilidad-design.md
+#
+# Degrada a propósito: si falta la herramienta, avisa y deja pasar. Estos
+# dotfiles se clonan en cajas sin nada y un hook que exige herramientas
+# rompería justo el caso de uso del repo.
+set -uo pipefail
+
+HOOK_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=.githooks/lib.sh
+. "$HOOK_LIB_DIR/lib.sh"
+
+# Archivos añadidos/copiados/modificados/renombrados en el índice, separados
+# por NUL. Sin -z, un nombre con espacios se partiría en dos y el archivo
+# real se saltaría todas las comprobaciones sin decir nada.
+staged_files() {
+    git diff --cached --name-only --diff-filter=ACMR -z
+}
+
+# lint_staged <archivo>... -> 1 si alguna comprobación falla de verdad
+lint_staged() {
+    local rc=0 f necesita_shellcheck_x=0
+
+    for f in "$@"; do
+        [ -f "$f" ] || continue   # borrado o renombrado: nada que mirar
+
+        case "$f" in
+            # install.sh arrastra lib/ vía -x. Analizar los lib/ sueltos da
+            # SC2034 en cascada por las globales que define install.sh.
+            install.sh|lib/*.sh)
+                necesita_shellcheck_x=1
+                ;;
+            # El resto de scripts se analiza individualmente, igual que en
+            # ci.yml. Los hooks y config/bin/cn NO llevan extensión .sh, así
+            # que van nombrados uno a uno: sin eso no coincidirían con ninguna
+            # rama y nunca se analizarían — justo la infraestructura que más
+            # falta hace comprobar.
+            scripts/*.sh|config/bin/cn|.githooks/*.sh|\
+            .githooks/commit-msg|.githooks/pre-commit|.githooks/pre-push)
+                if has shellcheck; then
+                    shellcheck -S warning "$f" \
+                        || { hook_err "shellcheck falló: $f"; rc=1; }
+                else
+                    hook_warn "shellcheck no está instalado; no se analizó $f"
+                fi
+                ;;
+            zshrc|*.zsh)
+                if has zsh; then
+                    zsh -n "$f" || { hook_err "zsh -n falló: $f"; rc=1; }
+                else
+                    hook_warn "zsh no está instalado; no se comprobó $f"
+                fi
+                ;;
+            *.json)
+                if has python3; then
+                    python3 -m json.tool "$f" >/dev/null \
+                        || { hook_err "JSON inválido: $f"; rc=1; }
+                else
+                    hook_warn "python3 no está instalado; no se comprobó $f"
+                fi
+                ;;
+            *.lua)
+                if has luajit; then
+                    luajit -bl "$f" /dev/null \
+                        || { hook_err "Lua inválido: $f"; rc=1; }
+                else
+                    hook_warn "luajit no está instalado; no se comprobó $f"
+                fi
+                ;;
+        esac
+    done
+
+    # Nota: el prefijo "Nota:" no es decorativo — un comentario que empieza
+    # por "# shellcheck" lo interpreta shellcheck como directiva y aborta el
+    # análisis del archivo entero con SC1073/SC1072.
+    if [ "$necesita_shellcheck_x" -eq 1 ]; then
+        if has shellcheck; then
+            shellcheck -x -S warning install.sh \
+                || { hook_err 'shellcheck falló sobre install.sh'; rc=1; }
+        else
+            hook_warn 'shellcheck no está instalado; no se analizaron los scripts'
+        fi
+    fi
+
+    return "$rc"
+}
+
+# Barrido de secretos. NO degrada: solo usa bash y grep, que siempre están.
+# Es la regla de "las llaves nunca van al repo" convertida en algo que no
+# depende de que nadie se acuerde.
+scan_secrets() {
+    local rc=0 f base
+
+    # grep es un ejecutable externo: si no está, la detección por CONTENIDO no
+    # puede correr. Esta función tiene prohibido degradar, así que falla
+    # CERRADA en vez de dejar pasar. Sin esto un PATH roto la convierte en un
+    # no-op silencioso: grep devuelve 127, el `if` lo lee como falso, y el
+    # 2>/dev/null se traga hasta el «command not found».
+    if ! has grep; then
+        hook_err 'grep no disponible: no se puede barrer el contenido en busca de secretos.'
+        hook_info 'Arregla el PATH. Si de verdad lo quieres saltar: git commit --no-verify'
+        return 1
+    fi
+
+    for f in "$@"; do
+        base="${f##*/}"
+
+        case "$base" in
+            id_rsa|id_dsa|id_ecdsa|id_ed25519|*.pem|*.key|*.p12|*.pfx|.env|.env.*|*.keystore)
+                hook_err "Parece material sensible por el nombre: $f"
+                rc=1
+                continue
+                ;;
+        esac
+
+        # Contenido: se lee del ÍNDICE (`git show ":$f"`), que es el blob que
+        # de verdad se va a commitear, no el working tree. Editar el archivo
+        # después de `git add` no debe bastar para colar un secreto ya
+        # staged. Si `git show` falla, se bloquea: esta función no degrada.
+        if ! git show ":$f" >/dev/null 2>&1; then
+            hook_err "No se pudo leer del índice: $f"
+            rc=1
+            continue
+        fi
+
+        if git show ":$f" 2>/dev/null \
+                | grep -qE -- '-----BEGIN [A-Z ]*PRIVATE KEY-----'; then
+            hook_err "Clave privada embebida en: $f"
+            rc=1
+        elif git show ":$f" 2>/dev/null \
+                | grep -qE '(gh[pousr]_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16})'; then
+            hook_err "Token o clave de acceso embebida en: $f"
+            rc=1
+        fi
+    done
+
+    if [ "$rc" -ne 0 ]; then
+        hook_info 'Nada de esto va al repo. Si es un falso positivo,'
+        hook_info 'sáltatelo a propósito con: git commit --no-verify'
+    fi
+
+    return "$rc"
+}
+
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+    archivos=()
+    while IFS= read -r -d '' f; do
+        archivos+=("$f")
+    done < <(staged_files)
+    [ "${#archivos[@]}" -gt 0 ] || exit 0
+
+    rc=0
+    # Los secretos primero: es el fallo más caro de deshacer.
+    scan_secrets "${archivos[@]}" || rc=1
+    lint_staged  "${archivos[@]}" || rc=1
+    exit "$rc"
+fi

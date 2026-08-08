@@ -36,7 +36,15 @@ jobs:
             bash -n "$f"
           done
           bash -n scripts/github-topics-manager.sh
+          bash -n scripts/changelog.sh
           bash -n config/bin/cn
+          # La capa que hace cumplir todo el arnés: si esto no se analiza,
+          # CI no comprueba justo lo que valida a CI.
+          for f in .githooks/commit-msg .githooks/pre-commit .githooks/pre-push \
+                   .githooks/lib.sh .githooks/hooks.test.sh; do
+            echo "  → $f"
+            bash -n "$f"
+          done
 
       # -x hace que shellcheck siga los `source` de install.sh y analice lib/ como
       # un conjunto. Sin él, cada lib se ve aislada y las globales que install.sh
@@ -44,9 +52,73 @@ jobs:
       - name: Shellcheck
         run: |
           shellcheck -x -S warning install.sh
-          shellcheck -S warning scripts/*.sh config/bin/cn
+          shellcheck -S warning scripts/*.sh config/bin/cn \
+            .githooks/commit-msg .githooks/pre-commit .githooks/pre-push \
+            .githooks/lib.sh .githooks/hooks.test.sh
 
-      # La suite corre sin gcloud ni fzf instalados (usa stubs): es intencional,
-      # para que valga igual en un runner limpio, en un contenedor y en un VPS.
+      # Las suites corren sin gcloud, sin fzf y sin shellcheck (usan stubs y
+      # degradación): es intencional, para que valgan igual en un runner
+      # limpio, en un contenedor y en un VPS.
       - name: Suite de tests
-        run: zsh config/zsh/gcp.test.zsh
+        run: |
+          zsh config/zsh/gcp.test.zsh
+          bash .githooks/hooks.test.sh
+
+  commit-lint:
+    name: Mensajes de commit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          # Por defecto actions/checkout deja el merge commit sintético del PR
+          # («Merge <sha> into <sha>»), que entra en el rango y no es ninguna
+          # de las formas que genera git, así que el hook lo rechaza y el job
+          # se suspende a sí mismo. Checkear la rama por nombre lo saca del
+          # rango, que es mejor que ensanchar la exención de «Merge *».
+          ref: ${{ github.head_ref }}
+
+      # Misma lógica que en local: se reutiliza el hook, no una copia.
+      # LC_ALL fijo porque «${#subject}» cuenta caracteres o bytes según el
+      # locale (medido: 68 vs 73 para la misma cadena con acentos); sin
+      # esto el límite de 72 significa cosas distintas en local y en CI.
+      - name: Validar mensajes del PR
+        env:
+          LC_ALL: C.UTF-8
+        run: |
+          set -euo pipefail
+          base="origin/${{ github.base_ref }}"
+          # Sin --depth: el checkout ya trae todo con fetch-depth 0, y
+          # «--depth=0» aborta con «depth 0 is not a positive number».
+          git fetch origin "${{ github.base_ref }}"
+          # Se captura ANTES del for. Un fallo de git rev-list dentro de la
+          # sustitución de comandos no dispara errexit, así que el for
+          # iteraría en vacío y el job pasaría en verde sin validar nada.
+          shas="$(git rev-list "$base..HEAD")"
+          rc=0
+          for sha in $shas; do
+            git log -1 --format=%B "$sha" > /tmp/msg.txt
+            if ! bash .githooks/commit-msg /tmp/msg.txt; then
+              echo "  ↑ en $sha"
+              rc=1
+            fi
+          done
+          exit $rc
+
+  changelog-drift:
+    name: CHANGELOG al día
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          # ref es obligatorio, no cosmético: por defecto actions/checkout deja
+          # el repo en detached HEAD, «git rev-parse --abbrev-ref HEAD» devuelve
+          # literalmente «HEAD», y changelog.sh omite la sección de la rama en
+          # curso. El check fallaría en TODO PR real por mucho que el autor
+          # regenerara. Verificado reproduciendo el detached HEAD en un clon.
+          ref: ${{ github.head_ref }}
+
+      - name: Comprobar que CHANGELOG.md está regenerado
+        run: ./scripts/changelog.sh --check

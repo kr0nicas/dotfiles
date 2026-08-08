@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# Valida el mensaje de commit contra la convención del repo.
+# Spec: docs/superpowers/specs/2026-08-08-arnes-trazabilidad-design.md
+#
+# Este hook NUNCA degrada: solo necesita bash y git.
+set -uo pipefail
+
+HOOK_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=.githooks/lib.sh
+. "$HOOK_LIB_DIR/lib.sh"
+
+HOOK_TYPES='feat|fix|docs|refactor|chore|ci|test|perf|build|revert'
+
+hook_ejemplo() {
+    hook_info 'Ejemplo válido:'
+    hook_info '  feat(iterm2): perfil dinámico SRE 2026'
+    hook_info ''
+    hook_info "  tipos:  ${HOOK_TYPES//|/, }"
+    hook_info "  ámbitos: $(hook_scopes_file)"
+}
+
+# validate_commit_msg <archivo> -> 0 válido, 1 inválido
+validate_commit_msg() {
+    local file="$1" subject tipo scope asunto
+
+    # Primera línea con contenido, ignorando los comentarios que mete git.
+    subject="$(grep -v '^#' "$file" 2>/dev/null | sed '/^[[:space:]]*$/d' | head -1)"
+
+    if [ -z "$subject" ]; then
+        hook_err 'El mensaje de commit está vacío.'
+        hook_ejemplo
+        return 1
+    fi
+
+    # Exenciones: git genera estos mensajes, no los escribimos nosotros.
+    #
+    # "Merge *" era demasiado ancho: cualquier mensaje que empezara por
+    # "Merge " —escrito por una persona, no por git— se saltaba TODAS las
+    # reglas. Solo se eximen las formas que git genera de verdad.
+    case "$subject" in
+        Merge\ branch\ *|Merge\ pull\ request\ *|Merge\ remote-tracking\ *|Revert\ *|fixup!\ *|squash!\ *)
+            return 0 ;;
+    esac
+
+    # Estructura general: tipo(ámbito opcional)!: asunto
+    if ! printf '%s' "$subject" | grep -qE "^($HOOK_TYPES)(\([a-z0-9.-]+\))?!?: .+"; then
+        # ¿Parece conventional pero con el tipo mal?
+        if printf '%s' "$subject" | grep -qE '^[A-Za-z]+(\([a-z0-9.-]+\))?!?: '; then
+            tipo="$(printf '%s' "$subject" | sed -E 's/^([A-Za-z]+).*/\1/')"
+            hook_err "Tipo de commit desconocido: «${tipo}»"
+        else
+            hook_err 'El mensaje no sigue el formato «tipo(ámbito): asunto».'
+        fi
+        hook_ejemplo
+        return 1
+    fi
+
+    # Ámbito, si lo hay, contra la lista cerrada.
+    scope="$(printf '%s' "$subject" | sed -nE 's/^[a-z]+\(([a-z0-9.-]+)\).*/\1/p')"
+    if [ -n "$scope" ] && ! grep -qx "$scope" "$(hook_scopes_file)"; then
+        hook_err "Ámbito desconocido: «${scope}»"
+        hook_info "Añádelo a $(hook_scopes_file) si es legítimo."
+        hook_info "Válidos: $(grep -v '^#' "$(hook_scopes_file)" | grep -v '^$' | tr '\n' ' ')"
+        return 1
+    fi
+
+    if [ "${#subject}" -gt 72 ]; then
+        hook_err "La primera línea tiene ${#subject} caracteres; el límite son 72."
+        return 1
+    fi
+
+    # Asunto: minúscula inicial, sin punto final.
+    #
+    # Se extrae el asunto del prefijo ANTES de mirarlo. Buscar «: [A-Z]» sobre
+    # la línea entera da un falso positivo en cuanto el asunto lleva un segundo
+    # «: » — «fix(zshrc): nota: Revisar el README» es válido y se rechazaba.
+    asunto="$(printf '%s' "$subject" | sed -E "s/^($HOOK_TYPES)(\([a-z0-9.-]+\))?!?: //")"
+    if printf '%s' "$asunto" | grep -qE '^[A-ZÁÉÍÓÚÑ]'; then
+        hook_err "El asunto empieza en mayúscula: «${asunto}»"
+        return 1
+    fi
+
+    case "$subject" in
+        *.) hook_err 'El asunto termina en punto; quítalo.'; return 1 ;;
+    esac
+
+    return 0
+}
+
+# Solo actúa cuando git lo invoca; la suite lo sourcea para probar la función.
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+    validate_commit_msg "$1" || exit 1
+fi
