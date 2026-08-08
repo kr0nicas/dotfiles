@@ -121,6 +121,26 @@ assert_contains "⚠" "$(PATH=/nonexistent lint_staged "$LINT_TMP/roto.json" 2>&
 assert_eq "0" "$(lint_staged "$LINT_TMP/no-existe.json" >/dev/null 2>&1; echo $?)" \
     "ignora archivos que ya no existen (borrados en el índice)"
 
+# Enrutado del `case`: con un shellcheck de mentira que siempre falla, un rc=1
+# prueba que la ruta llegó a analizarse y un rc=0 que no coincidió con ninguna
+# rama. Los patrones son relativos a la raíz del repo, así que se usan rutas
+# reales del propio repo en vez de temporales.
+STUB_DIR="${TMPDIR:-/tmp}/hooks-test-stub-$$"
+mkdir -p "$STUB_DIR"
+printf '#!/bin/sh\nexit 1\n' > "$STUB_DIR/shellcheck"
+chmod +x "$STUB_DIR/shellcheck"
+
+assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged '.githooks/commit-msg' >/dev/null 2>&1; echo $?)" \
+    "analiza los hooks, que no llevan extensión .sh"
+assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged 'config/bin/cn' >/dev/null 2>&1; echo $?)" \
+    "analiza config/bin/cn, que tampoco lleva extensión"
+assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged 'scripts/github-topics-manager.sh' >/dev/null 2>&1; echo $?)" \
+    "analiza los scripts de scripts/ individualmente, no vía install.sh"
+assert_eq "0" "$(PATH="$STUB_DIR:$PATH" lint_staged 'README.md' >/dev/null 2>&1; echo $?)" \
+    "no manda a shellcheck lo que no es un script"
+
+rm -rf "$STUB_DIR"
+
 rm -rf "$LINT_TMP"
 
 printf '\n%s/%s tests pasaron\n' "$((TESTS_RUN - TESTS_FAILED))" "$TESTS_RUN"

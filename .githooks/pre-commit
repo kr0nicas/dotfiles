@@ -20,14 +20,30 @@ staged_files() {
 
 # lint_staged <archivo>... -> 1 si alguna comprobación falla de verdad
 lint_staged() {
-    local rc=0 f necesita_shellcheck=0
+    local rc=0 f necesita_shellcheck_x=0
 
     for f in "$@"; do
         [ -f "$f" ] || continue   # borrado o renombrado: nada que mirar
 
         case "$f" in
-            install.sh|lib/*.sh|scripts/*.sh|.githooks/*.sh)
-                necesita_shellcheck=1
+            # install.sh arrastra lib/ vía -x. Analizar los lib/ sueltos da
+            # SC2034 en cascada por las globales que define install.sh.
+            install.sh|lib/*.sh)
+                necesita_shellcheck_x=1
+                ;;
+            # El resto de scripts se analiza individualmente, igual que en
+            # ci.yml. Los hooks y config/bin/cn NO llevan extensión .sh, así
+            # que van nombrados uno a uno: sin eso no coincidirían con ninguna
+            # rama y nunca se analizarían — justo la infraestructura que más
+            # falta hace comprobar.
+            scripts/*.sh|config/bin/cn|.githooks/*.sh|\
+            .githooks/commit-msg|.githooks/pre-commit|.githooks/pre-push)
+                if has shellcheck; then
+                    shellcheck -S warning "$f" \
+                        || { hook_err "shellcheck falló: $f"; rc=1; }
+                else
+                    hook_warn "shellcheck no está instalado; no se analizó $f"
+                fi
                 ;;
             zshrc|*.zsh)
                 if has zsh; then
@@ -55,10 +71,10 @@ lint_staged() {
         esac
     done
 
-    # Nota: shellcheck se corre una vez sobre install.sh con -x, que arrastra lib/.
-    # Analizar los lib/ sueltos da SC2034 en cascada por las globales que
-    # define install.sh - ver CLAUDE.md.
-    if [ "$necesita_shellcheck" -eq 1 ]; then
+    # Nota: el prefijo "Nota:" no es decorativo — un comentario que empieza
+    # por "# shellcheck" lo interpreta shellcheck como directiva y aborta el
+    # análisis del archivo entero con SC1073/SC1072.
+    if [ "$necesita_shellcheck_x" -eq 1 ]; then
         if has shellcheck; then
             shellcheck -x -S warning install.sh \
                 || { hook_err 'shellcheck falló sobre install.sh'; rc=1; }
