@@ -37,6 +37,11 @@ No lo edites a mano: el CI regenera y compara.
 - **ci**: usar un fetch válido en commit-lint (`6acb671`)
 - **docs**: checkout por rama en changelog-drift (`e2999fe`)
 - **ci**: checkout por rama en changelog-drift (`7de68a4`)
+- **docs**: limpiar las marcas del iconv de BSD al derivar la rama (`b5ef0e9`)
+
+### Refactors
+
+- **zshrc**: dots pasa de alias a función con rama y PR (`be30e93`)
 
 ### Documentación
 
