@@ -670,9 +670,9 @@ mkdir -p "$SEC_TMP/.ssh"
 
 printf 'contenido cualquiera\n' > "$SEC_TMP/.ssh/id_rsa"
 printf 'contenido cualquiera\n' > "$SEC_TMP/cert.pem"
-printf 'AWS_KEY=AKIAIOSFODNN7EXAMPLE\n' > "$SEC_TMP/config.env.txt"
-printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n' > "$SEC_TMP/inocente.txt"
-printf 'export TOKEN=ghp_0123456789abcdefghijklmnopqrstuvwxyz\n' > "$SEC_TMP/notas.md"
+printf 'AWS_KEY=AKIA%s\n' 'IOSFODNN7EXAMPLE' > "$SEC_TMP/config.env.txt"
+printf -- '-----BEGIN %s PRIVATE KEY-----\n' 'OPENSSH' > "$SEC_TMP/inocente.txt"
+printf 'export TOKEN=ghp_%s\n' '0123456789abcdefghijklmnopqrstuvwxyz' > "$SEC_TMP/notas.md"
 printf '# dotfiles\nnada sensible aquí\n' > "$SEC_TMP/README.md"
 
 assert_eq "1" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" >/dev/null 2>&1; echo $?)" \
@@ -696,6 +696,11 @@ assert_contains "--no-verify" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" 2>&1)" \
 # No degrada nunca: sigue bloqueando aunque no haya nada en el PATH.
 assert_eq "1" "$(PATH=/nonexistent scan_secrets "$SEC_TMP/.ssh/id_rsa" >/dev/null 2>&1; echo $?)" \
     "el barrido de secretos no degrada"
+# El test de arriba solo prueba la rama por NOMBRE, que hace `continue` antes de
+# tocar grep. Este prueba la rama por CONTENIDO: con un archivo limpio, un rc=0
+# significaría que el barrido se volvió un no-op silencioso.
+assert_eq "1" "$(PATH=/nonexistent scan_secrets "$SEC_TMP/README.md" >/dev/null 2>&1; echo $?)" \
+    "sin grep falla cerrada en vez de dejar pasar en silencio"
 
 rm -rf "$SEC_TMP"
 ```
@@ -715,6 +720,17 @@ Insertar entre la función `lint_staged` y el bloque `if [ "${BASH_SOURCE[0]}" .
 # depende de que nadie se acuerde.
 scan_secrets() {
     local rc=0 f base
+
+    # grep es un ejecutable externo: si no está, la detección por CONTENIDO no
+    # puede correr. Esta función tiene prohibido degradar, así que falla
+    # CERRADA en vez de dejar pasar. Sin esto un PATH roto la convierte en un
+    # no-op silencioso: grep devuelve 127, el `if` lo lee como falso, y el
+    # 2>/dev/null se traga hasta el «command not found».
+    if ! has grep; then
+        hook_err 'grep no disponible: no se puede barrer el contenido en busca de secretos.'
+        hook_info 'Arregla el PATH. Si de verdad lo quieres saltar: git commit --no-verify'
+        return 1
+    fi
 
     for f in "$@"; do
         [ -f "$f" ] || continue
@@ -774,7 +790,7 @@ Añadir además a la suite, en el bloque `pre-commit — secretos`, el test que 
 propiedad de la que depende todo esto:
 
 ```bash
-printf 'AWS_KEY=AKIAIOSFODNN7EXAMPLE\n' > "$SEC_TMP/nombre con espacios.txt"
+printf 'AWS_KEY=AKIA%s\n' 'IOSFODNN7EXAMPLE' > "$SEC_TMP/nombre con espacios.txt"
 assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1; echo $?)" \
     "detecta secretos en archivos con espacios en el nombre"
 ```
@@ -782,7 +798,7 @@ assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1
 - [ ] **Step 5: Correr la suite**
 
 Run: `bash .githooks/hooks.test.sh`
-Expected: `53/53 tests pasaron`, código 0
+Expected: `54/54 tests pasaron`, código 0
 
 - [ ] **Step 6: Verificar shellcheck**
 
@@ -914,7 +930,7 @@ Run:
 chmod +x .githooks/pre-push
 bash .githooks/hooks.test.sh
 ```
-Expected: `59/59 tests pasaron`, código 0
+Expected: `60/60 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -1759,7 +1775,7 @@ Sin huecos.
 
 **Consistencia de nombres verificada:** `hook_err`/`hook_warn`/`hook_ok`/`hook_info`, `has`, `hook_scopes_file` (Task 1) se usan con esos mismos nombres en Tasks 2–5. `staged_files` y `lint_staged` (Task 3) los consume el bloque de ejecución de Task 4. `validate_commit_msg` (Task 2) lo invoca el job `commit-lint` de Task 8 vía `bash .githooks/commit-msg`. `check_push_ref` y `run_suites` (Task 5) solo se usan dentro de su archivo.
 
-**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 31, Task 3 → 43, Task 4 → 53, Task 5 → 59. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
+**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 31, Task 3 → 43, Task 4 → 54, Task 5 → 60. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
 
 **Corrección aplicada durante esta revisión.** El primer borrador de `scripts/changelog.sh` solo recorría `main`, así que no implementaba el camino "todavía en la rama" que exige la sección 5 del spec: en un PR el archivo habría salido vacío de la feature en curso y el check de drift habría pasado en falso. Además el encabezado incluía el número de PR, que no existe antes de mergear, de modo que el texto cambiaba al integrar y el archivo se desincronizaba solo. Resuelto así:
 
