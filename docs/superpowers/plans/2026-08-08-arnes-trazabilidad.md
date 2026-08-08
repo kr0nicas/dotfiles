@@ -481,9 +481,11 @@ HOOK_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=.githooks/lib.sh
 . "$HOOK_LIB_DIR/lib.sh"
 
-# Archivos añadidos/copiados/modificados/renombrados en el índice.
+# Archivos añadidos/copiados/modificados/renombrados en el índice, separados
+# por NUL. Sin -z, un nombre con espacios se partiría en dos y el archivo
+# real se saltaría todas las comprobaciones sin decir nada.
 staged_files() {
-    git diff --cached --name-only --diff-filter=ACMR
+    git diff --cached --name-only --diff-filter=ACMR -z
 }
 
 # lint_staged <archivo>... -> 1 si alguna comprobación falla de verdad
@@ -539,10 +541,12 @@ lint_staged() {
 }
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
-    files="$(staged_files)"
-    [ -n "$files" ] || exit 0
-    # shellcheck disable=SC2086
-    lint_staged $files || exit 1
+    archivos=()
+    while IFS= read -r -d '' f; do
+        archivos+=("$f")
+    done < <(staged_files)
+    [ "${#archivos[@]}" -gt 0 ] || exit 0
+    lint_staged "${archivos[@]}" || exit 1
 fi
 ```
 
@@ -687,22 +691,33 @@ Reemplazar el bloque final de `.githooks/pre-commit` por:
 
 ```bash
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
-    files="$(staged_files)"
-    [ -n "$files" ] || exit 0
+    archivos=()
+    while IFS= read -r -d '' f; do
+        archivos+=("$f")
+    done < <(staged_files)
+    [ "${#archivos[@]}" -gt 0 ] || exit 0
+
     rc=0
     # Los secretos primero: es el fallo más caro de deshacer.
-    # shellcheck disable=SC2086
-    scan_secrets $files || rc=1
-    # shellcheck disable=SC2086
-    lint_staged   $files || rc=1
+    scan_secrets "${archivos[@]}" || rc=1
+    lint_staged  "${archivos[@]}" || rc=1
     exit "$rc"
 fi
+```
+
+Añadir además a la suite, en el bloque `pre-commit — secretos`, el test que fija la
+propiedad de la que depende todo esto:
+
+```bash
+printf 'AWS_KEY=AKIAIOSFODNN7EXAMPLE\n' > "$SEC_TMP/nombre con espacios.txt"
+assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1; echo $?)" \
+    "detecta secretos en archivos con espacios en el nombre"
 ```
 
 - [ ] **Step 5: Correr la suite**
 
 Run: `bash .githooks/hooks.test.sh`
-Expected: `43/43 tests pasaron`, código 0
+Expected: `44/44 tests pasaron`, código 0
 
 - [ ] **Step 6: Verificar shellcheck**
 
@@ -834,7 +849,7 @@ Run:
 chmod +x .githooks/pre-push
 bash .githooks/hooks.test.sh
 ```
-Expected: `49/49 tests pasaron`, código 0
+Expected: `50/50 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -1163,7 +1178,8 @@ cp "$OLDPWD/scripts/changelog.sh" .
 git commit -q --allow-empty -m 'chore(repo): commit inicial'
 git switch -qc feat/prueba-encabezado
 git commit -q --allow-empty -m 'feat(iterm2): perfil dinámico'
-ANTES="$(bash changelog.sh --print 2>/dev/null || bash changelog.sh >/dev/null && grep '^## ' CHANGELOG.md | head -1)"
+bash changelog.sh >/dev/null
+ANTES="$(grep '^## ' CHANGELOG.md | head -1)"
 git switch -q main
 git merge -q --no-ff feat/prueba-encabezado -m 'Merge pull request #1 from kr0nicas/feat/prueba-encabezado'
 bash changelog.sh >/dev/null
@@ -1678,7 +1694,7 @@ Sin huecos.
 
 **Consistencia de nombres verificada:** `hook_err`/`hook_warn`/`hook_ok`/`hook_info`, `has`, `hook_scopes_file` (Task 1) se usan con esos mismos nombres en Tasks 2–5. `staged_files` y `lint_staged` (Task 3) los consume el bloque de ejecución de Task 4. `validate_commit_msg` (Task 2) lo invoca el job `commit-lint` de Task 8 vía `bash .githooks/commit-msg`. `check_push_ref` y `run_suites` (Task 5) solo se usan dentro de su archivo.
 
-**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 28, Task 3 → 34, Task 4 → 43, Task 5 → 49. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
+**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 28, Task 3 → 34, Task 4 → 44, Task 5 → 50. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
 
 **Corrección aplicada durante esta revisión.** El primer borrador de `scripts/changelog.sh` solo recorría `main`, así que no implementaba el camino "todavía en la rama" que exige la sección 5 del spec: en un PR el archivo habría salido vacío de la feature en curso y el check de drift habría pasado en falso. Además el encabezado incluía el número de PR, que no existe antes de mergear, de modo que el texto cambiaba al integrar y el archivo se desincronizaba solo. Resuelto así:
 
