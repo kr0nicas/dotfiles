@@ -18,6 +18,7 @@
 - **Patrón sourceable.** Todo hook termina con `if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then … fi` para que la suite lo pueda sourcear sin dispararlo.
 - **`shellcheck -x -S warning`** debe pasar sobre todos los `.sh` y hooks nuevos. Es lo que exige el CI.
 - **Idioma:** código y comentarios en español, igual que el resto del repo.
+- **Comillas angulares siempre con llaves.** `"«${var}»"`, nunca `"«$var»"`. Bash absorbe el primer byte del `»` (0xC2) dentro del nombre de la variable y con `set -u` aborta con `unbound variable`. Verificado en bash 3.2.57 y 5.3.15: falla en las dos. Aplica a todo mensaje que envuelva un valor en `«»`.
 - **Rama de trabajo:** `chore/arnes-trazabilidad`, ya creada, con el spec commiteado.
 
 ## File Structure
@@ -332,7 +333,7 @@ validate_commit_msg() {
         # ¿Parece conventional pero con el tipo mal?
         if printf '%s' "$subject" | grep -qE '^[A-Za-z]+(\([a-z0-9.-]+\))?!?: '; then
             tipo="$(printf '%s' "$subject" | sed -E 's/^([A-Za-z]+).*/\1/')"
-            hook_err "Tipo de commit desconocido: «$tipo»"
+            hook_err "Tipo de commit desconocido: «${tipo}»"
         else
             hook_err 'El mensaje no sigue el formato «tipo(ámbito): asunto».'
         fi
@@ -343,7 +344,7 @@ validate_commit_msg() {
     # Ámbito, si lo hay, contra la lista cerrada.
     scope="$(printf '%s' "$subject" | sed -nE 's/^[a-z]+\(([a-z0-9.-]+)\).*/\1/p')"
     if [ -n "$scope" ] && ! grep -qx "$scope" "$(hook_scopes_file)"; then
-        hook_err "Ámbito desconocido: «$scope»"
+        hook_err "Ámbito desconocido: «${scope}»"
         hook_info "Añádelo a $(hook_scopes_file) si es legítimo."
         hook_info "Válidos: $(grep -v '^#' "$(hook_scopes_file)" | grep -v '^$' | tr '\n' ' ')"
         return 1
