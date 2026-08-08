@@ -16,11 +16,9 @@ map("n", "<Leader>n", "<cmd>bn<CR>", { desc = "Buffer siguiente" })
 map("n", "<Leader>p", "<cmd>bp<CR>", { desc = "Buffer anterior" })
 map("n", "<Leader>d", "<cmd>bd<CR>", { desc = "Cerrar buffer" })
 
--- Navegacion entre paneles con CTRL
-map("n", "<C-h>", "<C-w>h")
-map("n", "<C-j>", "<C-w>j")
-map("n", "<C-k>", "<C-w>k")
-map("n", "<C-l>", "<C-w>l")
+-- Navegacion entre paneles con CTRL: la define plugins/navigation.lua
+-- (vim-tmux-navigator). No la redeclares aqui: keymaps.lua se carga despues de
+-- config.lazy y pisaria los stubs de lazy, dejando el plugin sin cargar nunca.
 
 -- Resize de paneles con Leader + flechas
 map("n", "<Leader><Up>", "<cmd>resize +5<CR>")

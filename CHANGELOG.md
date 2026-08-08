@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · feat/tmux-nvim-navigator
+
+### Features
+
+- **tmux**: navegar entre paneles y splits de nvim con C-hjkl (`be52824`)
+
 ## 2026-08-08 · dependabot/github_actions/actions/checkout-7
 
 ### Mantenimiento

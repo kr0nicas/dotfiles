@@ -178,6 +178,7 @@ Plugin files in `lua/plugins/`:
 - `treesitter.lua` — syntax highlighting
 - `git.lua` — gitsigns + vim-fugitive
 - `oil.lua` — file explorer (open with `-`)
+- `navigation.lua` — vim-tmux-navigator: `C-h/j/k/l` saltan entre splits de nvim y paneles de tmux. Fuera de tmux degrada a `<C-w>hjkl`, así que funciona igual en una caja sin multiplexor.
 - `which-key.lua` — keybinding popup on `<Space>`
 - `ui.lua`, `colorscheme.lua` — lualine, Catppuccin Mocha theme
 
@@ -187,12 +188,16 @@ Leader key: `<Space>`. Key LSP bindings active on `LspAttach`: `gd` (definition)
 
 Prefix remapped to `C-a`. Key bindings:
 - `|` / `-` — split horizontally/vertically (preserves cwd)
-- `M-h/j/k/l` — navigate panes without prefix
+- `C-h/j/k/l` — navigate panes *and* nvim splits without prefix (vim-tmux-navigator)
+- `M-h/j/k/l` — navigate panes without prefix; fallback puro de tmux, ignora si el pane corre nvim
 - `M-1..5` — jump to window by number
 - `Prefix + r` — reload config
+- `Prefix + C-l` — clear screen (el `C-l` suelto ahora lo consume el navigator)
 - Copy mode vi-style; clipboard auto-detected (pbcopy on Mac, xclip/xsel on Linux)
 
-Plugins via TPM: tmux-sensible, tmux-resurrect, tmux-continuum (auto-save every 15min, auto-restore on start), tmux-yank.
+Plugins via TPM: tmux-sensible, tmux-resurrect, tmux-continuum (auto-save every 15min, auto-restore on start), tmux-yank, vim-tmux-navigator.
+
+**Las dos mitades del navigator van juntas**: el plugin de TPM en `tmux.conf` y `config/nvim/lua/plugins/navigation.lua`. Si tocas una, toca la otra — con solo el lado tmux, `C-hjkl` dentro de nvim se traga las teclas y no navega. Y no redeclares `C-hjkl` en `config/nvim/lua/config/keymaps.lua`: ese archivo se carga después de `config.lazy` y pisaría los stubs de lazy, dejando el plugin sin cargar nunca.
 
 ### Language environment management
 
