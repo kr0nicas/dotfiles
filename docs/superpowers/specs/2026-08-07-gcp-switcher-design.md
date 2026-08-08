@@ -1,4 +1,4 @@
-# `gcp` — switcher de cuentas y proyectos de Google Cloud
+# `gcx` — switcher de cuentas y proyectos de Google Cloud
 
 Fecha: 2026-08-07
 Estado: diseño aprobado
@@ -30,7 +30,7 @@ Cualquier listado sin filtrar es inservible.
 
 ## Solución
 
-Un comando `gcp` con subcomandos, en un archivo propio, que lee siempre su estado de
+Un comando `gcx` con subcomandos, en un archivo propio, que lee siempre su estado de
 gcloud en vez de repetir constantes.
 
 ### Ubicación
@@ -42,21 +42,21 @@ config/zsh/gcp.zsh
 Se carga desde `zshrc` con una línea (`source ~/dotfiles/config/zsh/gcp.zsh`), igual que
 ya se hace con `~/.zshrc.local`. No necesita symlink en `install.sh`.
 
-`zshrc` ya tiene 333 líneas; las ~150 de `gcp` viven aparte para mantener ambos archivos
+`zshrc` ya tiene 333 líneas; las ~150 de `gcx` viven aparte para mantener ambos archivos
 legibles y para poder probar el switcher de forma aislada.
 
 ### Interfaz
 
 ```
-gcp                  Picker fzf de configuraciones → activa la elegida
-gcp p                Picker fzf de proyectos de la cuenta activa (caché, instantáneo)
-gcp p -r             Refresca la caché desde la API (~5s) y abre el picker
-gcp use <config>     Activa una configuración por nombre, sin picker
-gcp who              Config, cuenta y proyecto activos
-gcp -h               Hoja de referencia completa
+gcx                  Picker fzf de configuraciones → activa la elegida
+gcx p                Picker fzf de proyectos de la cuenta activa (caché, instantáneo)
+gcx p -r             Refresca la caché desde la API (~5s) y abre el picker
+gcx use <config>     Activa una configuración por nombre, sin picker
+gcx who              Config, cuenta y proyecto activos
+gcx -h               Hoja de referencia completa
 ```
 
-Sin argumentos hace lo más frecuente. `gcp p` es lo segundo más frecuente. Nada más.
+Sin argumentos hace lo más frecuente. `gcx p` es lo segundo más frecuente. Nada más.
 
 ### Comportamiento
 
@@ -73,23 +73,23 @@ cada identidad mantiene su propia lista y cambiar de config nunca mezcla resulta
 Filtra `^sys-`. Si no existe caché, la construye en la primera invocación y lo avisa. Al
 elegir, ejecuta `gcloud config set project`, que persiste en la configuración activa.
 
-**`gcp use`.** Valida que la configuración exista antes de activarla. Si no existe, falla
+**`gcx use`.** Valida que la configuración exista antes de activarla. Si no existe, falla
 con un mensaje explícito en vez de dejar el shell en un estado ambiguo.
 
-**`gcp -h`.** Hoja de referencia: comandos, aliases con la cuenta de cada uno, ubicación y
+**`gcx -h`.** Hoja de referencia: comandos, aliases con la cuenta de cada uno, ubicación y
 semántica de la caché, y al final la lista de configuraciones leída en vivo. Sirve como
 recordatorio permanente sin poder quedar obsoleta.
 
 ### Aliases
 
-Se conservan los nombres cortos, pero delegando en `gcp use` en vez de repetir literales:
+Se conservan los nombres cortos, pero delegando en `gcx use` en vez de repetir literales:
 
 ```zsh
-alias gcpers='gcp use personal'
-alias gcit='gcp use itproject'
-alias gcfact='gcp use facturaya'
-alias gckel='gcp use kelova'      # nuevo: hoy no existe
-alias gcwho='gcp who'
+alias gcpers='gcx use personal'
+alias gcit='gcx use itproject'
+alias gcfact='gcx use facturaya'
+alias gckel='gcx use kelova'      # nuevo: hoy no existe
+alias gcwho='gcx who'
 ```
 
 Si una configuración se renombra, el alias falla de forma ruidosa en lugar de imprimir
@@ -111,7 +111,7 @@ en el repo (ni configs ni credenciales).
 Esto elimina el duplicado `itproject`/`facturaya` y deshace el cruce de `kelova`, que
 combinaba la cuenta de ITProject con un proyecto de Facturaya.
 
-El proyecto de cada config es solo el punto de aterrizaje; `gcp p` permite saltar a
+El proyecto de cada config es solo el punto de aterrizaje; `gcx p` permite saltar a
 cualquier otro proyecto de esa cuenta sin cambiar de identidad.
 
 ### Errores
@@ -122,7 +122,7 @@ cualquier otro proyecto de esa cuenta sin cambiar de identidad.
 | Cuenta activa sin autenticar | Sugiere `gcloud auth login` |
 | `projects list` falla | Conserva la caché anterior y avisa; no deja al usuario sin lista |
 | fzf cancelado (Esc) | No cambia nada, salida limpia |
-| `gcp use` con config inexistente | Error explícito, no activa nada |
+| `gcx use` con config inexistente | Error explícito, no activa nada |
 
 ## Defectos corregidos de paso
 
@@ -143,17 +143,17 @@ elimina con `git rm`.
 ## Fuera de alcance
 
 - Colores de terminal por proyecto o entorno, al estilo del wrapper `ssh()` de `zshrc:158-222`.
-- Versionado de las configuraciones de gcloud en el repo con un `gcp sync`.
+- Versionado de las configuraciones de gcloud en el repo con un `gcx sync`.
 
 Ambas se pueden añadir después sin rehacer nada de lo anterior.
 
 ## Verificación
 
-- `gcp` lista las cinco configuraciones y marca la activa correctamente.
-- `gcp use <cada config>` activa e imprime cuenta y proyecto que coinciden con
+- `gcx` lista las cinco configuraciones y marca la activa correctamente.
+- `gcx use <cada config>` activa e imprime cuenta y proyecto que coinciden con
   `gcloud config list`.
-- `gcp p` abre instantáneo tras la primera carga y no muestra ningún proyecto `sys-*`.
-- `gcp p -r` refresca y reporta el número de proyectos cacheados.
+- `gcx p` abre instantáneo tras la primera carga y no muestra ningún proyecto `sys-*`.
+- `gcx p -r` refresca y reporta el número de proyectos cacheados.
 - La caché de cada cuenta es un archivo distinto; cambiar de config no altera la lista de otra.
 - `gsutil ls` y `bq ls` no imprimen errores de `gcloud` en la primera invocación de la sesión.
 - `zsh -n config/zsh/gcp.zsh` y `zsh -n zshrc` pasan sin advertencias. (No se usa

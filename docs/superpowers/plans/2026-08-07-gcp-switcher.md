@@ -1,8 +1,8 @@
-# `gcp` Switcher Implementation Plan
+# `gcx` Switcher Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Sustituir los cuatro aliases de GCP desincronizados por un comando `gcp` con pickers fzf de cuenta y proyecto, cuyos mensajes se leen siempre de gcloud.
+**Goal:** Sustituir los cuatro aliases de GCP desincronizados por un comando `gcx` con pickers fzf de cuenta y proyecto, cuyos mensajes se leen siempre de gcloud.
 
 **Architecture:** Un archivo zsh autocontenido (`config/zsh/gcp.zsh`) sourceado desde `zshrc`. Helpers puros (rutas de caché, filtrado) separados de la capa que llama a `gcloud` y `fzf`, para poder testear los primeros sin red ni autenticación. La caché de proyectos vive en `~/.cache/gcp`, con clave por cuenta.
 
@@ -114,7 +114,7 @@ Crea `config/zsh/gcp.zsh`:
 
 ```zsh
 # ------------------------------------------------------------------------------
-# gcp — switcher de cuentas y proyectos de Google Cloud
+# gcx — switcher de cuentas y proyectos de Google Cloud
 # ------------------------------------------------------------------------------
 # Cargado desde zshrc. Requiere gcloud; los pickers requieren fzf.
 #
@@ -185,7 +185,7 @@ En `config/zsh/gcp.test.zsh`, inserta justo antes de la línea `rm -rf "$GCP_CAC
 print "\n_gcp_use (validación de argumentos)"
 out="$(_gcp_use 2>&1)"
 assert_eq "2" "$?" "sin argumento devuelve código 2"
-assert_contains "uso: gcp use" "$out" "sin argumento imprime el uso"
+assert_contains "uso: gcx use" "$out" "sin argumento imprime el uso"
 
 out="$(_gcp_use 'no-existe-jamas-xyz' 2>&1)"
 assert_eq "1" "$?" "config inexistente devuelve código 1"
@@ -240,7 +240,7 @@ _gcp_who() {
 _gcp_use() {
     local name="$1"
     if [[ -z "$name" ]]; then
-        print -r -- "uso: gcp use <config>" >&2
+        print -r -- "uso: gcx use <config>" >&2
         return 2
     fi
     if ! _gcp_config_exists "$name"; then
@@ -359,7 +359,7 @@ _gcp_pick_project() {
     [[ "$1" == "-r" || "$1" == "--refresh" ]] && refresh=1
 
     command -v fzf >/dev/null 2>&1 || {
-        print -r -- "  ✗ gcp requiere fzf" >&2; return 1
+        print -r -- "  ✗ gcx requiere fzf" >&2; return 1
     }
 
     account="$(_gcp_active_account)"
@@ -375,7 +375,7 @@ _gcp_pick_project() {
     fi
 
     sel="$(column -t -s $'\t' <"$cache" \
-        | fzf --prompt='gcp project > ' --height=40% --reverse)" || return 0
+        | fzf --prompt='gcx project > ' --height=40% --reverse)" || return 0
     [[ -z "$sel" ]] && return 0
 
     proj="${sel%% *}"
@@ -409,7 +409,7 @@ git commit -m "feat(gcp): caché por cuenta y picker de proyectos"
 
 ---
 
-### Task 4: Picker de configuraciones y dispatcher `gcp`
+### Task 4: Picker de configuraciones y dispatcher `gcx`
 
 **Files:**
 - Modify: `config/zsh/gcp.zsh` (añadir al final)
@@ -420,9 +420,9 @@ git commit -m "feat(gcp): caché por cuenta y picker de proyectos"
 - Produces:
   - `_gcp_config_table` → imprime la tabla de configuraciones ya formateada y alineada (marca `●`/`○`, nombre, cuenta, proyecto). La usan **tanto** `_gcp_pick_config` como `_gcp_help` (Task 5); no dupliques el bloque `awk` en ninguna de las dos.
   - `_gcp_pick_config` → picker fzf de configuraciones; marca la activa con `●`.
-  - `gcp [subcomando]` → punto de entrada. Sin argumentos abre `_gcp_pick_config`.
+  - `gcx [subcomando]` → punto de entrada. Sin argumentos abre `_gcp_pick_config`.
 
-**Referencia adelantada esperada:** el dispatcher llama a `_gcp_help`, que no existe hasta la Task 5. Al terminar esta tarea, `gcp -h` fallará con `command not found: _gcp_help`. Es correcto — no intentes arreglarlo aquí. Los tests de esta tarea solo cubren el camino del subcomando inválido.
+**Referencia adelantada esperada:** el dispatcher llama a `_gcp_help`, que no existe hasta la Task 5. Al terminar esta tarea, `gcx -h` fallará con `command not found: _gcp_help`. Es correcto — no intentes arreglarlo aquí. Los tests de esta tarea solo cubren el camino del subcomando inválido.
 
 - [ ] **Step 1: Escribe el test que falla**
 
@@ -430,7 +430,7 @@ En `config/zsh/gcp.test.zsh`, antes de `rm -rf "$GCP_CACHE_DIR"`:
 
 ```zsh
 print "\ngcp (dispatcher)"
-out="$(gcp subcomando-invalido 2>&1)"
+out="$(gcx subcomando-invalido 2>&1)"
 assert_eq "2" "$?" "subcomando desconocido devuelve código 2"
 assert_contains "subcomando desconocido" "$out" "nombra el subcomando inválido"
 ```
@@ -438,7 +438,7 @@ assert_contains "subcomando desconocido" "$out" "nombra el subcomando inválido"
 - [ ] **Step 2: Ejecuta el test para verificar que falla**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
-Expected: FAIL — `command not found: gcp`
+Expected: FAIL — `command not found: gcx`
 
 - [ ] **Step 3: Escribe la implementación mínima**
 
@@ -450,7 +450,7 @@ Añade al final de `config/zsh/gcp.zsh`:
 # exige: el picker refleja lo que gcloud tiene, sin excepciones ocultas.
 
 # Tabla de configuraciones, alineada y con la activa marcada. Fuente única para
-# el picker y para `gcp -h`.
+# el picker y para `gcx -h`.
 _gcp_config_table() {
     gcloud config configurations list \
         --format='value(name,is_active,properties.core.account,properties.core.project)' 2>/dev/null \
@@ -468,11 +468,11 @@ _gcp_pick_config() {
     local sel
 
     command -v fzf >/dev/null 2>&1 || {
-        print -r -- "  ✗ gcp requiere fzf" >&2; return 1
+        print -r -- "  ✗ gcx requiere fzf" >&2; return 1
     }
 
     sel="$(_gcp_config_table \
-        | fzf --prompt='gcp config > ' --height=40% --reverse)" || return 0
+        | fzf --prompt='gcx config > ' --height=40% --reverse)" || return 0
     [[ -z "$sel" ]] && return 0
 
     # campo 1 = marca ●/○, campo 2 = nombre de la config
@@ -481,7 +481,7 @@ _gcp_pick_config() {
 
 # --- punto de entrada ---------------------------------------------------------
 
-gcp() {
+gcx() {
     case "$1" in
         '')             _gcp_pick_config ;;
         p|project)      shift; _gcp_pick_project "$@" ;;
@@ -490,7 +490,7 @@ gcp() {
         -h|--help|help) _gcp_help ;;
         *)
             print -r -- "  ✗ subcomando desconocido: $1" >&2
-            print -r -- "    prueba: gcp -h" >&2
+            print -r -- "    prueba: gcx -h" >&2
             return 2
             ;;
     esac
@@ -508,7 +508,7 @@ En `zshrc`, justo después de la línea 71 (`bq() { gcloud "$@"; bq "$@" }`), a�
 
 ```zsh
 
-# GCP: switcher de cuentas y proyectos (comando `gcp`, ver `gcp -h`)
+# GCP: switcher de cuentas y proyectos (comando `gcx`, ver `gcx -h`)
 [ -f "$HOME/dotfiles/config/zsh/gcp.zsh" ] && source "$HOME/dotfiles/config/zsh/gcp.zsh"
 ```
 
@@ -517,7 +517,7 @@ En `zshrc`, justo después de la línea 71 (`bq() { gcloud "$@"; bq "$@" }`), a�
 ```bash
 zsh -n ~/dotfiles/zshrc && echo "sintaxis OK"
 exec zsh
-gcp
+gcx
 ```
 Expected: fzf muestra las 5 configuraciones (`default`, `facturaya`, `itproject`, `kelova`, `personal`), con `●` en la activa y **las columnas de cuenta y proyecto rellenas** (si salen vacías, se está usando la forma corta del formato en vez de `properties.core.*`). Elegir una imprime config/cuenta/proyecto correctos.
 
@@ -526,14 +526,14 @@ Expected: fzf muestra las 5 configuraciones (`default`, `facturaya`, `itproject`
 ```bash
 cd ~/dotfiles
 git add config/zsh/gcp.zsh config/zsh/gcp.test.zsh zshrc
-git commit -m "feat(gcp): picker de configuraciones y dispatcher gcp"
+git commit -m "feat(gcp): picker de configuraciones y dispatcher gcx"
 ```
 
 ---
 
 ### Task 5: Ayuda de referencia, aliases y cheatsheet
 
-`gcp -h` es la hoja de referencia permanente: comandos, aliases con su cuenta, semántica de la caché, y las configuraciones leídas en vivo.
+`gcx -h` es la hoja de referencia permanente: comandos, aliases con su cuenta, semántica de la caché, y las configuraciones leídas en vivo.
 
 **Files:**
 - Modify: `config/zsh/gcp.zsh` (añadir `_gcp_help`)
@@ -551,11 +551,11 @@ En `config/zsh/gcp.test.zsh`, antes de `rm -rf "$GCP_CACHE_DIR"`:
 
 ```zsh
 print "\n_gcp_help"
-help_out="$(gcp -h 2>&1)"
-assert_contains "gcp p"    "$help_out" "documenta el picker de proyectos"
-assert_contains "gcp p -r" "$help_out" "documenta el refresco de caché"
-assert_contains "gcp use"  "$help_out" "documenta gcp use"
-assert_contains "gcp who"  "$help_out" "documenta gcp who"
+help_out="$(gcx -h 2>&1)"
+assert_contains "gcx p"    "$help_out" "documenta el picker de proyectos"
+assert_contains "gcx p -r" "$help_out" "documenta el refresco de caché"
+assert_contains "gcx use"  "$help_out" "documenta gcx use"
+assert_contains "gcx who"  "$help_out" "documenta gcx who"
 assert_contains "gcpers"   "$help_out" "documenta los aliases"
 assert_contains "gckel"    "$help_out" "documenta el alias nuevo"
 assert_contains "$GCP_CACHE_DIR" "$help_out" "muestra la ruta real de la caché"
@@ -569,32 +569,32 @@ Expected: FAIL — `command not found: _gcp_help`
 
 - [ ] **Step 3: Escribe la implementación mínima**
 
-Añade a `config/zsh/gcp.zsh`, **antes** de la definición de `gcp()`:
+Añade a `config/zsh/gcp.zsh`, **antes** de la definición de `gcx()`:
 
 ```zsh
 # --- ayuda --------------------------------------------------------------------
 
 _gcp_help() {
     print -r -- ""
-    print -r -- "  gcp — switcher de cuentas y proyectos de Google Cloud"
+    print -r -- "  gcx — switcher de cuentas y proyectos de Google Cloud"
     print -r -- ""
     print -r -- "  USO"
-    print -r -- "    gcp                Picker de configuraciones (cuenta + proyecto)"
-    print -r -- "    gcp p              Picker de proyectos de la cuenta activa (caché, instantáneo)"
-    print -r -- "    gcp p -r           Refresca la caché desde la API (~5s) y abre el picker"
-    print -r -- "    gcp use <config>   Activa una configuración por nombre, sin picker"
-    print -r -- "    gcp who            Config, cuenta y proyecto activos"
-    print -r -- "    gcp -h             Esta referencia"
+    print -r -- "    gcx                Picker de configuraciones (cuenta + proyecto)"
+    print -r -- "    gcx p              Picker de proyectos de la cuenta activa (caché, instantáneo)"
+    print -r -- "    gcx p -r           Refresca la caché desde la API (~5s) y abre el picker"
+    print -r -- "    gcx use <config>   Activa una configuración por nombre, sin picker"
+    print -r -- "    gcx who            Config, cuenta y proyecto activos"
+    print -r -- "    gcx -h             Esta referencia"
     print -r -- ""
     print -r -- "  ALIASES"
-    print -r -- "    gcpers   gcp use personal      ochoa.j@gmail.com"
-    print -r -- "    gcit     gcp use itproject     jorge.ochoa@itproject41.com"
-    print -r -- "    gcfact   gcp use facturaya     administrator@facturayasv.com"
-    print -r -- "    gckel    gcp use kelova        jorge.ochoa@itproject41.com"
-    print -r -- "    gcwho    gcp who"
+    print -r -- "    gcpers   gcx use personal      ochoa.j@gmail.com"
+    print -r -- "    gcit     gcx use itproject     jorge.ochoa@itproject41.com"
+    print -r -- "    gcfact   gcx use facturaya     administrator@facturayasv.com"
+    print -r -- "    gckel    gcx use kelova        jorge.ochoa@itproject41.com"
+    print -r -- "    gcwho    gcx who"
     print -r -- ""
     print -r -- "  CÓMO FUNCIONA"
-    print -r -- "    · El proyecto de cada config es solo dónde aterrizas: 'gcp p' salta a"
+    print -r -- "    · El proyecto de cada config es solo dónde aterrizas: 'gcx p' salta a"
     print -r -- "      cualquier otro proyecto sin cambiar de cuenta."
     print -r -- "    · La caché es por cuenta, no por config:"
     print -r -- "        $GCP_CACHE_DIR/projects-<cuenta>.list"
@@ -620,14 +620,14 @@ Expected: PASS — `26/26 tests pasaron`
 En `zshrc`, sustituye el bloque de las líneas 267-271 por:
 
 ```zsh
-# GCP: cambiar entre configuraciones/cuentas (ver `gcp -h`)
-# Delegan en `gcp use`, que valida e imprime el estado leído de gcloud.
+# GCP: cambiar entre configuraciones/cuentas (ver `gcx -h`)
+# Delegan en `gcx use`, que valida e imprime el estado leído de gcloud.
 # Nunca vuelvas a poner la cuenta en un echo: es lo que hizo que mintieran.
-alias gcpers='gcp use personal'
-alias gcit='gcp use itproject'
-alias gcfact='gcp use facturaya'
-alias gckel='gcp use kelova'
-alias gcwho='gcp who'
+alias gcpers='gcx use personal'
+alias gcit='gcx use itproject'
+alias gcfact='gcx use facturaya'
+alias gckel='gcx use kelova'
+alias gcwho='gcx who'
 ```
 
 - [ ] **Step 6: Actualiza el cheatsheet**
@@ -635,15 +635,15 @@ alias gcwho='gcp who'
 En `CHEAT_CODES.md`, en la sección `### GCP` (línea 328), añade **antes** de la tabla existente:
 
 ```markdown
-**Switcher `gcp`** — cambiar de cuenta y proyecto (referencia completa: `gcp -h`)
+**Switcher `gcx`** — cambiar de cuenta y proyecto (referencia completa: `gcx -h`)
 
 | Comando | Acción |
 |---|---|
-| `gcp` | Picker de configuraciones (cuenta + proyecto) |
-| `gcp p` | Picker de proyectos de la cuenta activa (caché, instantáneo) |
-| `gcp p -r` | Refresca la caché desde la API y abre el picker |
-| `gcp use <config>` | Activa una configuración por nombre |
-| `gcp who` / `gcwho` | Config, cuenta y proyecto activos |
+| `gcx` | Picker de configuraciones (cuenta + proyecto) |
+| `gcx p` | Picker de proyectos de la cuenta activa (caché, instantáneo) |
+| `gcx p -r` | Refresca la caché desde la API y abre el picker |
+| `gcx use <config>` | Activa una configuración por nombre |
+| `gcx who` / `gcwho` | Config, cuenta y proyecto activos |
 | `gcpers` `gcit` `gcfact` `gckel` | Atajos a cada configuración |
 
 Configuraciones: `personal` (ochoa.j@gmail.com), `itproject` (jorge.ochoa@itproject41.com →
@@ -657,17 +657,17 @@ La caché vive en `~/.cache/gcp/projects-<cuenta>.list` y oculta los proyectos `
 
 ```bash
 exec zsh
-gcp -h
+gcx -h
 gcwho
 ```
-Expected: `gcp -h` muestra las cuatro secciones y las 5 configuraciones al final. `gcwho` imprime config/cuenta/proyecto.
+Expected: `gcx -h` muestra las cuatro secciones y las 5 configuraciones al final. `gcwho` imprime config/cuenta/proyecto.
 
 - [ ] **Step 8: Commit**
 
 ```bash
 cd ~/dotfiles
 git add config/zsh/gcp.zsh config/zsh/gcp.test.zsh zshrc CHEAT_CODES.md
-git commit -m "feat(gcp): referencia en gcp -h, aliases corregidos y cheatsheet"
+git commit -m "feat(gcp): referencia en gcx -h, aliases corregidos y cheatsheet"
 ```
 
 ---
@@ -755,7 +755,7 @@ Operación única contra gcloud. No toca el repo — no se versionan configuraci
 **Files:** ninguno (estado local de gcloud).
 
 **Interfaces:**
-- Consumes: el comando `gcp` de las tareas anteriores para verificar.
+- Consumes: el comando `gcx` de las tareas anteriores para verificar.
 - Produces: las cinco configuraciones alineadas con la tabla del spec.
 
 - [ ] **Step 1: Captura el estado actual por si hay que revertir**
@@ -807,7 +807,7 @@ Expected: deja de combinar la cuenta de ITProject con un proyecto de Facturaya.
 
 ```bash
 exec zsh
-gcp -h
+gcx -h
 ```
 Expected: la sección CONFIGURACIONES ACTUALES coincide exactamente con:
 
@@ -822,8 +822,8 @@ Expected: la sección CONFIGURACIONES ACTUALES coincide exactamente con:
 - [ ] **Step 7: Verifica que la caché es por cuenta**
 
 ```bash
-gcit && gcp p -r    # cachea para jorge.ochoa@itproject41.com
-gcfact && gcp p -r  # cachea para administrator@facturayasv.com
+gcit && gcx p -r    # cachea para jorge.ochoa@itproject41.com
+gcfact && gcx p -r  # cachea para administrator@facturayasv.com
 ls -1 ~/.cache/gcp/
 ```
 Expected: dos archivos distintos, uno por cuenta. Ningún proyecto `sys-` en ninguno.
@@ -847,11 +847,11 @@ rm ~/gcloud-configs-backup-2026-08-07.txt
 
 ## Verificación final (spec § Verificación)
 
-- [ ] `gcp` lista las cinco configuraciones y marca la activa con `●`.
-- [ ] `gcp use <cada config>` imprime cuenta y proyecto que coinciden con `gcloud config list`.
-- [ ] `gcp p` abre instantáneo tras la primera carga y no muestra ningún `sys-*`.
-- [ ] `gcp p -r` refresca y reporta el número de proyectos cacheados.
+- [ ] `gcx` lista las cinco configuraciones y marca la activa con `●`.
+- [ ] `gcx use <cada config>` imprime cuenta y proyecto que coinciden con `gcloud config list`.
+- [ ] `gcx p` abre instantáneo tras la primera carga y no muestra ningún `sys-*`.
+- [ ] `gcx p -r` refresca y reporta el número de proyectos cacheados.
 - [ ] Cada cuenta tiene su propio archivo de caché; cambiar de config no altera la lista de otra.
 - [ ] `gsutil ls` y `bq ls` no imprimen errores de `gcloud` en la primera invocación de la sesión.
-- [ ] `gcp -h` documenta todos los comandos y aliases, y lista las configs en vivo.
+- [ ] `gcx -h` documenta todos los comandos y aliases, y lista las configs en vivo.
 - [ ] `zsh -n zshrc` y `zsh -n config/zsh/gcp.zsh` pasan.
