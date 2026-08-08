@@ -172,8 +172,8 @@ El dispatcher acepta además `project` como sinónimo de `p`, y `--help`/`help` 
 Entry: `init.lua` → loads `config.lazy`, `config.options`, `config.keymaps`, `config.autocmds`.
 
 Plugin files in `lua/plugins/`:
-- `lsp.lua` — Mason + mason-lspconfig + nvim-lspconfig (nvim 0.11+ API via `vim.lsp.enable()`). gopls and terraformls are macOS-only (gated by `vim.uv.os_uname().sysname == "Darwin"`).
-- `editor.lua` — conform.nvim (format on save: black, goimports, jq, terraform_fmt, stylua) + nvim-lint (flake8, yamllint, shellcheck, tflint)
+- `lsp.lua` — Mason + mason-lspconfig + nvim-lspconfig (nvim 0.11+ API via `vim.lsp.enable()`) + nvim-cmp. gopls and terraformls are macOS-only (gated by `vim.uv.os_uname().sysname == "Darwin"`). **También vive aquí el stack de formato y lint**, no en `editor.lua`: conform.nvim (format on save: `ruff_format`, goimports, gofmt, jq, terraform_fmt, stylua) y nvim-lint (`ruff`, yamllint, shellcheck, tflint).
+- `editor.lua` — solo mini.pairs, mini.surround y mini.comment
 - `telescope.lua` — fuzzy finder
 - `treesitter.lua` — syntax highlighting
 - `git.lua` — gitsigns + vim-fugitive

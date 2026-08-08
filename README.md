@@ -134,8 +134,8 @@ Config 100% Lua en `config/nvim/` con lazy.nvim. Tema: **Catppuccin Mocha**. Lea
 | **nvim-cmp** | Autocompletado con LSP, snippets, buffer y path |
 | **which-key.nvim** | Popup de keybindings al presionar `<Space>` |
 | **oil.nvim** | File explorer como buffer (abrir con `-`) |
-| **conform.nvim** | Formateo al guardar (black, goimports, jq, terraform fmt, stylua) |
-| **nvim-lint** | Linting asincrono (flake8, yamllint, shellcheck, tflint) |
+| **conform.nvim** | Formateo al guardar (ruff_format, goimports, gofmt, jq, terraform fmt, stylua) |
+| **nvim-lint** | Linting asincrono (ruff, yamllint, shellcheck, tflint) |
 | **gitsigns.nvim** | Signos de cambios git en el gutter |
 | **vim-fugitive** | Comandos git dentro del editor |
 | **lualine.nvim** | Statusline con branch, diagnosticos, encoding |
