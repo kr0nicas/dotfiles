@@ -68,7 +68,10 @@ jobs:
         run: |
           set -e
           base="origin/${{ github.base_ref }}"
-          git fetch origin "${{ github.base_ref }}" --depth=0
+          # El checkout ya trae el historial completo (fetch-depth: 0); este
+          # fetch solo es una red de seguridad, así que no lleva --depth: con
+          # 0 git lo rechaza («fatal: depth 0 is not a positive number»).
+          git fetch origin "${{ github.base_ref }}"
           rc=0
           for sha in $(git rev-list "$base..HEAD"); do
             git log -1 --format=%B "$sha" > /tmp/msg.txt
