@@ -23,7 +23,7 @@ phase_verify() {
     echo ""
     printf "  %-14s %-30s %s\n" "HERRAMIENTA" "RUTA" "ESTADO"
     printf "  %-14s %-30s %s\n" "──────────" "────────────────────────────" "──────"
-    for t in zsh git curl fzf node npm uv starship zoxide eza bat gh tmux nvim rg fd k9s kubectl helm stern kubectx lazygit direnv delta trivy tofu docker dust btop curlie jless jq yq zstd; do
+    for t in zsh git curl fzf node npm uv ruff starship zoxide eza bat gh tmux nvim rg fd k9s kubectl helm stern kubectx lazygit direnv delta trivy tofu docker dust btop curlie jless jq yq zstd; do
         path_t=$(command -v "$t" 2>/dev/null || echo "—")
         status=$([[ "$path_t" != "—" ]] && echo "✅" || echo "❌")
         printf "  %-14s %-30s %s\n" "$t" "$path_t" "$status"
