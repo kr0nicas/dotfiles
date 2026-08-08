@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · docs/claude-md-nvim-ruff
+
+### Documentación
+
+- **nvim**: corregir dónde viven conform y nvim-lint (`17d9b30`)
+
 ## 2026-08-08 · feat/nvim-ruff
 
 ### Features
