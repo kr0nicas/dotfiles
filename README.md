@@ -36,6 +36,7 @@
 - [🗂️ Estructura de archivos](#️-estructura-de-archivos)
 - [🔗 Symlinks creados](#-symlinks-creados)
 - [🪟 WSL — Nerd Fonts en Windows](#-wsl--nerd-fonts-en-windows)
+- [🔒 Arnés de reglas y trazabilidad](#-arnés-de-reglas-y-trazabilidad)
 - [🛡️ Notas de seguridad](#️-notas-de-seguridad)
 - [🧪 Plataformas probadas](#-plataformas-probadas)
 - [❓ FAQ](#-faq)
@@ -376,6 +377,25 @@ Luego configura la fuente en tu terminal:
 
 ---
 
+## 🔒 Arnés de reglas y trazabilidad
+
+`main` está protegido: el trabajo entra por rama y PR con CI en verde.
+
+| Hook | Qué comprueba | Degrada si falta la herramienta |
+|---|---|---|
+| `commit-msg` | Formato del mensaje, tipo, ámbito, longitud | No |
+| `pre-commit` | Lint de lo staged | Sí |
+| `pre-commit` | Secretos (claves, tokens, `.env`) | No |
+| `pre-push` | Suites completas + guardia de `main` | Parcial |
+
+Se activan con `./install.sh`. Comprobar: `git config --get core.hooksPath` → `.githooks`.
+
+`CHANGELOG.md` es un **archivo generado** por `scripts/changelog.sh`; el CI falla si está desactualizado. No lo edites a mano.
+
+Spec del arnés: `docs/superpowers/specs/2026-08-08-arnes-trazabilidad-design.md`
+
+---
+
 ## 🛡️ Notas de seguridad
 
 `install.sh` usa los instaladores oficiales upstream (`curl … | bash`) para fnm, starship, zoxide, uv, trivy, helm y claude — la vía documentada por cada proyecto. Trade-off aceptado por ergonomía. Antes de instalar en una máquina nueva:
@@ -462,7 +482,7 @@ tmux && prefix + I           # Instalar plugins de tmux (prefix = C-a)
 Actualizar el repo:
 
 ```bash
-dots    # alias: git add . && commit con fecha && push desde ~/dotfiles
+dots 'fix(zshrc): quitar alias que rompía du'   # rama + commit + push + PR
 ```
 
 ---
