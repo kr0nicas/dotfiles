@@ -48,6 +48,7 @@ No lo edites a mano: el CI regenera y compara.
 - **repo**: spec del arnés de reglas y trazabilidad (`bee98c4`)
 - **repo**: plan de implementación del arnés de trazabilidad (`bad816a`)
 - **repo**: retirar assert_fails del plan, ningún task lo usa (`7d77531`)
+- **repo**: documentar el arnés y el flujo obligatorio (`a9795bc`)
 
 ### Tests
 
