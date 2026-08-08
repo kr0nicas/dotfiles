@@ -38,6 +38,11 @@ No lo edites a mano: el CI regenera y compara.
 - **docs**: checkout por rama en changelog-drift (`e2999fe`)
 - **ci**: checkout por rama en changelog-drift (`7de68a4`)
 - **docs**: limpiar las marcas del iconv de BSD al derivar la rama (`b5ef0e9`)
+- **repo**: pre-push protege la ref remota, no la local (`f7bc3e7`)
+- **repo**: scan_secrets lee el índice, no el disco (`4ac7764`)
+- **scripts**: changelog agrupa build y no pierde reverts (`9970ceb`)
+- **zshrc**: dots regenera CHANGELOG y reporta commit fallido (`fd468cf`)
+- **repo**: que Merge* no sea un bypass total de commit-msg (`5e05498`)
 
 ### Refactors
 
@@ -49,6 +54,7 @@ No lo edites a mano: el CI regenera y compara.
 - **repo**: plan de implementación del arnés de trazabilidad (`bad816a`)
 - **repo**: retirar assert_fails del plan, ningún task lo usa (`7d77531`)
 - **repo**: documentar el arnés y el flujo obligatorio (`a9795bc`)
+- **repo**: documentar lib/repo.sh en CLAUDE.md y README.md (`75117fa`)
 
 ### Tests
 
@@ -57,6 +63,7 @@ No lo edites a mano: el CI regenera y compara.
 ### CI
 
 - validar mensajes y CHANGELOG en CI, y plantilla de PR (`ef42f3a`)
+- **repo**: analizar .githooks/ y fijar locale del commit-lint (`b74dc36`)
 
 ## 2026-08-08 · refactor(install): partir el instalador en orquestador + lib/ por fases
 
