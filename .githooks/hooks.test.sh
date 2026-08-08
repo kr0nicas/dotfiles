@@ -255,5 +255,22 @@ assert_contains "git switch -c" "$(check_push_ref 'refs/heads/main' 2>&1)" \
 assert_contains "--no-verify" "$(check_push_ref 'refs/heads/main' 2>&1)" \
     "el error explica el bypass"
 
+# El defecto original no estaba en check_push_ref sino en el bucle que la
+# alimenta: leía la ref local. Con «HEAD:main» la local es HEAD y la remota
+# es main, así que se colaba. Se prueba la función, no el hook entero: el
+# hook dispara run_suites, que corre esta misma suite.
+salida="$(printf 'refs/heads/feat/x 111 refs/heads/main 000\n' | check_push_stdin 2>&1)"
+assert_eq "1" "$(printf 'refs/heads/feat/x 111 refs/heads/main 000\n' | check_push_stdin >/dev/null 2>&1; echo $?)" \
+    "bloquea un push cuya ref REMOTA es main, aunque la local no lo sea"
+assert_contains "git switch -c" "$salida" \
+    "y explica cómo crear la rama"
+
+assert_eq "0" "$(printf 'refs/heads/main 111 refs/heads/backup-viejo 000\n' | check_push_stdin >/dev/null 2>&1; echo $?)" \
+    "deja pasar main:backup-viejo, que no escribe main"
+assert_eq "0" "$(printf '' | check_push_stdin >/dev/null 2>&1; echo $?)" \
+    "stdin vacío no bloquea"
+assert_eq "1" "$(printf 'refs/heads/a 1 refs/heads/x 0\nrefs/heads/b 2 refs/heads/main 0\n' | check_push_stdin >/dev/null 2>&1; echo $?)" \
+    "evalúa todas las refs, no solo la primera"
+
 printf '\n%s/%s tests pasaron\n' "$((TESTS_RUN - TESTS_FAILED))" "$TESTS_RUN"
 [ "$TESTS_FAILED" -eq 0 ]

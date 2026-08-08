@@ -25,6 +25,24 @@ check_push_ref() {
     return 0
 }
 
+# check_push_stdin — valida por stdin el formato que pasa git.
+#
+# Vive fuera de la guarda BASH_SOURCE a propósito: dentro, la única forma de
+# probar el bucle sería ejecutar el hook entero, y eso dispara run_suites ->
+# hooks.test.sh -> el hook otra vez. Recursión infinita.
+check_push_stdin() {
+    local rc=0 remote_ref
+    # git pasa: <ref-local> <sha-local> <ref-remota> <sha-remoto>
+    # Se mira la ref REMOTA: es la que se va a escribir. Mirando la local,
+    # «git push origin HEAD:main» se colaba (la local es HEAD, no main) y
+    # «git push origin main:backup» se bloqueaba sin motivo.
+    while read -r _ _ remote_ref _; do
+        [ -n "$remote_ref" ] || continue
+        check_push_ref "$remote_ref" || rc=1
+    done
+    return "$rc"
+}
+
 # run_suites -> 1 si alguna suite falla
 run_suites() {
     local rc=0
@@ -45,15 +63,6 @@ run_suites() {
 }
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
-    rc=0
-    # git pasa: <ref-local> <sha-local> <ref-remota> <sha-remoto>
-    # Se mira la ref REMOTA: es la que se va a escribir. Mirando la local,
-    # «git push origin HEAD:main» se colaba (la local es HEAD, no main) y
-    # «git push origin main:backup» se bloqueaba sin motivo.
-    while read -r _ _ remote_ref _; do
-        [ -n "$remote_ref" ] || continue
-        check_push_ref "$remote_ref" || rc=1
-    done
-    [ "$rc" -eq 0 ] || exit 1
+    check_push_stdin || exit 1
     run_suites || exit 1
 fi
