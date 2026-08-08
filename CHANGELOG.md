@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · feat/linters-linux
+
+### Features
+
+- **lib**: instalar shellcheck, tflint y yamllint en Linux (`eeee3c5`)
+
 ## 2026-08-08 · fix/gh-api-asset-parsing
 
 ### Fixes

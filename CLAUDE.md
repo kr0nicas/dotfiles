@@ -74,6 +74,9 @@ Los hooks se activan solos con `./install.sh` (`phase_repo` → `core.hooksPath`
 The OS split is the core architectural decision:
 - **Brewfile** + **Brewfile.cloud** + **Brewfile.k8s** + **Brewfile.gui** — macOS only. `install.sh` calls `brew bundle` for the base file always, and the others conditionally based on `--no-cloud`/`--no-k8s`/`--no-gui` flags.
 - **`lib/binaries.sh`** — Linux only. Downloads SRE tool binaries (k9s, lazygit, stern, delta, etc.) from GitHub releases into `$HOME/.local/bin` — no sudo required. K8s tools gated by `$INSTALL_K8S`, cloud tools by `$INSTALL_CLOUD`. Verifica checksums; ver la nota de seguridad en la cabecera de `install.sh`.
+  - **Los linters de nvim-lint van gateados como en el Brewfile**: `shellcheck` y `yamllint` son base, `tflint` va con cloud (en macOS vive en `Brewfile.cloud`). Sin esto, nvim-lint daba ENOENT en Linux igual que daba en Python antes de ruff.
+  - **`yamllint` es la excepción al patrón `gh_latest_*`**: es un paquete de Python sin binario estático, así que se instala con `uv tool install`. Funciona porque `phase_runtimes` (que instala uv) corre antes que `phase_binaries` — no reordenes esas dos fases.
+  - **Tres variables de arquitectura, no una.** `ARCH_TYPE` es `uname -m` crudo (`x86_64`/`aarch64`) y lo usan los proyectos que nombran assets con el triple de Rust o con uname (ruff, delta, dust, shellcheck); `ARCH` es la convención de Go (`amd64`/`arm64`) y la usan tflint, k9s, stern, sops; `GH_ARCH` traduce a `x86_64`/`arm64` para lazygit, kubectx y jless. Elegir la equivocada descarga el asset de otra arquitectura sin error visible.
 - **zshrc** — single file with `if [[ "$OSTYPE" == "darwin"* ]]` guards for macOS-specific PATH entries and tools.
 
 ### install.sh + `lib/` (orquestador y fases)
