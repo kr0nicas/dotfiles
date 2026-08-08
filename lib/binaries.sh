@@ -17,6 +17,23 @@ phase_binaries() {
             *)       GH_ARCH="x86_64"  ;;
         esac
 
+        # Consulta la API de GitHub, autenticando si hay token en el entorno.
+        #
+        # Anónimo son 60 req/h por IP y este instalador gasta dos por binario
+        # (una para el asset y otra para sus checksums), así que una instalación
+        # completa ronda el límite y en CI —donde la IP del runner es
+        # compartida— se agota casi seguro. El warning de rate-limit ya decía
+        # "auth con: gh auth login", pero nunca se usaba ninguna credencial:
+        # el consejo era correcto y el código lo ignoraba.
+        _gh_api() {
+            local url=$1 token=${GH_TOKEN:-${GITHUB_TOKEN:-}}
+            if [[ -n "$token" ]]; then
+                curl -fsSL -H "Authorization: Bearer $token" "$url" 2>/dev/null
+            else
+                curl -fsSL "$url" 2>/dev/null
+            fi
+        }
+
         # Extrae las URLs de descarga de una respuesta de la API, una por línea.
         #
         # La API NO garantiza el JSON indentado: koalaman/shellcheck lo devuelve
@@ -40,7 +57,7 @@ phase_binaries() {
         gh_latest_url() {
             local repo=$1 pattern=$2
             local response
-            response=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null) || {
+            response=$(_gh_api "https://api.github.com/repos/${repo}/releases/latest") || {
                 warn "GitHub API falló para $repo (¿rate-limit? auth con: gh auth login). Saltando."
                 return 1
             }
@@ -56,7 +73,7 @@ phase_binaries() {
         # fallar aquí es normal y no es un error: significa "no hay nada que comparar".
         gh_checksums() {
             local repo=$1 asset=${2:-} response url
-            response=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null) || return 1
+            response=$(_gh_api "https://api.github.com/repos/${repo}/releases/latest") || return 1
             url=$(gh_asset_urls "$response" \
                 | grep -iE 'checksums?\.txt|sha256sums?|SHA256SUMS' | head -1)
             # Algunos proyectos (ruff) no publican un archivo consolidado sino un
