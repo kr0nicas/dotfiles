@@ -121,6 +121,16 @@ phase_symlinks() {
         fi
     fi
 
+    # iTerm2 Dynamic Profile (solo macOS). iTerm lee todo lo que haya en
+    # DynamicProfiles/ y lo recarga en caliente, así que el symlink basta.
+    # El perfil NO se vuelve el predeterminado solo: hay que elegirlo una vez en
+    # Settings → Profiles → SRE 2026 → Other Actions → Set as Default.
+    if [[ "$OSTYPE" == "darwin"* ]] && [[ -f "$DOTFILES_DIR/config/iterm2/dotfiles.json" ]]; then
+        ITERM_PROFILE_DIR="$HOME/Library/Application Support/iTerm2/DynamicProfiles"
+        safe_mkdir "$ITERM_PROFILE_DIR"
+        safe_link "$DOTFILES_DIR/config/iterm2/dotfiles.json" "$ITERM_PROFILE_DIR/dotfiles.json"
+    fi
+
     # direnv config directory
     if [[ -d "$DOTFILES_DIR/config/direnv" ]]; then
         safe_mkdir "$HOME/.config/direnv"

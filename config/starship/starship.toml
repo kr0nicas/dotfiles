@@ -1,8 +1,9 @@
 # ==============================================================================
 # starship.toml — SRE 2026 · Jorge Ochoa (kr0nicas)
 # ==============================================================================
-# Fuente recomendada: MesloLGS NF o JetBrainsMono Nerd Font
-# Instalar en Mac:  brew install --cask font-jetbrains-mono-nerd-font
+# Fuente: Hack Nerd Font Mono — la que instala el Brewfile y usan wezterm.lua
+# y el perfil de iTerm2 (config/iterm2/dotfiles.json). Sin glifos Nerd verás "?".
+# Instalar en Mac:   brew install --cask font-hack-nerd-font
 # Instalar en Linux: https://www.nerdfonts.com/font-downloads
 # ==============================================================================
 
@@ -97,8 +98,10 @@ read_only         = " 󰌾"
 read_only_style   = "bold red"
 
 [directory.substitutions]
+# Ojo: con truncate_to_repo la ruta de un repo llega sin el "~/" delante
+# (~/dotfiles se muestra como "dotfiles"), así que la clave va sin prefijo.
 "~"          = "󰋜 ~"
-"~/dotfiles" = "󱧻 dotfiles"
+"dotfiles"   = "󱧻 dotfiles"
 "~/go"       = "󰟓 go"
 
 # ------------------------------------------------------------------------------

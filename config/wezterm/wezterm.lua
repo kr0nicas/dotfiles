@@ -1,7 +1,7 @@
 -- =============================================================================
 -- WezTerm config — kr0nicas SRE 2026
 -- Cross-platform: macOS + Windows (WSL2)
--- Tema: Catppuccin Mocha · Font: Hack Nerd Font
+-- Tema: Catppuccin Mocha · Font: Hack Nerd Font (macOS) / JetBrainsMono Nerd Font (WSL2)
 -- =============================================================================
 
 local wezterm = require("wezterm")
@@ -33,7 +33,16 @@ config.color_scheme = "Catppuccin Mocha"
 config.window_background_opacity = 0.97
 config.macos_window_background_blur = 20   -- solo macOS
 
-config.font = wezterm.font("Hack Nerd Font", { weight = "Regular" })
+-- La Nerd Font disponible NO es la misma en cada plataforma: en macOS el Brewfile
+-- instala Hack, pero en WSL2 quien renderiza es Windows y ahí install-fonts-windows.ps1
+-- instala JetBrainsMono. Pedir la que no está hace que WezTerm caiga en silencio a su
+-- fuente por defecto y el prompt salga con "?" en vez de iconos. El fallback cubre
+-- además la caja que tenga la otra instalada.
+local font_stack = is_windows
+    and { "JetBrainsMono Nerd Font", "Hack Nerd Font" }
+    or  { "Hack Nerd Font", "JetBrainsMono Nerd Font" }
+
+config.font = wezterm.font_with_fallback(font_stack, { weight = "Regular" })
 config.font_size = is_windows and 11.0 or 14.0
 
 config.line_height    = 1.15
