@@ -619,7 +619,7 @@ Run:
 chmod +x .githooks/pre-commit
 bash .githooks/hooks.test.sh
 ```
-Expected: `44/44 tests pasaron`, código 0
+Expected: `43/43 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -779,7 +779,7 @@ assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1
 - [ ] **Step 5: Correr la suite**
 
 Run: `bash .githooks/hooks.test.sh`
-Expected: `54/54 tests pasaron`, código 0
+Expected: `53/53 tests pasaron`, código 0
 
 - [ ] **Step 6: Verificar shellcheck**
 
@@ -911,7 +911,7 @@ Run:
 chmod +x .githooks/pre-push
 bash .githooks/hooks.test.sh
 ```
-Expected: `60/60 tests pasaron`, código 0
+Expected: `59/59 tests pasaron`, código 0
 
 - [ ] **Step 5: Verificar shellcheck**
 
@@ -1756,7 +1756,7 @@ Sin huecos.
 
 **Consistencia de nombres verificada:** `hook_err`/`hook_warn`/`hook_ok`/`hook_info`, `has`, `hook_scopes_file` (Task 1) se usan con esos mismos nombres en Tasks 2–5. `staged_files` y `lint_staged` (Task 3) los consume el bloque de ejecución de Task 4. `validate_commit_msg` (Task 2) lo invoca el job `commit-lint` de Task 8 vía `bash .githooks/commit-msg`. `check_push_ref` y `run_suites` (Task 5) solo se usan dentro de su archivo.
 
-**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 31, Task 3 → 44, Task 4 → 54, Task 5 → 60. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
+**Cuentas de tests acumuladas:** Task 1 → 9, Task 2 → 31, Task 3 → 43, Task 4 → 53, Task 5 → 59. Si al implementar no cuadran, es que un `assert` se quedó fuera; revisar antes de seguir.
 
 **Corrección aplicada durante esta revisión.** El primer borrador de `scripts/changelog.sh` solo recorría `main`, así que no implementaba el camino "todavía en la rama" que exige la sección 5 del spec: en un PR el archivo habría salido vacío de la feature en curso y el check de drift habría pasado en falso. Además el encabezado incluía el número de PR, que no existe antes de mergear, de modo que el texto cambiaba al integrar y el archivo se desincronizaba solo. Resuelto así:
 
