@@ -718,7 +718,10 @@ scan_secrets() {
 
     for f in "$@"; do
         [ -f "$f" ] || continue
-        base="$(basename "$f")"
+        # ${f##*/} y no basename: basename es un ejecutable externo y esta
+        # función tiene prohibido degradar. Con un PATH roto, basename no se
+        # encuentra y el barrido por nombre dejaría de funcionar en silencio.
+        base="${f##*/}"
 
         case "$base" in
             id_rsa|id_dsa|id_ecdsa|id_ed25519|*.pem|*.key|*.p12|*.pfx|.env|.env.*|*.keystore)
