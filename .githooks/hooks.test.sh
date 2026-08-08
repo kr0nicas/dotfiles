@@ -200,5 +200,22 @@ assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1
 
 rm -rf "$SEC_TMP"
 
+printf '\npre-push\n'
+# shellcheck source=.githooks/pre-push
+. "$HOOKS_DIR/pre-push"
+
+assert_eq "1" "$(check_push_ref 'refs/heads/main' >/dev/null 2>&1; echo $?)" \
+    "bloquea el push a main"
+assert_eq "0" "$(check_push_ref 'refs/heads/feat/iterm2-perfil' >/dev/null 2>&1; echo $?)" \
+    "deja pasar una rama de feature"
+assert_eq "0" "$(check_push_ref 'refs/heads/chore/arnes-trazabilidad' >/dev/null 2>&1; echo $?)" \
+    "deja pasar una rama chore"
+assert_eq "0" "$(check_push_ref 'refs/tags/v1' >/dev/null 2>&1; echo $?)" \
+    "no se mete con los tags"
+assert_contains "git switch -c" "$(check_push_ref 'refs/heads/main' 2>&1)" \
+    "el error dice cómo crear la rama"
+assert_contains "--no-verify" "$(check_push_ref 'refs/heads/main' 2>&1)" \
+    "el error explica el bypass"
+
 printf '\n%s/%s tests pasaron\n' "$((TESTS_RUN - TESTS_FAILED))" "$TESTS_RUN"
 [ "$TESTS_FAILED" -eq 0 ]

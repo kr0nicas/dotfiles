@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Guardia de main + suite completa antes de empujar.
+# Spec: docs/superpowers/specs/2026-08-08-arnes-trazabilidad-design.md
+#
+# GitHub también rechaza el push a main por branch protection; esto solo
+# hace que el error llegue antes y con instrucciones.
+set -uo pipefail
+
+HOOK_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=.githooks/lib.sh
+. "$HOOK_LIB_DIR/lib.sh"
+
+# check_push_ref <ref-local> -> 1 si la ref es main
+check_push_ref() {
+    case "$1" in
+        refs/heads/main)
+            hook_err 'El flujo del repo es rama + PR; main no se empuja directo.'
+            hook_info '  git switch -c feat/<ámbito>-<asunto>'
+            hook_info '  git push -u origin HEAD && gh pr create --fill'
+            hook_info ''
+            hook_info 'Emergencia de verdad: git push --no-verify'
+            return 1
+            ;;
+    esac
+    return 0
+}
+
+# run_suites -> 1 si alguna suite falla
+run_suites() {
+    local rc=0
+
+    if has zsh && [ -f config/zsh/gcp.test.zsh ]; then
+        zsh config/zsh/gcp.test.zsh >/dev/null 2>&1 \
+            || { hook_err 'La suite de gcx falla'; rc=1; }
+    else
+        hook_warn 'zsh no está instalado; no se corrió la suite de gcx'
+    fi
+
+    if [ -f .githooks/hooks.test.sh ]; then
+        bash .githooks/hooks.test.sh >/dev/null 2>&1 \
+            || { hook_err 'La suite de los hooks falla'; rc=1; }
+    fi
+
+    return "$rc"
+}
+
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+    rc=0
+    # git pasa por stdin: <ref-local> <sha-local> <ref-remota> <sha-remoto>
+    while read -r local_ref _ _ _; do
+        [ -n "$local_ref" ] || continue
+        check_push_ref "$local_ref" || rc=1
+    done
+    [ "$rc" -eq 0 ] || exit 1
+    run_suites || exit 1
+fi
