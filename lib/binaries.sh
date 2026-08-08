@@ -140,6 +140,41 @@ phase_binaries() {
             return $rc
         }
 
+        # Igual que gh_latest_tar pero para releases empaquetados en zip.
+        # tflint publica zip y además checksums.txt, así que se verifica igual
+        # que el resto; extraer con `unzip` directo (como hace jless) se saltaría
+        # esa comprobación, que es justo lo que gh_latest_tar existe para evitar.
+        gh_latest_zip() {
+            local repo=$1 pattern=$2 dest=$3
+            local url tmp file sums rc
+            url=$(gh_latest_url "$repo" "$pattern")
+            [[ -n "$url" ]] || return 1
+
+            tmp=$(mktemp -d) || return 1
+            file="$tmp/$(basename "$url")"
+            curl -fsSL -o "$file" "$url" || { rm -rf "$tmp"; return 1; }
+
+            if sums=$(gh_checksums "$repo" "$(basename "$file")"); then
+                verify_sha256 "$file" "$sums" && rc=0 || rc=$?
+                case $rc in
+                    0) ok "checksum verificado: $(basename "$file")" ;;
+                    1) rm -rf "$tmp"
+                       err "CHECKSUM NO COINCIDE en $(basename "$file") ($repo). Descarga corrupta o manipulada — abortando." ;;
+                    *) warn "$repo publica checksums pero $(basename "$file") no aparece en la lista; instalado sin verificar" ;;
+                esac
+            else
+                warn "$repo no publica checksums en su release; $(basename "$file") instalado sin verificar"
+            fi
+
+            # Sin chmod posterior a propósito: el zip de tflint guarda el modo
+            # 0755 y unzip lo respeta (a diferencia del tar de jless, que sí
+            # necesita el chmod explícito de su instalador).
+            unzip -qo "$file" -d "$dest"
+            rc=$?
+            rm -rf "$tmp"
+            return $rc
+        }
+
         # --- Always: dev ergonomics + security (no gating) ---
         install_if_missing "lazygit" \
             "gh_latest_tar jesseduffield/lazygit 'linux_${GH_ARCH}.tar.gz' $LOCAL_BIN lazygit"
@@ -166,6 +201,25 @@ phase_binaries() {
         # de gh_asset_urls.
         install_if_missing "ruff" \
             "gh_latest_tar astral-sh/ruff '${ARCH_TYPE}-unknown-linux-gnu.tar.gz\$' $LOCAL_BIN '--strip-components=1 --wildcards */ruff'"
+
+        # Linters de nvim-lint. En macOS los cubre el Brewfile; en Linux no los
+        # tenía nadie, así que nvim-lint fallaba con ENOENT en YAML y shell igual
+        # que fallaba en Python antes de ruff. El gating replica el del Brewfile:
+        # los dos de abajo son base, y tflint va con el resto de IaC (cloud).
+        # (No empieces un comentario con la palabra "shellcheck": la trata como
+        # una directiva suya y falla el parseo del archivo entero.)
+        #
+        # ARCH_TYPE y no GH_ARCH: shellcheck nombra sus assets con la salida
+        # cruda de uname (linux.aarch64), no con arm64.
+        install_if_missing "shellcheck" \
+            "gh_latest_tar koalaman/shellcheck 'linux.${ARCH_TYPE}.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */shellcheck'"
+
+        # yamllint es un paquete de Python y no publica binario estático, así que
+        # no encaja en el patrón de gh_latest_*. Se instala con uv, que ya está
+        # disponible aquí (phase_runtimes corre antes) y es como el repo gestiona
+        # Python por convención. `uv tool install` lo deja aislado en su propio
+        # venv y enlaza el ejecutable en ~/.local/bin, sin sudo.
+        install_if_missing "yamllint" "uv tool install yamllint"
 
         # --- K8s tools (gated por --no-k8s / --minimal) ---
         if [[ $INSTALL_K8S -eq 1 ]]; then
@@ -243,6 +297,15 @@ phase_binaries() {
 
         # --- Cloud / IaC (gated por --no-cloud / --minimal) ---
         if [[ $INSTALL_CLOUD -eq 1 ]]; then
+            # tflint — linter de Terraform para nvim-lint. Va aquí y no en el
+            # bloque base porque en macOS vive en Brewfile.cloud: sin Terraform
+            # instalado no hay nada que lintar.
+            #
+            # ARCH y no ARCH_TYPE: tflint nombra sus assets con la convención de
+            # Go (linux_amd64), no con la salida de uname.
+            install_if_missing "tflint" \
+                "gh_latest_zip terraform-linters/tflint 'linux_${ARCH}.zip' $LOCAL_BIN"
+
             # OpenTofu — latest stable (reemplazo open source de Terraform)
             if ! command -v tofu >/dev/null 2>&1; then
                 log "Instalando OpenTofu..."

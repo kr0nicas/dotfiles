@@ -43,7 +43,10 @@ phase_packages() {
         log "Actualizando apt e instalando paquetes base..."
         if [[ $DRY_RUN -eq 0 ]]; then
             sudo apt update -qq
-            sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop zstd \
+            # unzip: lo necesitan jless y tflint para desempaquetar sus releases.
+            # No estaba en la lista y se daba por presente; en una imagen mínima
+            # de Debian no lo está y ambas instalaciones fallaban en silencio.
+            sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop zstd unzip \
                 zsh-autosuggestions zsh-syntax-highlighting bsdextrautils 2>/dev/null || true
 
             # gh (GitHub CLI) — necesita su propio repo
