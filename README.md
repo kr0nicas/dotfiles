@@ -365,7 +365,8 @@ Config en `.gitconfig` con:
     │   └── colors.conf          # Color de fondo por entorno SSH
     ├── zsh/
     │   ├── gcp.zsh              # Comando gcx: switcher de cuentas/proyectos GCP
-    │   └── gcp.test.zsh         # Suite de gcx (45 tests, corre sin gcloud)
+    │   ├── gcp.test.zsh         # Suite de gcx (45 tests, corre sin gcloud)
+    │   └── ssh.test.zsh         # Suite de _ssh_target (13 tests, sin conexiones)
     └── bin/
         └── cn                   # Wrapper de @continuedev/cli
 ```

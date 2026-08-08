@@ -62,6 +62,7 @@ jobs:
       - name: Suite de tests
         run: |
           zsh config/zsh/gcp.test.zsh
+          zsh config/zsh/ssh.test.zsh
           bash .githooks/hooks.test.sh
 
   commit-lint:

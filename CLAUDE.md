@@ -25,6 +25,7 @@ brew bundle --file=~/dotfiles/Brewfile   # Install/sync base macOS packages (clo
 source ~/.zshrc                          # Reload shell after config changes
 
 zsh config/zsh/gcp.test.zsh              # Test suite del switcher gcx (45 tests, corre sin gcloud instalado)
+zsh config/zsh/ssh.test.zsh              # Test suite de _ssh_target (13 tests, no abre ninguna conexión)
 zsh -n zshrc && zsh -n config/zsh/gcp.zsh  # Chequeo de sintaxis zsh (shellcheck NO sirve: no soporta zsh)
 ```
 
