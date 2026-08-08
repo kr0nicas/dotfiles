@@ -155,5 +155,44 @@ rm -rf "$STUB_DIR"
 
 rm -rf "$LINT_TMP"
 
+printf '\npre-commit — secretos\n'
+SEC_TMP="${TMPDIR:-/tmp}/hooks-test-sec-$$"
+mkdir -p "$SEC_TMP/.ssh"
+
+printf 'contenido cualquiera\n' > "$SEC_TMP/.ssh/id_rsa"
+printf 'contenido cualquiera\n' > "$SEC_TMP/cert.pem"
+printf 'AWS_KEY=AKIAIOSFODNN7EXAMPLE\n' > "$SEC_TMP/config.env.txt"
+printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n' > "$SEC_TMP/inocente.txt"
+printf 'export TOKEN=ghp_0123456789abcdefghijklmnopqrstuvwxyz\n' > "$SEC_TMP/notas.md"
+printf '# dotfiles\nnada sensible aquí\n' > "$SEC_TMP/README.md"
+
+assert_eq "1" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" >/dev/null 2>&1; echo $?)" \
+    "bloquea por nombre: id_rsa"
+assert_eq "1" "$(scan_secrets "$SEC_TMP/cert.pem" >/dev/null 2>&1; echo $?)" \
+    "bloquea por nombre: .pem"
+assert_eq "1" "$(scan_secrets "$SEC_TMP/config.env.txt" >/dev/null 2>&1; echo $?)" \
+    "bloquea por contenido: clave de AWS"
+assert_eq "1" "$(scan_secrets "$SEC_TMP/inocente.txt" >/dev/null 2>&1; echo $?)" \
+    "bloquea por contenido: cabecera de clave privada"
+assert_eq "1" "$(scan_secrets "$SEC_TMP/notas.md" >/dev/null 2>&1; echo $?)" \
+    "bloquea por contenido: token de GitHub"
+assert_eq "0" "$(scan_secrets "$SEC_TMP/README.md" >/dev/null 2>&1; echo $?)" \
+    "deja pasar un archivo limpio"
+
+assert_contains "id_rsa" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" 2>&1)" \
+    "el error nombra el archivo"
+assert_contains "--no-verify" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" 2>&1)" \
+    "el error explica cómo saltárselo a propósito"
+
+# No degrada nunca: sigue bloqueando aunque no haya nada en el PATH.
+assert_eq "1" "$(PATH=/nonexistent scan_secrets "$SEC_TMP/.ssh/id_rsa" >/dev/null 2>&1; echo $?)" \
+    "el barrido de secretos no degrada"
+
+printf 'AWS_KEY=AKIAIOSFODNN7EXAMPLE\n' > "$SEC_TMP/nombre con espacios.txt"
+assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1; echo $?)" \
+    "detecta secretos en archivos con espacios en el nombre"
+
+rm -rf "$SEC_TMP"
+
 printf '\n%s/%s tests pasaron\n' "$((TESTS_RUN - TESTS_FAILED))" "$TESTS_RUN"
 [ "$TESTS_FAILED" -eq 0 ]

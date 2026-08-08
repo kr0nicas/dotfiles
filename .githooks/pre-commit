@@ -86,11 +86,52 @@ lint_staged() {
     return "$rc"
 }
 
+# Barrido de secretos. NO degrada: solo usa bash y grep, que siempre están.
+# Es la regla de "las llaves nunca van al repo" convertida en algo que no
+# depende de que nadie se acuerde.
+scan_secrets() {
+    local rc=0 f base
+
+    for f in "$@"; do
+        [ -f "$f" ] || continue
+        base="${f##*/}"
+
+        case "$base" in
+            id_rsa|id_dsa|id_ecdsa|id_ed25519|*.pem|*.key|*.p12|*.pfx|.env|.env.*|*.keystore)
+                hook_err "Parece material sensible por el nombre: $f"
+                rc=1
+                continue
+                ;;
+        esac
+
+        # Contenido: cabecera de clave privada y prefijos de token conocidos.
+        if grep -qE -- '-----BEGIN [A-Z ]*PRIVATE KEY-----' "$f" 2>/dev/null; then
+            hook_err "Clave privada embebida en: $f"
+            rc=1
+        elif grep -qE '(gh[pousr]_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16})' "$f" 2>/dev/null; then
+            hook_err "Token o clave de acceso embebida en: $f"
+            rc=1
+        fi
+    done
+
+    if [ "$rc" -ne 0 ]; then
+        hook_info 'Nada de esto va al repo. Si es un falso positivo,'
+        hook_info 'sáltatelo a propósito con: git commit --no-verify'
+    fi
+
+    return "$rc"
+}
+
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     archivos=()
     while IFS= read -r -d '' f; do
         archivos+=("$f")
     done < <(staged_files)
     [ "${#archivos[@]}" -gt 0 ] || exit 0
-    lint_staged "${archivos[@]}" || exit 1
+
+    rc=0
+    # Los secretos primero: es el fallo más caro de deshacer.
+    scan_secrets "${archivos[@]}" || rc=1
+    lint_staged  "${archivos[@]}" || rc=1
+    exit "$rc"
 fi
