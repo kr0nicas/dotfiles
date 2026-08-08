@@ -126,7 +126,7 @@ phase_binaries() {
             "gh_latest_tar jesseduffield/lazygit 'linux_${GH_ARCH}.tar.gz' $LOCAL_BIN lazygit"
 
         install_if_missing "delta" \
-            "gh_latest_tar dandavison/delta '${GH_ARCH}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */delta'"
+            "gh_latest_tar dandavison/delta '${ARCH_TYPE}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */delta'"
 
         install_if_missing "trivy" \
             "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $LOCAL_BIN"
@@ -135,7 +135,7 @@ phase_binaries() {
             "gh_latest_bin getsops/sops 'linux.${ARCH}' $LOCAL_BIN/sops"
 
         install_if_missing "dust" \
-            "gh_latest_tar bootandy/dust '${GH_ARCH}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */dust'"
+            "gh_latest_tar bootandy/dust '${ARCH_TYPE}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */dust'"
 
         install_if_missing "curlie" \
             "gh_latest_tar rs/curlie 'linux_${ARCH}.tar.gz' $LOCAL_BIN curlie"
