@@ -34,7 +34,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         $HOME/google-cloud-sdk/bin
         /usr/local/share/google-cloud-sdk/bin
     )
-    export PATH="/Users/jorgeochoa/.opencode/bin:$PATH"
 else
     # Linux — Go toolchain en ~/.local/go (sin sudo)
     export GOROOT="$HOME/.local/go"
@@ -284,8 +283,10 @@ alias gcwho='gcx who'
 # Tools
 alias lg='lazygit'
 alias cheat='bat ~/dotfiles/CHEAT_CODES.md'
-alias top='btop'
-alias du='dust'
+# Sin alias de `du` ni `top`: `dust` y `btop` ya están en el PATH con su nombre.
+# Aliasarlos rompía los originales — en dust, `-h` es `--help`, así que el
+# `du -sh` de toda la vida imprimía la ayuda y salía con código 0 (fallo mudo).
+# `cat`/`ls` sí se aliasan porque bat y eza aceptan los flags habituales.
 
 # Tmux sessionizer: abre/crea sesion por proyecto con fzf
 t() {

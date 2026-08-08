@@ -1,5 +1,6 @@
-# Neovim
-config/nvim/lazy-lock.json
+# Nota: config/nvim/lazy-lock.json SÍ se versiona (y está trackeado). Es el
+# lockfile de lazy.nvim: versionarlo es lo que hace reproducible el set de
+# plugins entre máquinas. Antes estaba listado aquí, contradiciendo al repo.
 
 # Claude Code worktrees (artefactos temporales, nunca al repo)
 .claude/
