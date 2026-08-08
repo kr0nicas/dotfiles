@@ -1550,6 +1550,7 @@ dots() {
               | sed -E 's/^([a-z]+)\(([a-z0-9.-]+)\): /\1\/\2-/; s/^([a-z]+): /\1\//' \
               | tr '[:upper:]' '[:lower:]' \
               | iconv -f utf-8 -t ascii//TRANSLIT 2>/dev/null \
+              | tr -d "'~^\"\`" \
               | sed -E 's/[^a-z0-9\/-]+/-/g; s/-+/-/g; s/-$//' \
               | cut -c1-60)
           git switch -c "$rama" || return 1
@@ -1584,6 +1585,12 @@ print -r -- "$msg" \
   | cut -c1-60'
 ```
 Expected: `feat/iterm2-perfil-dinamico-sre-2026`
+
+El `tr -d` no es opcional en macOS. El `iconv` de BSD no translitera los acentos a la
+letra base: antepone la marca diacrítica como carácter ASCII suelto — `á`→`'a`, `ñ`→`~n`,
+`â`→`^a`, `ü`→`"u`. Sin borrarlas, el `sed` siguiente las convierte en guion y parte la
+palabra por la mitad: `dinámico` → `din'amico` → `din-amico`. En Linux con glibc el
+artefacto no aparece, así que el `tr` es inocuo allí.
 
 - [ ] **Step 5: Probar el error sin argumento**
 
