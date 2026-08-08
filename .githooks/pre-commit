@@ -104,7 +104,6 @@ scan_secrets() {
     fi
 
     for f in "$@"; do
-        [ -f "$f" ] || continue
         base="${f##*/}"
 
         case "$base" in
@@ -115,11 +114,22 @@ scan_secrets() {
                 ;;
         esac
 
-        # Contenido: cabecera de clave privada y prefijos de token conocidos.
-        if grep -qE -- '-----BEGIN [A-Z ]*PRIVATE KEY-----' "$f" 2>/dev/null; then
+        # Contenido: se lee del ÍNDICE (`git show ":$f"`), que es el blob que
+        # de verdad se va a commitear, no el working tree. Editar el archivo
+        # después de `git add` no debe bastar para colar un secreto ya
+        # staged. Si `git show` falla, se bloquea: esta función no degrada.
+        if ! git show ":$f" >/dev/null 2>&1; then
+            hook_err "No se pudo leer del índice: $f"
+            rc=1
+            continue
+        fi
+
+        if git show ":$f" 2>/dev/null \
+                | grep -qE -- '-----BEGIN [A-Z ]*PRIVATE KEY-----'; then
             hook_err "Clave privada embebida en: $f"
             rc=1
-        elif grep -qE '(gh[pousr]_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16})' "$f" 2>/dev/null; then
+        elif git show ":$f" 2>/dev/null \
+                | grep -qE '(gh[pousr]_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16})'; then
             hook_err "Token o clave de acceso embebida en: $f"
             rc=1
         fi

@@ -158,6 +158,7 @@ rm -rf "$LINT_TMP"
 printf '\npre-commit — secretos\n'
 SEC_TMP="${TMPDIR:-/tmp}/hooks-test-sec-$$"
 mkdir -p "$SEC_TMP/.ssh"
+( cd "$SEC_TMP" && git init -q )
 
 printf 'contenido cualquiera\n' > "$SEC_TMP/.ssh/id_rsa"
 printf 'contenido cualquiera\n' > "$SEC_TMP/cert.pem"
@@ -165,40 +166,74 @@ printf 'AWS_KEY=AKIA%s\n' 'IOSFODNN7EXAMPLE' > "$SEC_TMP/config.env.txt"
 printf -- '-----BEGIN %s PRIVATE KEY-----\n' 'OPENSSH' > "$SEC_TMP/inocente.txt"
 printf 'export TOKEN=ghp_%s\n' '0123456789abcdefghijklmnopqrstuvwxyz' > "$SEC_TMP/notas.md"
 printf '# dotfiles\nnada sensible aquí\n' > "$SEC_TMP/README.md"
+printf 'AWS_KEY=AKIA%s\n' 'IOSFODNN7EXAMPLE' > "$SEC_TMP/nombre con espacios.txt"
 
-assert_eq "1" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" >/dev/null 2>&1; echo $?)" \
+# scan_secrets ahora lee el contenido del ÍNDICE (git show ":$f"), no del
+# working tree, así que las rutas que se prueban tienen que estar STAGEADAS
+# en un repo real. Las corridas se ejecutan con cwd = $SEC_TMP y rutas
+# relativas, que es como las invoca el hook de verdad (staged_files
+# devuelve rutas relativas a la raíz del repo).
+( cd "$SEC_TMP" && git add -A )
+sec() ( cd "$SEC_TMP" && scan_secrets "$@" )
+
+assert_eq "1" "$(sec .ssh/id_rsa >/dev/null 2>&1; echo $?)" \
     "bloquea por nombre: id_rsa"
-assert_eq "1" "$(scan_secrets "$SEC_TMP/cert.pem" >/dev/null 2>&1; echo $?)" \
+assert_eq "1" "$(sec cert.pem >/dev/null 2>&1; echo $?)" \
     "bloquea por nombre: .pem"
-assert_eq "1" "$(scan_secrets "$SEC_TMP/config.env.txt" >/dev/null 2>&1; echo $?)" \
+assert_eq "1" "$(sec config.env.txt >/dev/null 2>&1; echo $?)" \
     "bloquea por contenido: clave de AWS"
-assert_eq "1" "$(scan_secrets "$SEC_TMP/inocente.txt" >/dev/null 2>&1; echo $?)" \
+assert_eq "1" "$(sec inocente.txt >/dev/null 2>&1; echo $?)" \
     "bloquea por contenido: cabecera de clave privada"
-assert_eq "1" "$(scan_secrets "$SEC_TMP/notas.md" >/dev/null 2>&1; echo $?)" \
+assert_eq "1" "$(sec notas.md >/dev/null 2>&1; echo $?)" \
     "bloquea por contenido: token de GitHub"
-assert_eq "0" "$(scan_secrets "$SEC_TMP/README.md" >/dev/null 2>&1; echo $?)" \
+assert_eq "0" "$(sec README.md >/dev/null 2>&1; echo $?)" \
     "deja pasar un archivo limpio"
 
-assert_contains "id_rsa" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" 2>&1)" \
+assert_contains "id_rsa" "$(sec .ssh/id_rsa 2>&1)" \
     "el error nombra el archivo"
-assert_contains "--no-verify" "$(scan_secrets "$SEC_TMP/.ssh/id_rsa" 2>&1)" \
+assert_contains "--no-verify" "$(sec .ssh/id_rsa 2>&1)" \
     "el error explica cómo saltárselo a propósito"
 
 # No degrada nunca: sigue bloqueando aunque no haya nada en el PATH.
-assert_eq "1" "$(PATH=/nonexistent scan_secrets "$SEC_TMP/.ssh/id_rsa" >/dev/null 2>&1; echo $?)" \
+assert_eq "1" "$(cd "$SEC_TMP" && PATH=/nonexistent scan_secrets .ssh/id_rsa >/dev/null 2>&1; echo $?)" \
     "el barrido de secretos no degrada"
 
 # El test de arriba solo prueba la rama por NOMBRE, que hace `continue` antes de
 # tocar grep. Este prueba la rama por CONTENIDO: con un archivo limpio, un rc=0
 # significaría que el barrido se volvió un no-op silencioso.
-assert_eq "1" "$(PATH=/nonexistent scan_secrets "$SEC_TMP/README.md" >/dev/null 2>&1; echo $?)" \
+assert_eq "1" "$(cd "$SEC_TMP" && PATH=/nonexistent scan_secrets README.md >/dev/null 2>&1; echo $?)" \
     "sin grep falla cerrada en vez de dejar pasar en silencio"
 
-printf 'AWS_KEY=AKIA%s\n' 'IOSFODNN7EXAMPLE' > "$SEC_TMP/nombre con espacios.txt"
-assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1; echo $?)" \
+assert_eq "1" "$(sec 'nombre con espacios.txt' >/dev/null 2>&1; echo $?)" \
     "detecta secretos en archivos con espacios en el nombre"
 
 rm -rf "$SEC_TMP"
+
+# Regresión: el defecto original era que las comprobaciones de CONTENIDO
+# leían el working tree (`grep ... "$f"`) en vez del índice. Reproduce el
+# escenario exacto: se stagea un archivo con un token, se sobrescribe en
+# disco DESPUÉS del `git add`, y el barrido tiene que seguir detectándolo
+# porque lo que se commitea es el blob del índice, no lo que hay en disco.
+IDX_TMP="${TMPDIR:-/tmp}/hooks-test-idx-$$"
+mkdir -p "$IDX_TMP"
+(
+    cd "$IDX_TMP" || exit 1
+    git init -q
+    # El token se construye en tiempo de ejecución: si fuera literal, el
+    # propio archivo de tests dispararía el barrido de secretos.
+    token="$(printf 'ghp_%s' '0123456789abcdefghijklmnopqrstuvwxyz')"
+    printf 'export TOKEN=%s\n' "$token" > notas.md
+    git add notas.md
+    printf 'nada aqui\n' > notas.md
+)
+idx_rc="$(cd "$IDX_TMP" && scan_secrets notas.md >/dev/null 2>&1; echo $?)"
+assert_eq "1" "$idx_rc" \
+    "detecta un secreto staged aunque el disco ya esté limpio (lee el índice)"
+idx_show="$(cd "$IDX_TMP" && git show ':notas.md')"
+assert_contains "ghp_" "$idx_show" \
+    "confirma que el token sigue en el índice (control del escenario)"
+
+rm -rf "$IDX_TMP"
 
 printf '\npre-push\n'
 # shellcheck source=.githooks/pre-push
