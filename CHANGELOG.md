@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-08 · fix/gh-api-asset-parsing
+
+### Fixes
+
+- **lib**: parsear los assets de GitHub sin depender del formato del JSON (`836da34`)
+
 ## 2026-08-08 · feat/claude-md-global
 
 ### Features
