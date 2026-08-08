@@ -536,7 +536,9 @@ lint_staged() {
         esac
     done
 
-    # shellcheck se corre una vez sobre install.sh con -x, que arrastra lib/.
+    # Nota: shellcheck se corre una vez sobre install.sh con -x, que arrastra
+    # lib/. El prefijo "Nota:" no es decorativo: un comentario que empieza por
+    # "# shellcheck" lo interpreta shellcheck como directiva y falla.
     # Analizar los lib/ sueltos da SC2034 en cascada por las globales que
     # define install.sh — ver CLAUDE.md.
     if [ "$necesita_shellcheck" -eq 1 ]; then
