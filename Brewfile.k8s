@@ -16,9 +16,14 @@ brew "kustomize"
 brew "k9s"
 brew "kubectx"
 brew "stern"
-brew "kubectl-neat"
 brew "viddy"
 brew "kubecolor"
+
+# kubectl-neat ya no existe en Homebrew, ni como fórmula ni como cask, y no hay
+# tap oficial que lo publique: hoy se distribuye como plugin de krew
+# (`kubectl krew install neat`). Mientras siguió declarado aquí, brew abortaba
+# este archivo en esa línea y kubeshark, dive, viddy y kubecolor —que van
+# después— no se instalaban nunca.
 
 # --- Service mesh / observability ---
 brew "istioctl"
