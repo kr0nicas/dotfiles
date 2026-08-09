@@ -5,13 +5,15 @@ No lo edites a mano: el CI regenera y compara.
 
 ## 2026-08-09 · fix/zshrc-colision-alias-dots
 
-### Features
-
-- **brew**: unificar en OpenTofu el motor de IaC de las dos plataformas (`4b6ccd6`)
-
 ### Fixes
 
 - **zshrc**: que el alias viejo de dots no aborte el archivo entero (`d46e646`)
+
+## 2026-08-09 · feat/unificar-opentofu-y-cerrar-huecos
+
+### Features
+
+- **brew**: unificar en OpenTofu el motor de IaC de las dos plataformas (`4b6ccd6`)
 
 ### Documentación
 
