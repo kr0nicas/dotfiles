@@ -36,7 +36,7 @@ lint_staged() {
             # uno a uno: sin eso no coincidirían con ninguna rama y nunca se
             # analizarían — justo la infraestructura que más falta hace
             # comprobar. Si añades otro script sin extensión, nómbralo aquí.
-            scripts/*.sh|.githooks/*.sh|\
+            scripts/*.sh|.githooks/*.sh|config/claude/*.sh|\
             .githooks/commit-msg|.githooks/pre-commit|.githooks/pre-push)
                 # -x aquí también, y no solo en la delegación a install.sh: el
                 # hook analiza de uno en uno, mientras que ci.yml pasa todos los
