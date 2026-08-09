@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · fix/zoxide-sin-api-anonima
+
+### Fixes
+
+- **lib**: bajar zoxide sin depender de la API anónima de GitHub (`3e4344e`)
+
 ## 2026-08-09 · fix/docker-link-conflict
 
 ### Fixes
