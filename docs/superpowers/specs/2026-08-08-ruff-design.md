@@ -89,7 +89,7 @@ El parámetro es opcional y la rama consolidada sigue siendo la primera que se i
 las nueve llamadas actuales a `gh_latest_tar` / `gh_latest_bin` quedan igual que siempre
 y su comportamiento no cambia.
 
-### Defecto adyacente detectado (decisión pendiente)
+### Defecto adyacente detectado (decidido: se arregló)
 
 `delta` (`lib/binaries.sh:120`) y `dust` (`:129`) construyen su patrón con
 `${GH_ARCH}-unknown-linux-gnu`. Ambos proyectos publican sus assets ARM como
@@ -105,6 +105,10 @@ encuentra asset, devuelve vacío y la instalación se salta sin error visible. E
 Es el mismo defecto que este spec evita para ruff, y el arreglo son dos palabras
 (`GH_ARCH` → `ARCH_TYPE` en esas dos líneas). Queda anotado aquí para decidirlo
 explícitamente: entra en este PR o sale en el suyo, pero no se arregla de tapadillo.
+
+**Resuelto.** Se decidió que entrara en el mismo PR pero en su propio commit:
+`371d388 fix(lib): usar ARCH_TYPE para delta y dust en linux arm`, mergeado en el
+PR #11. Ambas líneas usan hoy `${ARCH_TYPE}-unknown-linux-gnu`.
 
 ### Configuración de ruff
 

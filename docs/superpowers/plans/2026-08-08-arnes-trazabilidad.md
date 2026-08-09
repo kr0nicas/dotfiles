@@ -1,5 +1,9 @@
 # Arnés de reglas y trazabilidad — Plan de implementación
 
+> **Estado: COMPLETADO.** Mergeado en el PR #6 (`chore/arnes-trazabilidad`,
+> 2026-08-08), que se estrenó a sí mismo. No queda trabajo pendiente aquí: este
+> documento es historia, no una lista de tareas.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Que un commit mal formado, un secreto o un push directo a `main` no lleguen a existir, y que el "por qué" de cada cambio sea recuperable meses después.
@@ -59,7 +63,7 @@
   - `assert_eq <esperado> <obtenido> <nombre>` y `assert_contains <aguja> <pajar> <nombre>` en la suite. Son los dos únicos que usan las tasks 2–5; no añadas más "por si acaso".
   - Variables de la suite: `TESTS_RUN`, `TESTS_FAILED`.
 
-- [ ] **Step 1: Escribir la suite con los primeros tests (fallarán: no hay `lib.sh`)**
+- [x] **Step 1: Escribir la suite con los primeros tests (fallarán: no hay `lib.sh`)**
 
 Crear `.githooks/hooks.test.sh`:
 
@@ -124,12 +128,12 @@ printf '\n%s/%s tests pasaron\n' "$((TESTS_RUN - TESTS_FAILED))" "$TESTS_RUN"
 [ "$TESTS_FAILED" -eq 0 ]
 ```
 
-- [ ] **Step 2: Ejecutar la suite para verificar que falla**
+- [x] **Step 2: Ejecutar la suite para verificar que falla**
 
 Run: `bash .githooks/hooks.test.sh`
 Expected: FAIL — `.githooks/lib.sh: No such file or directory`
 
-- [ ] **Step 3: Escribir `.githooks/lib.sh`**
+- [x] **Step 3: Escribir `.githooks/lib.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -166,7 +170,7 @@ hook_scopes_file() {
 }
 ```
 
-- [ ] **Step 4: Escribir `.githooks/scopes.txt`**
+- [x] **Step 4: Escribir `.githooks/scopes.txt`**
 
 ```
 # Ámbitos válidos para el commit. Uno por línea; # inicia comentario.
@@ -203,17 +207,17 @@ brew
 docs
 ```
 
-- [ ] **Step 5: Ejecutar la suite para verificar que pasa**
+- [x] **Step 5: Ejecutar la suite para verificar que pasa**
 
 Run: `bash .githooks/hooks.test.sh`
 Expected: `9/9 tests pasaron`, código de salida 0
 
-- [ ] **Step 6: Verificar shellcheck**
+- [x] **Step 6: Verificar shellcheck**
 
 Run: `shellcheck -x -S warning .githooks/lib.sh .githooks/hooks.test.sh`
 Expected: sin salida, código 0
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add .githooks/lib.sh .githooks/scopes.txt .githooks/hooks.test.sh
@@ -242,7 +246,7 @@ EOF
 - Consumes: `hook_err`, `hook_info`, `hook_scopes_file` de Task 1.
 - Produces: `validate_commit_msg <ruta-archivo>` — 0 si válido, 1 si no. Motivo por stderr.
 
-- [ ] **Step 1: Escribir los tests que fallan**
+- [x] **Step 1: Escribir los tests que fallan**
 
 Insertar en `.githooks/hooks.test.sh` justo antes de la línea `printf '\n%s/%s tests pasaron\n'`:
 
@@ -286,12 +290,12 @@ assert_contains "72" "$(check_msg "feat(repo): $(printf 'x%.0s' $(seq 1 80))")" 
 rm -f "$MSG_TMP"
 ```
 
-- [ ] **Step 2: Ejecutar para verificar que falla**
+- [x] **Step 2: Ejecutar para verificar que falla**
 
 Run: `bash .githooks/hooks.test.sh`
 Expected: FAIL — `.githooks/commit-msg: No such file or directory`
 
-- [ ] **Step 3: Escribir `.githooks/commit-msg`**
+- [x] **Step 3: Escribir `.githooks/commit-msg`**
 
 ```bash
 #!/usr/bin/env bash
@@ -384,7 +388,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 fi
 ```
 
-- [ ] **Step 4: Hacerlo ejecutable y correr la suite**
+- [x] **Step 4: Hacerlo ejecutable y correr la suite**
 
 Run:
 ```bash
@@ -393,12 +397,12 @@ bash .githooks/hooks.test.sh
 ```
 Expected: `31/31 tests pasaron`, código 0
 
-- [ ] **Step 5: Verificar shellcheck**
+- [x] **Step 5: Verificar shellcheck**
 
 Run: `shellcheck -x -S warning .githooks/commit-msg`
 Expected: sin salida, código 0
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add .githooks/commit-msg .githooks/hooks.test.sh
@@ -433,7 +437,7 @@ EOF
   - `staged_files` — imprime, uno por línea, los archivos añadidos/copiados/modificados/renombrados del índice.
   - `lint_staged <archivo>...` — 0 si todo pasa o degrada; 1 si algo falla de verdad.
 
-- [ ] **Step 1: Escribir los tests que fallan**
+- [x] **Step 1: Escribir los tests que fallan**
 
 Insertar en `.githooks/hooks.test.sh` antes del resumen final:
 
@@ -506,12 +510,12 @@ rm -rf "$STUB_DIR"
 rm -rf "$LINT_TMP"
 ```
 
-- [ ] **Step 2: Ejecutar para verificar que falla**
+- [x] **Step 2: Ejecutar para verificar que falla**
 
 Run: `bash .githooks/hooks.test.sh`
 Expected: FAIL — `.githooks/pre-commit: No such file or directory`
 
-- [ ] **Step 3: Escribir `.githooks/pre-commit` (solo el lint; los secretos van en Task 4)**
+- [x] **Step 3: Escribir `.githooks/pre-commit` (solo el lint; los secretos van en Task 4)**
 
 ```bash
 #!/usr/bin/env bash
@@ -612,7 +616,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 fi
 ```
 
-- [ ] **Step 4: Hacerlo ejecutable y correr la suite**
+- [x] **Step 4: Hacerlo ejecutable y correr la suite**
 
 Run:
 ```bash
@@ -621,12 +625,12 @@ bash .githooks/hooks.test.sh
 ```
 Expected: `43/43 tests pasaron`, código 0
 
-- [ ] **Step 5: Verificar shellcheck**
+- [x] **Step 5: Verificar shellcheck**
 
 Run: `shellcheck -x -S warning .githooks/pre-commit`
 Expected: sin salida, código 0
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add .githooks/pre-commit .githooks/hooks.test.sh
@@ -659,7 +663,7 @@ EOF
 - Consumes: `hook_err`, `hook_info` de Task 1; `staged_files` de Task 3.
 - Produces: `scan_secrets <archivo>...` — 0 si limpio, 1 si detecta algo. **Nunca degrada.**
 
-- [ ] **Step 1: Escribir los tests que fallan**
+- [x] **Step 1: Escribir los tests que fallan**
 
 Insertar en `.githooks/hooks.test.sh` antes del resumen final:
 
@@ -705,12 +709,12 @@ assert_eq "1" "$(PATH=/nonexistent scan_secrets "$SEC_TMP/README.md" >/dev/null 
 rm -rf "$SEC_TMP"
 ```
 
-- [ ] **Step 2: Ejecutar para verificar que falla**
+- [x] **Step 2: Ejecutar para verificar que falla**
 
 Run: `bash .githooks/hooks.test.sh`
 Expected: FAIL — `scan_secrets: command not found`
 
-- [ ] **Step 3: Añadir `scan_secrets` a `.githooks/pre-commit`**
+- [x] **Step 3: Añadir `scan_secrets` a `.githooks/pre-commit`**
 
 Insertar entre la función `lint_staged` y el bloque `if [ "${BASH_SOURCE[0]}" ... ]`:
 
@@ -766,7 +770,7 @@ scan_secrets() {
 }
 ```
 
-- [ ] **Step 4: Llamar a `scan_secrets` desde el bloque de ejecución**
+- [x] **Step 4: Llamar a `scan_secrets` desde el bloque de ejecución**
 
 Reemplazar el bloque final de `.githooks/pre-commit` por:
 
@@ -795,17 +799,17 @@ assert_eq "1" "$(scan_secrets "$SEC_TMP/nombre con espacios.txt" >/dev/null 2>&1
     "detecta secretos en archivos con espacios en el nombre"
 ```
 
-- [ ] **Step 5: Correr la suite**
+- [x] **Step 5: Correr la suite**
 
 Run: `bash .githooks/hooks.test.sh`
 Expected: `54/54 tests pasaron`, código 0
 
-- [ ] **Step 6: Verificar shellcheck**
+- [x] **Step 6: Verificar shellcheck**
 
 Run: `shellcheck -x -S warning .githooks/pre-commit`
 Expected: sin salida, código 0
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add .githooks/pre-commit .githooks/hooks.test.sh
@@ -834,7 +838,7 @@ EOF
 - Consumes: `hook_err`, `hook_info`, `has` de Task 1.
 - Produces: `check_push_ref <ref-local>` — 0 si se puede empujar, 1 si es `main`.
 
-- [ ] **Step 1: Escribir los tests que fallan**
+- [x] **Step 1: Escribir los tests que fallan**
 
 Insertar en `.githooks/hooks.test.sh` antes del resumen final:
 
@@ -857,12 +861,12 @@ assert_contains "--no-verify" "$(check_push_ref 'refs/heads/main' 2>&1)" \
     "el error explica el bypass"
 ```
 
-- [ ] **Step 2: Ejecutar para verificar que falla**
+- [x] **Step 2: Ejecutar para verificar que falla**
 
 Run: `bash .githooks/hooks.test.sh`
 Expected: FAIL — `.githooks/pre-push: No such file or directory`
 
-- [ ] **Step 3: Escribir `.githooks/pre-push`**
+- [x] **Step 3: Escribir `.githooks/pre-push`**
 
 ```bash
 #!/usr/bin/env bash
@@ -923,7 +927,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 fi
 ```
 
-- [ ] **Step 4: Hacerlo ejecutable y correr la suite**
+- [x] **Step 4: Hacerlo ejecutable y correr la suite**
 
 Run:
 ```bash
@@ -932,12 +936,12 @@ bash .githooks/hooks.test.sh
 ```
 Expected: `60/60 tests pasaron`, código 0
 
-- [ ] **Step 5: Verificar shellcheck**
+- [x] **Step 5: Verificar shellcheck**
 
 Run: `shellcheck -x -S warning .githooks/pre-push`
 Expected: sin salida, código 0
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add .githooks/pre-push .githooks/hooks.test.sh
@@ -965,7 +969,7 @@ EOF
 - Consumes: `log`, `ok`, `warn`, `section` de `lib/common.sh`; `DOTFILES_DIR`, `DRY_RUN` de `install.sh`.
 - Produces: `phase_repo` — configura `core.hooksPath`. Sin valor de retorno usado.
 
-- [ ] **Step 1: Capturar la salida del `--dry-run` actual como oráculo**
+- [x] **Step 1: Capturar la salida del `--dry-run` actual como oráculo**
 
 Run:
 ```bash
@@ -974,7 +978,7 @@ wc -l /tmp/dryrun-antes.txt
 ```
 Expected: el archivo tiene contenido; guárdalo para comparar en el Step 5.
 
-- [ ] **Step 2: Escribir `lib/repo.sh`**
+- [x] **Step 2: Escribir `lib/repo.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -1028,7 +1032,7 @@ phase_repo() {
 }
 ```
 
-- [ ] **Step 3: Cargar la fase en `install.sh`**
+- [x] **Step 3: Cargar la fase en `install.sh`**
 
 Localizar la línea que hace `source` de `lib/symlinks.sh` y añadir debajo:
 
@@ -1037,11 +1041,11 @@ Localizar la línea que hace `source` de `lib/symlinks.sh` y añadir debajo:
 source "$SCRIPT_DIR/lib/repo.sh"
 ```
 
-- [ ] **Step 4: Llamar a la fase en `install.sh`**
+- [x] **Step 4: Llamar a la fase en `install.sh`**
 
 Localizar la llamada a `phase_symlinks` y añadir `phase_repo` inmediatamente después, antes de `phase_verify`.
 
-- [ ] **Step 5: Comprobar equivalencia y la línea nueva**
+- [x] **Step 5: Comprobar equivalencia y la línea nueva**
 
 Run:
 ```bash
@@ -1050,7 +1054,7 @@ diff /tmp/dryrun-antes.txt /tmp/dryrun-despues.txt
 ```
 Expected: la única diferencia es la sección nueva con `DRY-RUN: git config core.hooksPath .githooks`. Ninguna línea preexistente cambia ni desaparece.
 
-- [ ] **Step 6: Verificar shellcheck y activar los hooks de verdad**
+- [x] **Step 6: Verificar shellcheck y activar los hooks de verdad**
 
 Run:
 ```bash
@@ -1060,7 +1064,7 @@ git config --get core.hooksPath
 ```
 Expected: shellcheck sin salida; `git config --get` imprime `.githooks`
 
-- [ ] **Step 7: Commit — este es el primero que pasa por los hooks**
+- [x] **Step 7: Commit — este es el primero que pasa por los hooks**
 
 ```bash
 git add lib/repo.sh install.sh
@@ -1089,7 +1093,7 @@ Expected: el commit pasa por `commit-msg` y `pre-commit` sin bloquear.
 - Consumes: nada del repo; solo `git`.
 - Produces: `scripts/changelog.sh` escribe `CHANGELOG.md`. Con `--check` no escribe y devuelve 1 si el archivo en disco difiere del generado.
 
-- [ ] **Step 1: Escribir `scripts/changelog.sh`**
+- [x] **Step 1: Escribir `scripts/changelog.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -1268,7 +1272,7 @@ generar > "$OUT"
 printf 'CHANGELOG.md regenerado\n'
 ```
 
-- [ ] **Step 2: Hacerlo ejecutable y generar el archivo**
+- [x] **Step 2: Hacerlo ejecutable y generar el archivo**
 
 Run:
 ```bash
@@ -1278,7 +1282,7 @@ head -30 CHANGELOG.md
 ```
 Expected: `CHANGELOG.md regenerado`, y el archivo empieza con `# Changelog` seguido de secciones `## <fecha> · <asunto>`.
 
-- [ ] **Step 3: Verificar que `--check` detecta la desincronización**
+- [x] **Step 3: Verificar que `--check` detecta la desincronización**
 
 Run:
 ```bash
@@ -1290,7 +1294,7 @@ printf '\nlinea intrusa\n' >> CHANGELOG.md
 ```
 Expected: primero `AL DIA`; luego `rc=1` con el diff; tras regenerar, `AL DIA OTRA VEZ`.
 
-- [ ] **Step 4: Verificar que el encabezado sobrevive al merge**
+- [x] **Step 4: Verificar que el encabezado sobrevive al merge**
 
 Es la propiedad de la que depende todo el check de drift: si el texto cambia al
 mergear, el archivo se desincroniza solo por integrar. Se prueba en un repo de usar y
@@ -1317,7 +1321,7 @@ cd "$OLDPWD" && rm -rf "$T"
 ```
 Expected: `ESTABLE`, con ambas líneas iguales (`## <fecha> · feat/prueba-encabezado`). Si sale `INESTABLE`, el `sed` de `encabezado_de_merge` o la fecha de `fecha_de` no coinciden entre los dos caminos — arreglar antes de seguir, porque el job `changelog-drift` depende de esto.
 
-- [ ] **Step 5: Verificar que `--check` converge**
+- [x] **Step 5: Verificar que `--check` converge**
 
 Es la propiedad que hace posible el job `changelog-drift`. Sin la exclusión de los commits
 que solo tocan `CHANGELOG.md`, esto no converge nunca.
@@ -1332,12 +1336,12 @@ Expected: `rc=0`. El commit de regeneración no aparece en el archivo, así que 
 después de commitearlo produce el mismo texto. Si sale `rc=1`, el archivo es
 insatisfacible y el CI fallaría para siempre: para y reporta.
 
-- [ ] **Step 6: Verificar shellcheck**
+- [x] **Step 6: Verificar shellcheck**
 
 Run: `shellcheck -S warning scripts/changelog.sh`
 Expected: sin salida, código 0
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/changelog.sh CHANGELOG.md
@@ -1368,7 +1372,7 @@ EOF
 - Consumes: `.githooks/commit-msg` de Task 2, `.githooks/hooks.test.sh` de Tasks 1–5, `scripts/changelog.sh` de Task 7.
 - Produces: jobs `commit-lint` y `changelog-drift`; el job `lint-and-test` pasa a correr también la suite de hooks.
 
-- [ ] **Step 1: Escribir `.github/pull_request_template.md`**
+- [x] **Step 1: Escribir `.github/pull_request_template.md`**
 
 ```markdown
 ## Qué cambia
@@ -1390,16 +1394,16 @@ $
 
 ## Checklist
 
-- [ ] Los mensajes de commit siguen la convención (`.githooks/commit-msg` los validó)
-- [ ] `bash .githooks/hooks.test.sh` pasa
-- [ ] `zsh config/zsh/gcp.test.zsh` pasa si se tocó `config/zsh/`
-- [ ] `shellcheck -x -S warning install.sh` pasa si se tocó `install.sh` o `lib/`
-- [ ] `./install.sh --dry-run` comparado antes/después si se tocó el instalador
-- [ ] `./scripts/changelog.sh` regenerado como último paso antes del push
-- [ ] `CLAUDE.md` actualizado si cambió una convención
+- [x] Los mensajes de commit siguen la convención (`.githooks/commit-msg` los validó)
+- [x] `bash .githooks/hooks.test.sh` pasa
+- [x] `zsh config/zsh/gcp.test.zsh` pasa si se tocó `config/zsh/`
+- [x] `shellcheck -x -S warning install.sh` pasa si se tocó `install.sh` o `lib/`
+- [x] `./install.sh --dry-run` comparado antes/después si se tocó el instalador
+- [x] `./scripts/changelog.sh` regenerado como último paso antes del push
+- [x] `CLAUDE.md` actualizado si cambió una convención
 ```
 
-- [ ] **Step 2: Añadir la suite de hooks al job existente en `.github/workflows/ci.yml`**
+- [x] **Step 2: Añadir la suite de hooks al job existente en `.github/workflows/ci.yml`**
 
 Localizar el paso `- name: Suite de tests` y sustituirlo por:
 
@@ -1413,7 +1417,7 @@ Localizar el paso `- name: Suite de tests` y sustituirlo por:
           bash .githooks/hooks.test.sh
 ```
 
-- [ ] **Step 3: Añadir el job `commit-lint` al final de `ci.yml`**
+- [x] **Step 3: Añadir el job `commit-lint` al final de `ci.yml`**
 
 ```yaml
   commit-lint:
@@ -1448,7 +1452,7 @@ Localizar el paso `- name: Suite de tests` y sustituirlo por:
           exit $rc
 ```
 
-- [ ] **Step 4: Añadir el job `changelog-drift` al final de `ci.yml`**
+- [x] **Step 4: Añadir el job `changelog-drift` al final de `ci.yml`**
 
 ```yaml
   changelog-drift:
@@ -1469,7 +1473,7 @@ Localizar el paso `- name: Suite de tests` y sustituirlo por:
         run: ./scripts/changelog.sh --check
 ```
 
-- [ ] **Step 5: Validar la sintaxis del workflow**
+- [x] **Step 5: Validar la sintaxis del workflow**
 
 Run:
 ```bash
@@ -1477,7 +1481,7 @@ python3 -c "import yaml,sys; yaml.safe_load(open('.github/workflows/ci.yml')); p
 ```
 Expected: `YAML OK`
 
-- [ ] **Step 6: Probar el job de commit-lint en local sobre la rama actual**
+- [x] **Step 6: Probar el job de commit-lint en local sobre la rama actual**
 
 Run:
 ```bash
@@ -1490,7 +1494,7 @@ echo "rc=$rc"
 ```
 Expected: `rc=0` — todos los commits de la rama pasan su propia regla.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add .github/pull_request_template.md .github/workflows/ci.yml
@@ -1520,12 +1524,12 @@ EOF
 - Consumes: `.githooks/commit-msg` de Task 2 (indirectamente, vía `git commit`).
 - Produces: función `dots <mensaje>` en el entorno interactivo.
 
-- [ ] **Step 1: Localizar el alias actual**
+- [x] **Step 1: Localizar el alias actual**
 
 Run: `grep -n "alias dots" zshrc`
 Expected: una línea con el alias `git add . && commit … && push`.
 
-- [ ] **Step 2: Sustituir el alias por la función**
+- [x] **Step 2: Sustituir el alias por la función**
 
 Reemplazar esa línea por:
 
@@ -1566,12 +1570,12 @@ dots() {
 }
 ```
 
-- [ ] **Step 3: Comprobar la sintaxis**
+- [x] **Step 3: Comprobar la sintaxis**
 
 Run: `zsh -n zshrc && echo "ZSH OK"`
 Expected: `ZSH OK`
 
-- [ ] **Step 4: Probar la derivación del nombre de rama sin tocar git**
+- [x] **Step 4: Probar la derivación del nombre de rama sin tocar git**
 
 Run:
 ```bash
@@ -1592,12 +1596,12 @@ letra base: antepone la marca diacrítica como carácter ASCII suelto — `á`�
 palabra por la mitad: `dinámico` → `din'amico` → `din-amico`. En Linux con glibc el
 artefacto no aparece, así que el `tr` es inocuo allí.
 
-- [ ] **Step 5: Probar el error sin argumento**
+- [x] **Step 5: Probar el error sin argumento**
 
 Run: `zsh -c 'source zshrc >/dev/null 2>&1; dots; echo "rc=$?"' 2>&1 | tail -3`
 Expected: el mensaje de uso y `rc=2`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add zshrc
@@ -1627,7 +1631,7 @@ EOF
 - Consumes: todo lo anterior.
 - Produces: nada ejecutable.
 
-- [ ] **Step 1: Añadir la sección de flujo a `CLAUDE.md`**
+- [x] **Step 1: Añadir la sección de flujo a `CLAUDE.md`**
 
 Insertar después de la sección "Installation & common commands":
 
@@ -1661,7 +1665,7 @@ Los hooks se activan solos con `./install.sh` (`phase_repo` → `core.hooksPath`
 `git commit --no-verify` existe para emergencias reales, no para saltarse un mensaje mal escrito.
 ```
 
-- [ ] **Step 2: Actualizar la referencia obsoleta a `dots` en `CLAUDE.md`**
+- [x] **Step 2: Actualizar la referencia obsoleta a `dots` en `CLAUDE.md`**
 
 Localizar el bloque:
 
@@ -1678,7 +1682,7 @@ Sustituir la línea del alias por:
 dots 'fix(zshrc): quitar alias que rompía du'   # rama + commit + push + PR
 ```
 
-- [ ] **Step 3: Añadir la sección al `README.md`**
+- [x] **Step 3: Añadir la sección al `README.md`**
 
 Insertar antes de "🛡️ Notas de seguridad", y añadir la entrada correspondiente al índice:
 
@@ -1701,7 +1705,7 @@ Se activan con `./install.sh`. Comprobar: `git config --get core.hooksPath` → 
 Spec del arnés: `docs/superpowers/specs/2026-08-08-arnes-trazabilidad-design.md`
 ```
 
-- [ ] **Step 4: Regenerar el CHANGELOG y correr todo**
+- [x] **Step 4: Regenerar el CHANGELOG y correr todo**
 
 Run:
 ```bash
@@ -1713,7 +1717,7 @@ zsh -n zshrc
 ```
 Expected: todo pasa, código 0 en cada uno.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add CLAUDE.md README.md CHANGELOG.md
@@ -1740,7 +1744,7 @@ EOF
 - Consumes: todo lo anterior.
 - Produces: `main` protegido; ramas obsoletas resueltas.
 
-- [ ] **Step 1: Empujar las dos ramas y abrir los PRs**
+- [x] **Step 1: Empujar las dos ramas y abrir los PRs**
 
 Run:
 ```bash
@@ -1752,7 +1756,7 @@ gh pr create --head feat/terminal-iterm2-fuentes --fill \
 ```
 Expected: dos PRs abiertos. `pre-push` corre las suites antes de cada push.
 
-- [ ] **Step 2: Esperar CI y mergear el PR del arnés**
+- [x] **Step 2: Esperar CI y mergear el PR del arnés**
 
 Run:
 ```bash
@@ -1761,7 +1765,7 @@ gh pr merge --merge --delete-branch
 ```
 Expected: checks en verde; merge con commit de merge (no squash).
 
-- [ ] **Step 3: Inspeccionar las 4 ramas remotas obsoletas antes de tocarlas**
+- [x] **Step 3: Inspeccionar las 4 ramas remotas obsoletas antes de tocarlas**
 
 Run:
 ```bash
@@ -1774,7 +1778,7 @@ done
 ```
 Expected: el contenido del único commit de cada rama. **No borrar nada aún**: reportar al usuario qué hay en cada una y esperar su decisión.
 
-- [ ] **Step 4: Limpiar los worktrees huérfanos**
+- [x] **Step 4: Limpiar los worktrees huérfanos**
 
 Run:
 ```bash
@@ -1784,7 +1788,7 @@ git worktree list
 ```
 Expected: desaparecen los que ya no tienen directorio. Los que sigan, confirmar con el usuario antes de `git worktree remove`.
 
-- [ ] **Step 5: Resolver el PR de dependabot**
+- [x] **Step 5: Resolver el PR de dependabot**
 
 Run:
 ```bash
@@ -1793,7 +1797,7 @@ gh pr checks 5
 ```
 Expected: mostrar el estado al usuario y preguntar si mergear la subida de `actions/checkout` 5→7.
 
-- [ ] **Step 6: Aplicar la protección de `main` — REQUIERE CONFIRMACIÓN EXPLÍCITA**
+- [x] **Step 6: Aplicar la protección de `main` — REQUIERE CONFIRMACIÓN EXPLÍCITA**
 
 Es una acción sobre un repo público. Pedir confirmación antes de ejecutar.
 
@@ -1820,7 +1824,7 @@ gh api -X PUT repos/kr0nicas/dotfiles/branches/main/protection \
 JSON
 ```
 
-- [ ] **Step 7: Verificar que la protección funciona de verdad**
+- [x] **Step 7: Verificar que la protección funciona de verdad**
 
 Run:
 ```bash
