@@ -120,6 +120,21 @@ phase_packages() {
             sudo DEBIAN_FRONTEND=noninteractive apt install -y \
                 mtr-tiny nmap socat iperf3 tshark 2>/dev/null || true
 
+            # faketime = libfaketime del Brewfile. Es una .so que se precarga
+            # con LD_PRELOAD, no un binario estático, así que va por apt igual
+            # que las de red y no por phase_binaries.
+            sudo apt install -y faketime 2>/dev/null || true
+
+            # postgresql-client = libpq del Brewfile: da psql, pg_dump y
+            # pg_isready sin instalar el servidor. Gateado como su Brewfile —
+            # libpq vive en Brewfile.cloud, así que los presets --minimal y
+            # --container no deben traerlo tampoco en Linux.
+            if [[ $INSTALL_CLOUD -eq 1 ]]; then
+                sudo apt install -y postgresql-client 2>/dev/null || true
+            else
+                warn "Skipping postgresql-client (--no-cloud)"
+            fi
+
             # gh (GitHub CLI) — necesita su propio repo
             if ! command -v gh >/dev/null 2>&1; then
                 log "Agregando repo GitHub CLI..."
