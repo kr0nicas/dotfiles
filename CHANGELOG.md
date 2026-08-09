@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · fix/docker-link-conflict
+
+### Fixes
+
+- **brew**: quitar el link: false que dejaba docker sin CLI (`324d422`)
+
 ## 2026-08-09 · feat/brew-trust-hint
 
 ### Features
