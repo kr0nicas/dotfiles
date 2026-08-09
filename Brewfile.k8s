@@ -23,3 +23,7 @@ brew "kubecolor"
 # --- Service mesh / observability ---
 brew "istioctl"
 brew "grpcurl"
+brew "kubeshark"    # tcpdump para k8s: tráfico entre pods en una web local
+
+# --- Diagnóstico de imágenes ---
+brew "dive"         # explorador de capas: por qué esta imagen pesa lo que pesa

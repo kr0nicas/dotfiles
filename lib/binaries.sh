@@ -17,6 +17,16 @@ phase_binaries() {
             *)       GH_ARCH="x86_64"  ;;
         esac
 
+        # Cuarta convención, y solo la usa termshark: llama `x64` a lo que uname
+        # dice x86_64 y las otras tres variables llaman x86_64 o amd64. No cabe
+        # en ninguna de ellas, así que tiene la suya en vez de forzar el mapeo.
+        case "$ARCH_TYPE" in
+            x86_64)  TERMSHARK_ARCH="x64"   ;;
+            aarch64) TERMSHARK_ARCH="arm64" ;;
+            arm64)   TERMSHARK_ARCH="arm64" ;;
+            *)       TERMSHARK_ARCH="x64"   ;;
+        esac
+
         # Consulta la API de GitHub, autenticando si hay token en el entorno.
         #
         # Anónimo son 60 req/h por IP y este instalador gasta dos por binario
@@ -238,6 +248,76 @@ phase_binaries() {
         # venv y enlaza el ejecutable en ~/.local/bin, sin sudo.
         install_if_missing "yamllint" "uv tool install yamllint"
 
+        # --- Red y diagnóstico ---
+        # Los cuatro que faltan aquí (mtr, nmap, socat, iperf3) van por apt en
+        # phase_packages: son C contra las libs del sistema y no publican
+        # binarios estáticos.
+        #
+        # Cada install_if_missing de este bloque gasta dos llamadas a la API de
+        # GitHub (asset + checksums). Son siete, así que una instalación anónima
+        # se acerca al límite de 60 req/h que ya avisa gh_latest_url. Con
+        # GH_TOKEN o GITHUB_TOKEN en el entorno el límite sube a 5000 y deja de
+        # importar; el CI ya lo pasa.
+
+        # El ejecutable de trippy se llama `trip`, no `trippy`. install_if_missing
+        # comprueba el comando, así que con el nombre del proyecto lo reinstalaría
+        # en cada pasada creyendo que nunca está.
+        #
+        # ARCH_TYPE: triple de Rust (aarch64-unknown-linux-gnu). El `$` final
+        # descarta las variantes musl, deb y rpm del mismo release.
+        install_if_missing "trip" \
+            "gh_latest_tar fujiapple852/trippy '${ARCH_TYPE}-unknown-linux-gnu.tar.gz\$' $LOCAL_BIN '--strip-components=1 --wildcards */trip'"
+
+        # ARCH (convención de Go). El tar mete el binario en step_<versión>/bin/step,
+        # de ahí el strip-components=2 en vez del 1 habitual.
+        install_if_missing "step" \
+            "gh_latest_tar smallstep/cli 'step_linux_.*_${ARCH}.tar.gz\$' $LOCAL_BIN '--strip-components=2 --wildcards */bin/step'"
+
+        # ARCH_TYPE: triple de Rust. El binario va en la raíz del tar, junto a un
+        # directorio assets/ con las completions que no nos interesa extraer.
+        install_if_missing "bandwhich" \
+            "gh_latest_tar imsnif/bandwhich '${ARCH_TYPE}-unknown-linux-gnu.tar.gz\$' $LOCAL_BIN bandwhich"
+
+        # TERMSHARK_ARCH: ver el case de arriba. Necesita `tshark` para capturar,
+        # que instala phase_packages por apt.
+        install_if_missing "termshark" \
+            "gh_latest_tar gcla/termshark 'linux_${TERMSHARK_ARCH}.tar.gz\$' $LOCAL_BIN '--strip-components=1 --wildcards */termshark'"
+
+        # ARCH: oha publica binario suelto. El `$` es imprescindible aquí: sin él
+        # el patrón casa también oha-linux-amd64-pgo, que es otra build.
+        install_if_missing "oha" \
+            "gh_latest_bin hatoo/oha 'oha-linux-${ARCH}\$' $LOCAL_BIN/oha"
+
+        # ARCH_TYPE: doggo nombra con uname (doggo-linux-x86_64). El `$` descarta
+        # doggo_web, que es el servidor DNS-over-HTTPS y no el cliente.
+        install_if_missing "doggo" \
+            "gh_latest_tar mr-karan/doggo 'doggo-linux-${ARCH_TYPE}.tar.gz\$' $LOCAL_BIN doggo"
+
+        # lnav empaqueta el binario dentro de un directorio con la versión en el
+        # nombre (lnav-0.14.0/lnav), así que gh_latest_zip a secas dejaría un
+        # árbol en ~/.local/bin en vez de un ejecutable. Se extrae a un temporal
+        # pasando igualmente por gh_latest_zip —para no perder la verificación de
+        # checksums, que es justo lo que install_jless sí se salta— y se mueve
+        # solo el binario.
+        #
+        # GH_ARCH: lnav nombra x86_64/arm64, que es exactamente esa variable.
+        install_lnav() {
+            local tmp rc
+            tmp=$(mktemp -d) || return 1
+            gh_latest_zip tstack/lnav "linux-musl-${GH_ARCH}.zip\$" "$tmp"
+            rc=$?
+            if [[ $rc -eq 0 ]]; then
+                install -m 0755 "$tmp"/lnav-*/lnav "$LOCAL_BIN/lnav" || rc=1
+            fi
+            rm -rf "$tmp"
+            return $rc
+        }
+        install_if_missing "lnav" "install_lnav"
+
+        # sshuttle es Python puro y no publica binario, igual que yamllint. Mismo
+        # tratamiento: uv tool install, que phase_runtimes ya dejó disponible.
+        install_if_missing "sshuttle" "uv tool install sshuttle"
+
         # --- K8s tools (gated por --no-k8s / --minimal) ---
         if [[ $INSTALL_K8S -eq 1 ]]; then
             install_if_missing "k9s" \
@@ -245,8 +325,20 @@ phase_binaries() {
 
             install_if_missing "stern" \
                 "gh_latest_tar stern/stern 'linux_${ARCH}.tar.gz' $LOCAL_BIN stern"
+
+            # ARCH: binario suelto. kubeshark no publica checksums consolidados
+            # sino un .sha256 por asset, que es el fallback que gh_checksums ya
+            # tiene desde ruff — se verifica sin tocar nada.
+            install_if_missing "kubeshark" \
+                "gh_latest_bin kubeshark/kubeshark 'kubeshark_linux_${ARCH}\$' $LOCAL_BIN/kubeshark"
+
+            # ARCH. Va con k8s y no en el bloque base porque replica el split del
+            # Brewfile: dive inspecciona imágenes de contenedor, y sin runtime
+            # instalado no hay ninguna que inspeccionar.
+            install_if_missing "dive" \
+                "gh_latest_tar wagoodman/dive 'linux_${ARCH}.tar.gz\$' $LOCAL_BIN dive"
         else
-            warn "Skipping k9s/stern (--no-k8s)"
+            warn "Skipping k9s/stern/kubeshark/dive (--no-k8s)"
         fi
 
         install_jless() {

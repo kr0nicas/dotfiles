@@ -50,6 +50,22 @@ phase_packages() {
             sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop zstd unzip gnupg \
                 zsh-autosuggestions zsh-syntax-highlighting bsdextrautils 2>/dev/null || true
 
+            # Red y diagnóstico. Estos cuatro son C compilado contra las libs del
+            # sistema y no publican binarios estáticos en GitHub, así que van por
+            # apt y no por phase_binaries como el resto.
+            #
+            # mtr-tiny y no mtr: en Debian el paquete `mtr` arrastra GTK para su
+            # frontend gráfico, inútil en un VPS headless. El binario `mtr` es el
+            # mismo en ambos.
+            #
+            # DEBIAN_FRONTEND=noninteractive es obligatorio por tshark: su
+            # postinst abre un diálogo debconf preguntando si los no-root pueden
+            # capturar paquetes, y sin esto la instalación se queda colgada
+            # esperando una respuesta que en CI no va a llegar nunca. La respuesta
+            # por defecto (no) es la que queremos.
+            sudo DEBIAN_FRONTEND=noninteractive apt install -y \
+                mtr-tiny nmap socat iperf3 tshark 2>/dev/null || true
+
             # gh (GitHub CLI) — necesita su propio repo
             if ! command -v gh >/dev/null 2>&1; then
                 log "Agregando repo GitHub CLI..."

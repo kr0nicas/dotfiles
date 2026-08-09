@@ -3,6 +3,21 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · feat/red-diagnostico
+
+### Features
+
+- **brew**: añadir herramientas de red y diagnóstico en macOS (`285429d`)
+- **lib**: instalar las herramientas de red y diagnóstico en Linux (`d306a53`)
+
+### Documentación
+
+- **claude**: documentar la cuarta convención de arquitectura (`09f103c`)
+
+### CI
+
+- verificar las herramientas de red en la instalación real (`5266007`)
+
 ## 2026-08-09 · docs/higiene-referencias
 
 ### Documentación
