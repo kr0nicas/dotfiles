@@ -149,7 +149,7 @@ gcx who            Config, cuenta y proyecto activos
 gcx -h             Hoja de referencia completa, con las configs listadas en vivo
 ```
 
-El dispatcher acepta además `project` como sinónimo de `p`, y `--help`/`help` de `-h`. Aliases en `zshrc:278-282`: `gcpers`, `gcit`, `gcfact`, `gckel` (todos delegan en `gcx use`) y `gcwho`.
+El dispatcher acepta además `project` como sinónimo de `p`, y `--help`/`help` de `-h`. Los aliases viven en `zshrc` (búscalos con `grep -n 'gcx use' zshrc`, no por número de línea: se mueven): `gcpers`, `gcit`, `gcfact`, `gckel` (todos delegan en `gcx use`) y `gcwho`.
 
 - **Principio de diseño, no negociable**: ningún mensaje de **estado** hardcodea cuenta ni proyecto — todo se lee de `gcloud` en tiempo real. Es la causa raíz del defecto original. La única excepción es la sección ALIASES de `gcx -h`, que es documentación estática. Si añades un mensaje, léelo de `gcloud`, nunca de una constante.
 - **Se llama `gcx`, no `gcp`**: `gcp` es el `cp` de GNU que instala Homebrew coreutils (`/usr/local/bin/gcp`). El archivo `gcp.zsh`, los helpers `_gcp_*`, la variable `GCP_CACHE_DIR` y la caché `~/.cache/gcp` sí conservan el prefijo `gcp` a propósito: nombran el dominio (Google Cloud Platform), no el comando. No los "unifiques".
