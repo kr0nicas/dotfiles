@@ -3,6 +3,13 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · fix/rtk-hook-sin-binario
+
+### Fixes
+
+- **claude**: versionar la config real y guardar el hook de rtk (`028d3d3`)
+- **claude**: que statusline no trate $HOME como patron al recortar (`14b6c51`)
+
 ## 2026-08-09 · fix/zshrc-colision-alias-dots
 
 ### Fixes

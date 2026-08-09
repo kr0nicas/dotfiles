@@ -23,7 +23,9 @@ lines_del=$(printf '%s' "$input" | jq -r '.cost.total_lines_removed // 0')
 [[ -z "$cwd" ]] && cwd="$PWD"
 case "$cwd" in
     "$HOME")   short_cwd="~" ;;
-    "$HOME"/*) short_cwd="~${cwd#$HOME}" ;;
+    # Las comillas internas no son de estilo: sin ellas $HOME se expande como
+    # patrón, no como literal, y un HOME con caracteres de glob recortaría mal.
+    "$HOME"/*) short_cwd="~${cwd#"$HOME"}" ;;
     *)         short_cwd="$cwd" ;;
 esac
 

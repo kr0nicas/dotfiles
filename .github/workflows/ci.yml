@@ -62,7 +62,7 @@ jobs:
           # .githooks/pre-commit. El hook va de uno en uno y este job pasa todos
           # los archivos juntos: sin -x, un `. lib.sh` es SC1091 en el hook y no
           # aquí, y el commit falla contra un CI verde.
-          shellcheck -x -S info scripts/*.sh \
+          shellcheck -x -S info scripts/*.sh config/claude/*.sh \
             .githooks/commit-msg .githooks/pre-commit .githooks/pre-push \
             .githooks/lib.sh .githooks/hooks.test.sh
           # -x también aquí: sourcea lib/packages.sh para probar una de sus
@@ -79,6 +79,7 @@ jobs:
           zsh config/zsh/zshrc.test.zsh
           bash .githooks/hooks.test.sh
           bash lib/packages.test.sh
+          bash config/claude/settings.test.sh
 
   commit-lint:
     name: Mensajes de commit
