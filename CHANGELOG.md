@@ -3,6 +3,17 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · chore/limpieza-zshrc
+
+### Fixes
+
+- **zshrc**: poner Homebrew antes de /usr/local/bin y según arquitectura (`e2f624d`)
+- **zshrc**: que `ga` use git add -A en vez de add por directorio (`77690b4`)
+
+### Mantenimiento
+
+- **zshrc**: quitar la línea muerta de completions de nvm (`56f1405`)
+
 ## 2026-08-08 · fix/ssh-extraccion-host
 
 ### Fixes
