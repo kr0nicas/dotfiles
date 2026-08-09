@@ -64,6 +64,10 @@ brew "yamllint"
 brew "stylua"
 brew "ruff"
 brew "pre-commit"
+# golangci-lint no lo declara nvim-lint (que para Go no configura nada): es el
+# linter de línea de comandos y de CI. Va aquí y no en la sección Go de abajo
+# porque esa usa `go "..."`, que compila desde fuente en cada máquina.
+brew "golangci-lint"
 
 # --- Security ---
 brew "trivy"
@@ -71,6 +75,7 @@ brew "pass"
 brew "pinentry-mac"
 brew "sops"
 brew "age"
+brew "gitleaks"       # escáner de secretos; base y no .cloud: escanea cualquier repo git
 
 # --- Languages ---
 brew "go"
@@ -82,6 +87,11 @@ brew "maven"
 brew "jenv"
 
 # --- Misc ---
+# libfaketime: `faketime '2026-01-01' <cmd>` miente la fecha a un proceso sin
+# tocar el reloj del sistema. Es tooling de este repo: el arnés de CHANGELOG y
+# los hooks agrupan por fecha, y probar esos caminos sin falsear el reloj
+# obliga a esperar a mañana. En Debian el paquete se llama `faketime`.
+brew "libfaketime"
 brew "openssl@3"
 brew "telnet"
 brew "nghttp2"

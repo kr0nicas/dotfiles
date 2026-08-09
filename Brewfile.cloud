@@ -10,6 +10,12 @@ tap "terraform-linters/tap"
 brew "awscli"
 brew "azure-cli"
 
+# libpq da `psql`, `pg_dump` y `pg_isready` sin arrastrar el servidor de
+# PostgreSQL. Es keg-only: brew no lo enlaza en el PATH y hay que llamarlo por
+# ruta o añadir $(brew --prefix libpq)/bin. En Debian el equivalente que trae
+# los mismos clientes es `postgresql-client`.
+brew "libpq"
+
 # --- IaC ---
 brew "hashicorp/tap/terraform"
 brew "hashicorp/tap/vault"
