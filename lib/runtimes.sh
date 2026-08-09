@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fase: fnm/Node, fzf, starship, zoxide y uv.
+# Fase: fnm/Node, fzf, starship y uv. zoxide vive en lib/binaries.sh.
 # Cargado por install.sh. No ejecutar suelto.
 
 phase_runtimes() {
@@ -47,9 +47,14 @@ phase_runtimes() {
     fi
 
     # ------------------------------------------------------------------------------
-    # 6. STARSHIP, ZOXIDE, UV (si no vienen del Brewfile/apt)
+    # 6. STARSHIP, UV (si no vienen del Brewfile/apt)
     # ------------------------------------------------------------------------------
-    section "Starship · Zoxide · uv"
+    # zoxide salió de aquí: su instalador oficial consulta api.github.com sin
+    # autenticar, y el límite anónimo de 60 req/h por IP tumbaba la instalación
+    # en runners compartidos. Ahora lo baja phase_binaries con gh_latest_tar, que
+    # sí usa GH_TOKEN cuando está. Se comprobó uno a uno que los tres de abajo no
+    # tienen ese problema: solo el de zoxide llamaba a la API.
+    section "Starship · uv"
 
     install_if_missing() {
         local cmd=$1 install_cmd=$2
@@ -66,7 +71,6 @@ phase_runtimes() {
     }
 
     install_if_missing "starship" "curl -sS https://starship.rs/install.sh | sh -s -- --yes"
-    install_if_missing "zoxide"   "curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh"
     install_if_missing "uv"       "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 }
