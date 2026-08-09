@@ -55,6 +55,9 @@ jobs:
           shellcheck -S warning scripts/*.sh config/bin/cn \
             .githooks/commit-msg .githooks/pre-commit .githooks/pre-push \
             .githooks/lib.sh .githooks/hooks.test.sh
+          # -x también aquí: sourcea lib/packages.sh para probar una de sus
+          # funciones, y sin seguir ese source shellcheck no la ve definida.
+          shellcheck -x -S warning lib/packages.test.sh
 
       # Las suites corren sin gcloud, sin fzf y sin shellcheck (usan stubs y
       # degradación): es intencional, para que valgan igual en un runner
@@ -64,6 +67,7 @@ jobs:
           zsh config/zsh/gcp.test.zsh
           zsh config/zsh/ssh.test.zsh
           bash .githooks/hooks.test.sh
+          bash lib/packages.test.sh
 
   commit-lint:
     name: Mensajes de commit

@@ -2,6 +2,24 @@
 # Fase: paquetes base (brew bundle en macOS, apt en Debian/Ubuntu).
 # Cargado por install.sh. No ejecutar suelto.
 
+# Extrae los taps que Homebrew rechazó por no estar en su lista de confianza,
+# leyendo una salida de `brew bundle` ya guardada en un archivo.
+#
+# Vive a nivel de archivo, y no dentro de phase_packages como el resto, para
+# poder probarla contra una salida capturada sin brew delante ni nada que
+# instalar: lib/packages.test.sh la ejercita así.
+#
+# El mensaje de Homebrew es "Refusing to load formula X from untrusted tap Y."
+# y aparece igual para casks y comandos externos, así que el anclaje es "from
+# untrusted tap" y no la palabra "formula". El punto final se recorta aparte
+# porque cierra la frase y no forma parte del nombre del tap.
+brew_untrusted_taps() {
+    [[ -f "$1" ]] || return 0
+    grep -o 'from untrusted tap [^ ]*' "$1" 2>/dev/null \
+        | sed 's/.*tap //; s/\.$//' \
+        | sort -u
+}
+
 phase_packages() {
     # ------------------------------------------------------------------------------
     # 3. INSTALACIÓN DE HERRAMIENTAS BASE
@@ -39,9 +57,34 @@ phase_packages() {
                 # no resuelve, y el instalador lo daba por bueno.
                 if [[ $DRY_RUN -eq 1 ]]; then
                     warn "DRY-RUN: brew bundle ${label:-base} omitido"
-                elif ! brew bundle --file="$file"; then
-                    warn "brew bundle ${label:-base} FALLÓ — revisa $file. Las herramientas que declara NO están instaladas."
+                    return
                 fi
+
+                # La salida se duplica con tee en vez de capturarse a secas: así
+                # el progreso de brew se sigue viendo en vivo —que puede ser un
+                # rato largo— y a la vez queda un archivo que inspeccionar si
+                # falla. El rc sale de PIPESTATUS porque el de la tubería es el
+                # de tee, que siempre es 0.
+                local out rc tap
+                out=$(mktemp) || { warn "No se pudo crear el temporal para la salida de brew"; return; }
+                brew bundle --file="$file" 2>&1 | tee "$out"
+                rc=${PIPESTATUS[0]}
+
+                if [[ $rc -ne 0 ]]; then
+                    warn "brew bundle ${label:-base} FALLÓ — revisa $file. Las herramientas que declara NO están instaladas."
+
+                    # Homebrew rechaza los taps no confiados con un mensaje que
+                    # no dice cómo resolverlo, y el fallo aborta el archivo
+                    # entero: todo lo declarado detrás se queda sin instalar. Se
+                    # traduce al comando exacto en vez de dejar al lector con el
+                    # texto de brew.
+                    while read -r tap; do
+                        [[ -n "$tap" ]] || continue
+                        warn "Causa: Homebrew no confía en el tap '$tap'. Autorízalo con:"
+                        warn "    brew trust --tap $tap"
+                    done < <(brew_untrusted_taps "$out")
+                fi
+                rm -f "$out"
             }
             run_bundle "" "$DOTFILES_DIR/Brewfile"        1
             run_bundle "cloud" "$DOTFILES_DIR/Brewfile.cloud" $INSTALL_CLOUD
