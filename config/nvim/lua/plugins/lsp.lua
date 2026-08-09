@@ -130,7 +130,11 @@ return {
         python = { "ruff_format" },
         go = { "goimports", "gofmt" },
         json = { "jq" },
-        terraform = { "terraform_fmt" },
+        -- tofu_fmt y no terraform_fmt: el binario que declaran Brewfile.cloud y
+        -- lib/binaries.sh es `tofu` en las dos plataformas. Con terraform_fmt
+        -- esto daba ENOENT en cada .tf en Linux, donde terraform nunca se
+        -- instaló.
+        terraform = { "tofu_fmt" },
         lua = { "stylua" },
       },
       format_on_save = { timeout_ms = 3000, lsp_fallback = true },

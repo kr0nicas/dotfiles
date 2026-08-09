@@ -444,8 +444,8 @@ phase_binaries() {
 
         # --- Cloud / IaC (gated por --no-cloud / --minimal) ---
         if [[ $INSTALL_CLOUD -eq 1 ]]; then
-            # tflint — linter de Terraform para nvim-lint. Va aquí y no en el
-            # bloque base porque en macOS vive en Brewfile.cloud: sin Terraform
+            # tflint — linter de HCL para nvim-lint. Va aquí y no en el bloque
+            # base porque en macOS vive en Brewfile.cloud: sin un motor de IaC
             # instalado no hay nada que lintar.
             #
             # ARCH y no ARCH_TYPE: tflint nombra sus assets con la convención de

@@ -17,7 +17,18 @@ brew "azure-cli"
 brew "libpq"
 
 # --- IaC ---
-brew "hashicorp/tap/terraform"
+#
+# OpenTofu y no Terraform, y en las dos plataformas. Durante un tiempo cada SO
+# instaló un motor distinto —macOS `hashicorp/tap/terraform`, Linux `tofu` desde
+# GitHub Releases— y de esa asimetría colgaban tres defectos: `lib/verify.sh`
+# comprobaba `tofu`, así que en cada Mac reportaba ❌ para siempre; `lib/menu.sh`
+# prometía terraform al activar cloud, cosa falsa en Linux; y conform llamaba a
+# `terraform_fmt`, que en Linux daba ENOENT en cada .tf.
+#
+# Se unifica en OpenTofu porque es lo que Linux ya había elegido, se instala
+# igual en las dos plataformas sin tap de terceros, y evita la licencia BUSL.
+# Es drop-in: lee el mismo HCL y `tfsec`/`tflint` siguen valiendo sin cambios.
+brew "opentofu"
 brew "hashicorp/tap/vault"
 brew "tfsec"
 
