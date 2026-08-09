@@ -3,6 +3,21 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · feat/deriva-de-paquetes
+
+### Features
+
+- **brew**: declarar cuatro paquetes que solo existían en esta máquina (`e9cb899`)
+- **lib**: emparejar en Linux los cuatro paquetes recién declarados (`0cdceaf`)
+
+### Documentación
+
+- **claude**: renombrar la variable de arquitectura y completar la tabla (`5ff57a1`)
+
+### CI
+
+- verificar en Debian los cuatro paquetes recién emparejados (`e41aff3`)
+
 ## 2026-08-09 · fix/topics-manager-y-huecos-doc
 
 ### Fixes

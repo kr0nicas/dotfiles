@@ -94,7 +94,7 @@ The OS split is the core architectural decision:
 - **`lib/binaries.sh`** — Linux only. Downloads SRE tool binaries (k9s, lazygit, stern, delta, etc.) from GitHub releases into `$HOME/.local/bin` — no sudo required. K8s tools gated by `$INSTALL_K8S`, cloud tools by `$INSTALL_CLOUD`. Verifica checksums; ver la nota de seguridad en la cabecera de `install.sh`.
   - **Los linters de nvim-lint van gateados como en el Brewfile**: `shellcheck` y `yamllint` son base, `tflint` va con cloud (en macOS vive en `Brewfile.cloud`). Sin esto, nvim-lint daba ENOENT en Linux igual que daba en Python antes de ruff.
   - **`yamllint` y `sshuttle` son la excepción al patrón `gh_latest_*`**: son paquetes de Python sin binario estático, así que se instalan con `uv tool install`. Funciona porque `phase_runtimes` (que instala uv) corre antes que `phase_binaries` — no reordenes esas dos fases.
-  - **Cuatro variables de arquitectura, no una.** `ARCH_TYPE` es `uname -m` crudo (`x86_64`/`aarch64`) y lo usan los proyectos que nombran assets con el triple de Rust o con uname (ruff, delta, dust, shellcheck, trippy, bandwhich, doggo); `ARCH` es la convención de Go (`amd64`/`arm64`) y la usan tflint, k9s, stern, sops, step, oha, dive, kubeshark; `GH_ARCH` traduce a `x86_64`/`arm64` para lazygit, kubectx, jless y lnav; y `TERMSHARK_ARCH` existe solo para termshark, que llama `x64` a lo que las otras tres llaman `x86_64` o `amd64`. Elegir la equivocada descarga el asset de otra arquitectura sin error visible. **Comprueba el patrón contra el release real antes de commitear** — es la única forma de detectarlo.
+  - **Cuatro variables de arquitectura, no una.** `ARCH_TYPE` es `uname -m` crudo (`x86_64`/`aarch64`) y lo usan los proyectos que nombran assets con el triple de Rust o con uname (ruff, delta, dust, shellcheck, trippy, bandwhich, doggo); `ARCH` es la convención de Go (`amd64`/`arm64`) y la usan tflint, k9s, stern, sops, step, oha, dive, kubeshark; `GH_ARCH` traduce a `x86_64`/`arm64` para lazygit, kubectx, jless y lnav; y `X64_ARCH` llama `x64` a lo que las otras tres llaman `x86_64` o `amd64`, y la usan termshark y gitleaks. Elegir la equivocada descarga el asset de otra arquitectura sin error visible. **Comprueba el patrón contra el release real antes de commitear** — es la única forma de detectarlo.
   - **Las herramientas de red que son C compilado van por apt, no por `gh_latest_*`**: `mtr-tiny`, `nmap`, `socat`, `iperf3` y `tshark` no publican binarios estáticos. `mtr-tiny` y no `mtr` porque el segundo arrastra GTK en Debian. `tshark` obliga a `DEBIAN_FRONTEND=noninteractive`: su postinst abre un diálogo debconf que cuelga la instalación en CI.
 - **zshrc** — single file with `if [[ "$OSTYPE" == "darwin"* ]]` guards for macOS-specific PATH entries and tools.
 
@@ -237,12 +237,13 @@ Wrapper for `@continuedev/cli` — finds the fnm/nvm node binary without requiri
 
 ### `scripts/` y documentos sueltos
 
-Dos scripts y dos documentos que no cuelgan de `install.sh` y que solo se descubren con un `ls`:
+Lo que no cuelga de `install.sh` y solo se descubre con un `ls`:
 
 | Archivo | Qué es |
 |---|---|
 | `scripts/changelog.sh` | Regenera `CHANGELOG.md` desde el historial: merge commits si la feature ya está en `main`, `main..HEAD` si sigue en rama. `--check` no escribe y sale 1 si difiere — es lo que corre el CI |
 | `scripts/github-topics-manager.sh` | Pone topics a un repo de GitHub vía `gh api`. `-l` lista repos, `-v <repo>` muestra los topics actuales |
+| `scripts/github-topics-manager.README.md` | Manual del anterior: reglas de validación de GitHub y catálogos de topics sugeridos por categoría |
 | `CHEAT_CODES.md` | Chuleta personal de ~480 líneas: atajos y aliases de shell, nvim, k8s, terraform, cloud CLIs, seguridad y tmux. Documentación pura, ningún programa la lee |
 | `VIM_GUIA.md` | Notas del `vimrc` de respaldo, para cajas sin nvim |
 

@@ -17,14 +17,19 @@ phase_binaries() {
             *)       GH_ARCH="x86_64"  ;;
         esac
 
-        # Cuarta convención, y solo la usa termshark: llama `x64` a lo que uname
-        # dice x86_64 y las otras tres variables llaman x86_64 o amd64. No cabe
-        # en ninguna de ellas, así que tiene la suya en vez de forzar el mapeo.
+        # Cuarta convención: llama `x64` a lo que uname dice x86_64 y las otras
+        # tres variables llaman x86_64 o amd64. No cabe en ninguna de ellas, así
+        # que tiene la suya en vez de forzar el mapeo.
+        #
+        # Se llamaba TERMSHARK_ARCH porque termshark era su único usuario.
+        # gitleaks nombra igual (gitleaks_..._linux_x64.tar.gz), así que el
+        # nombre pasa a describir la convención y no al proyecto: con el nombre
+        # viejo, usarla para gitleaks parecería un copy-paste equivocado.
         case "$ARCH_TYPE" in
-            x86_64)  TERMSHARK_ARCH="x64"   ;;
-            aarch64) TERMSHARK_ARCH="arm64" ;;
-            arm64)   TERMSHARK_ARCH="arm64" ;;
-            *)       TERMSHARK_ARCH="x64"   ;;
+            x86_64)  X64_ARCH="x64"   ;;
+            aarch64) X64_ARCH="arm64" ;;
+            arm64)   X64_ARCH="arm64" ;;
+            *)       X64_ARCH="x64"   ;;
         esac
 
         # Consulta la API de GitHub, autenticando si hay token en el entorno.
@@ -212,6 +217,15 @@ phase_binaries() {
         install_if_missing "trivy" \
             "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $LOCAL_BIN"
 
+        # X64_ARCH y no GH_ARCH ni ARCH: gitleaks publica linux_x64, no
+        # linux_x86_64 (GH_ARCH) ni linux_amd64 (ARCH). Comprobado contra el
+        # release real; con cualquiera de las otras dos, gh_latest_url no casa
+        # ningún asset y la instalación se salta sin decir que se la saltó.
+        #
+        # El binario va en la raíz del tar, junto a LICENSE y README.
+        install_if_missing "gitleaks" \
+            "gh_latest_tar gitleaks/gitleaks 'linux_${X64_ARCH}.tar.gz\$' $LOCAL_BIN gitleaks"
+
         install_if_missing "sops" \
             "gh_latest_bin getsops/sops 'linux.${ARCH}' $LOCAL_BIN/sops"
 
@@ -260,6 +274,18 @@ phase_binaries() {
         # venv y enlaza el ejecutable en ~/.local/bin, sin sudo.
         install_if_missing "yamllint" "uv tool install yamllint"
 
+        # golangci-lint. ARCH (amd64/arm64), la convención de Go, como tflint.
+        #
+        # El `$` final importa: el release publica también
+        # `...linux-amd64.tar.gz.sbom.json` junto al tarball, y el patrón sin
+        # anclar casa los dos. Hoy sale bien de casualidad porque el tarball va
+        # antes en la lista y `gh_latest_url` hace `head -1`; el día que el
+        # orden cambie, `tar -xz` recibiría un JSON. El ancla lo hace
+        # determinista. El binario cuelga de un directorio con el nombre
+        # completo del asset, de ahí el --strip-components.
+        install_if_missing "golangci-lint" \
+            "gh_latest_tar golangci/golangci-lint 'linux-${ARCH}.tar.gz\$' $LOCAL_BIN '--strip-components=1 --wildcards */golangci-lint'"
+
         # --- Red y diagnóstico ---
         # Los cuatro que faltan aquí (mtr, nmap, socat, iperf3) van por apt en
         # phase_packages: son C contra las libs del sistema y no publican
@@ -290,10 +316,10 @@ phase_binaries() {
         install_if_missing "bandwhich" \
             "gh_latest_tar imsnif/bandwhich '${ARCH_TYPE}-unknown-linux-gnu.tar.gz\$' $LOCAL_BIN bandwhich"
 
-        # TERMSHARK_ARCH: ver el case de arriba. Necesita `tshark` para capturar,
+        # X64_ARCH: ver el case de arriba. Necesita `tshark` para capturar,
         # que instala phase_packages por apt.
         install_if_missing "termshark" \
-            "gh_latest_tar gcla/termshark 'linux_${TERMSHARK_ARCH}.tar.gz\$' $LOCAL_BIN '--strip-components=1 --wildcards */termshark'"
+            "gh_latest_tar gcla/termshark 'linux_${X64_ARCH}.tar.gz\$' $LOCAL_BIN '--strip-components=1 --wildcards */termshark'"
 
         # ARCH: oha publica binario suelto. El `$` es imprescindible aquí: sin él
         # el patrón casa también oha-linux-amd64-pgo, que es otra build.
