@@ -7,9 +7,14 @@ No lo edites a mano: el CI regenera y compara.
 
 ### Fixes
 
-- **zshrc**: que el alias viejo de dots no aborte el archivo entero (`d46e646`)
 - **claude**: versionar la config real y guardar el hook de rtk (`028d3d3`)
 - **claude**: que statusline no trate $HOME como patron al recortar (`14b6c51`)
+
+## 2026-08-09 · fix/zshrc-colision-alias-dots
+
+### Fixes
+
+- **zshrc**: que el alias viejo de dots no aborte el archivo entero (`d46e646`)
 
 ## 2026-08-09 · feat/unificar-opentofu-y-cerrar-huecos
 
