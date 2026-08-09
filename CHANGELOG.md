@@ -3,6 +3,13 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · docs/higiene-referencias
+
+### Documentación
+
+- **claude**: citar los aliases de gcx por nombre, no por línea (`bb7c24d`)
+- **repo**: marcar como completados los planes y specs ya mergeados (`8f7316d`)
+
 ## 2026-08-09 · chore/limpieza-zshrc
 
 ### Fixes
