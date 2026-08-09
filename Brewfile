@@ -40,6 +40,23 @@ brew "btop"
 brew "curlie"
 brew "jless"
 
+# --- Red y diagnóstico ---
+# mtr, nmap y trippy abren raw sockets: en macOS piden sudo la primera vez.
+# termshark arrastra wireshark como dependencia de fórmula (necesita `tshark`
+# para capturar); no hace falta declararlo aparte.
+brew "mtr"
+brew "trippy"          # binario `trip`, no `trippy`
+brew "nmap"
+brew "socat"
+brew "step"            # step certificate inspect — TLS legible
+brew "iperf3"
+brew "bandwhich"
+brew "termshark"
+brew "oha"
+brew "doggo"
+brew "sshuttle"
+brew "lnav"
+
 # --- Linters & formatters (nvim: nvim-lint + conform.nvim) ---
 brew "tree-sitter-cli"
 brew "shellcheck"
