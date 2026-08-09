@@ -137,8 +137,6 @@ chmod +x "$STUB_DIR/shellcheck"
 
 assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged '.githooks/commit-msg' >/dev/null 2>&1; echo $?)" \
     "analiza los hooks, que no llevan extensión .sh"
-assert_eq "1" "$(PATH="$STUB_DIR:$PATH" lint_staged 'config/bin/cn' >/dev/null 2>&1; echo $?)" \
-    "analiza config/bin/cn, que tampoco lleva extensión"
 assert_eq "0" "$(PATH="$STUB_DIR:$PATH" lint_staged 'README.md' >/dev/null 2>&1; echo $?)" \
     "no manda a shellcheck lo que no es un script"
 

@@ -32,11 +32,11 @@ lint_staged() {
                 necesita_shellcheck_x=1
                 ;;
             # El resto de scripts se analiza individualmente, igual que en
-            # ci.yml. Los hooks y config/bin/cn NO llevan extensión .sh, así
-            # que van nombrados uno a uno: sin eso no coincidirían con ninguna
-            # rama y nunca se analizarían — justo la infraestructura que más
-            # falta hace comprobar.
-            scripts/*.sh|config/bin/cn|.githooks/*.sh|\
+            # ci.yml. Los hooks NO llevan extensión .sh, así que van nombrados
+            # uno a uno: sin eso no coincidirían con ninguna rama y nunca se
+            # analizarían — justo la infraestructura que más falta hace
+            # comprobar. Si añades otro script sin extensión, nómbralo aquí.
+            scripts/*.sh|.githooks/*.sh|\
             .githooks/commit-msg|.githooks/pre-commit|.githooks/pre-push)
                 if has shellcheck; then
                     shellcheck -S warning "$f" \
