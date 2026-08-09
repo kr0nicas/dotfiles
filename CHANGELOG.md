@@ -14,6 +14,10 @@ No lo edites a mano: el CI regenera y compara.
 
 - **claude**: renombrar la variable de arquitectura y completar la tabla (`5ff57a1`)
 
+### CI
+
+- verificar en Debian los cuatro paquetes recién emparejados (`e41aff3`)
+
 ## 2026-08-09 · fix/topics-manager-y-huecos-doc
 
 ### Fixes
