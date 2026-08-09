@@ -1,5 +1,10 @@
 # `gcx` Switcher Implementation Plan
 
+> **Estado: COMPLETADO.** Landed en `main` en los commits `d048f4a..de33b90`
+> (2026-08-07), antes de que existieran el arnés de hooks y la protección de rama;
+> por eso no tiene PR asociado. No queda trabajo pendiente aquí: este documento es
+> historia, no una lista de tareas.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Sustituir los cuatro aliases de GCP desincronizados por un comando `gcx` con pickers fzf de cuenta y proyecto, cuyos mensajes se leen siempre de gcloud.
@@ -39,7 +44,7 @@ Crea el archivo, los dos helpers sin dependencias externas, y el arnés de tests
   - `_gcp_filter_projects` → filtro stdin→stdout que elimina líneas que empiezan por `sys-`.
   - En el test: `assert_eq <esperado> <obtenido> <nombre>` y `assert_contains <aguja> <pajar> <nombre>`.
 
-- [ ] **Step 1: Escribe el test que falla**
+- [x] **Step 1: Escribe el test que falla**
 
 Crea `config/zsh/gcp.test.zsh`:
 
@@ -103,12 +108,12 @@ print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))
 ```
 
-- [ ] **Step 2: Ejecuta el test para verificar que falla**
+- [x] **Step 2: Ejecuta el test para verificar que falla**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: FAIL — `no such file or directory: .../gcp.zsh`
 
-- [ ] **Step 3: Escribe la implementación mínima**
+- [x] **Step 3: Escribe la implementación mínima**
 
 Crea `config/zsh/gcp.zsh`:
 
@@ -139,17 +144,17 @@ _gcp_filter_projects() {
 }
 ```
 
-- [ ] **Step 4: Ejecuta el test para verificar que pasa**
+- [x] **Step 4: Ejecuta el test para verificar que pasa**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: PASS — `7/7 tests pasaron`
 
-- [ ] **Step 5: Verifica la sintaxis**
+- [x] **Step 5: Verifica la sintaxis**
 
 Run: `cd ~/dotfiles && zsh -n config/zsh/gcp.zsh && echo OK`
 Expected: `OK`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd ~/dotfiles
@@ -177,7 +182,7 @@ Los comandos que no necesitan fzf: consultar estado y activar una config por nom
   - `_gcp_who` → imprime tres líneas: config, cuenta, proyecto.
   - `_gcp_use <name>` → activa la config y llama a `_gcp_who`. Devuelve 2 sin argumento, 1 si la config no existe.
 
-- [ ] **Step 1: Escribe el test que falla**
+- [x] **Step 1: Escribe el test que falla**
 
 En `config/zsh/gcp.test.zsh`, inserta justo antes de la línea `rm -rf "$GCP_CACHE_DIR"`:
 
@@ -192,12 +197,12 @@ assert_eq "1" "$?" "config inexistente devuelve código 1"
 assert_contains "no existe la configuración" "$out" "config inexistente lo dice"
 ```
 
-- [ ] **Step 2: Ejecuta el test para verificar que falla**
+- [x] **Step 2: Ejecuta el test para verificar que falla**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: FAIL — `command not found: _gcp_use`
 
-- [ ] **Step 3: Escribe la implementación mínima**
+- [x] **Step 3: Escribe la implementación mínima**
 
 Añade al final de `config/zsh/gcp.zsh`:
 
@@ -254,12 +259,12 @@ _gcp_use() {
 }
 ```
 
-- [ ] **Step 4: Ejecuta el test para verificar que pasa**
+- [x] **Step 4: Ejecuta el test para verificar que pasa**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: PASS — `11/11 tests pasaron`
 
-- [ ] **Step 5: Verifica a mano contra gcloud real**
+- [x] **Step 5: Verifica a mano contra gcloud real**
 
 ```bash
 cd ~/dotfiles && source config/zsh/gcp.zsh
@@ -268,7 +273,7 @@ gcloud config list --format='value(core.account,core.project)'
 ```
 Expected: la cuenta y el proyecto de `_gcp_who` coinciden exactamente con la salida de `gcloud`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd ~/dotfiles
@@ -290,7 +295,7 @@ git commit -m "feat(gcp): lectura de estado y activación de configuraciones"
   - `_gcp_refresh_cache <account>` → reescribe la caché desde la API. Si la API falla pero hay caché previa, avisa y devuelve 0. Si falla y no hay caché, devuelve 1.
   - `_gcp_pick_project [-r|--refresh]` → picker fzf; al elegir hace `gcloud config set project` y llama a `_gcp_who`.
 
-- [ ] **Step 1: Escribe el test que falla**
+- [x] **Step 1: Escribe el test que falla**
 
 En `config/zsh/gcp.test.zsh`, inserta antes de `rm -rf "$GCP_CACHE_DIR"`:
 
@@ -314,12 +319,12 @@ assert_contains "viejo-proyecto" "$(<"$cache_file")" "no destruye la caché prev
 unfunction gcloud
 ```
 
-- [ ] **Step 2: Ejecuta el test para verificar que falla**
+- [x] **Step 2: Ejecuta el test para verificar que falla**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: FAIL — `command not found: _gcp_refresh_cache`
 
-- [ ] **Step 3: Escribe la implementación mínima**
+- [x] **Step 3: Escribe la implementación mínima**
 
 Añade al final de `config/zsh/gcp.zsh`:
 
@@ -386,12 +391,12 @@ _gcp_pick_project() {
 }
 ```
 
-- [ ] **Step 4: Ejecuta el test para verificar que pasa**
+- [x] **Step 4: Ejecuta el test para verificar que pasa**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: PASS — `16/16 tests pasaron`
 
-- [ ] **Step 5: Verifica el picker a mano**
+- [x] **Step 5: Verifica el picker a mano**
 
 ```bash
 cd ~/dotfiles && source config/zsh/gcp.zsh
@@ -399,7 +404,7 @@ _gcp_pick_project -r
 ```
 Expected: reporta el número de proyectos cacheados, abre fzf, **no aparece ningún `sys-`**. Elige uno y comprueba que `_gcp_who` refleja el cambio. Después, `_gcp_pick_project` debe abrir de forma instantánea. Pulsar Esc no debe cambiar nada.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd ~/dotfiles
@@ -424,7 +429,7 @@ git commit -m "feat(gcp): caché por cuenta y picker de proyectos"
 
 **Referencia adelantada esperada:** el dispatcher llama a `_gcp_help`, que no existe hasta la Task 5. Al terminar esta tarea, `gcx -h` fallará con `command not found: _gcp_help`. Es correcto — no intentes arreglarlo aquí. Los tests de esta tarea solo cubren el camino del subcomando inválido.
 
-- [ ] **Step 1: Escribe el test que falla**
+- [x] **Step 1: Escribe el test que falla**
 
 En `config/zsh/gcp.test.zsh`, antes de `rm -rf "$GCP_CACHE_DIR"`:
 
@@ -435,12 +440,12 @@ assert_eq "2" "$?" "subcomando desconocido devuelve código 2"
 assert_contains "subcomando desconocido" "$out" "nombra el subcomando inválido"
 ```
 
-- [ ] **Step 2: Ejecuta el test para verificar que falla**
+- [x] **Step 2: Ejecuta el test para verificar que falla**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: FAIL — `command not found: gcx`
 
-- [ ] **Step 3: Escribe la implementación mínima**
+- [x] **Step 3: Escribe la implementación mínima**
 
 Añade al final de `config/zsh/gcp.zsh`:
 
@@ -497,12 +502,12 @@ gcx() {
 }
 ```
 
-- [ ] **Step 4: Ejecuta el test para verificar que pasa**
+- [x] **Step 4: Ejecuta el test para verificar que pasa**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: PASS — `18/18 tests pasaron`
 
-- [ ] **Step 5: Conecta el archivo a zshrc**
+- [x] **Step 5: Conecta el archivo a zshrc**
 
 En `zshrc`, justo después de la línea 71 (`bq() { gcloud "$@"; bq "$@" }`), añade:
 
@@ -512,7 +517,7 @@ En `zshrc`, justo después de la línea 71 (`bq() { gcloud "$@"; bq "$@" }`), a�
 [ -f "$HOME/dotfiles/config/zsh/gcp.zsh" ] && source "$HOME/dotfiles/config/zsh/gcp.zsh"
 ```
 
-- [ ] **Step 6: Verifica el picker en un shell real**
+- [x] **Step 6: Verifica el picker en un shell real**
 
 ```bash
 zsh -n ~/dotfiles/zshrc && echo "sintaxis OK"
@@ -521,7 +526,7 @@ gcx
 ```
 Expected: fzf muestra las 5 configuraciones (`default`, `facturaya`, `itproject`, `kelova`, `personal`), con `●` en la activa y **las columnas de cuenta y proyecto rellenas** (si salen vacías, se está usando la forma corta del formato en vez de `properties.core.*`). Elegir una imprime config/cuenta/proyecto correctos.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd ~/dotfiles
@@ -545,7 +550,7 @@ git commit -m "feat(gcp): picker de configuraciones y dispatcher gcx"
 - Consumes: `_gcp_config_table` de la Task 4 — **reutilízala**, no vuelvas a escribir el bloque `awk`.
 - Produces: `_gcp_help` → imprime la referencia completa.
 
-- [ ] **Step 1: Escribe el test que falla**
+- [x] **Step 1: Escribe el test que falla**
 
 En `config/zsh/gcp.test.zsh`, antes de `rm -rf "$GCP_CACHE_DIR"`:
 
@@ -562,12 +567,12 @@ assert_contains "$GCP_CACHE_DIR" "$help_out" "muestra la ruta real de la caché"
 assert_contains "sys-"     "$help_out" "explica el filtrado de sys-*"
 ```
 
-- [ ] **Step 2: Ejecuta el test para verificar que falla**
+- [x] **Step 2: Ejecuta el test para verificar que falla**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: FAIL — `command not found: _gcp_help`
 
-- [ ] **Step 3: Escribe la implementación mínima**
+- [x] **Step 3: Escribe la implementación mínima**
 
 Añade a `config/zsh/gcp.zsh`, **antes** de la definición de `gcx()`:
 
@@ -610,12 +615,12 @@ _gcp_help() {
 }
 ```
 
-- [ ] **Step 4: Ejecuta el test para verificar que pasa**
+- [x] **Step 4: Ejecuta el test para verificar que pasa**
 
 Run: `cd ~/dotfiles && zsh config/zsh/gcp.test.zsh`
 Expected: PASS — `26/26 tests pasaron`
 
-- [ ] **Step 5: Reemplaza los aliases en zshrc**
+- [x] **Step 5: Reemplaza los aliases en zshrc**
 
 En `zshrc`, sustituye el bloque de las líneas 267-271 por:
 
@@ -630,7 +635,7 @@ alias gckel='gcx use kelova'
 alias gcwho='gcx who'
 ```
 
-- [ ] **Step 6: Actualiza el cheatsheet**
+- [x] **Step 6: Actualiza el cheatsheet**
 
 En `CHEAT_CODES.md`, en la sección `### GCP` (línea 328), añade **antes** de la tabla existente:
 
@@ -653,7 +658,7 @@ itproject-n8n-customers), `facturaya` (administrator@facturayasv.com → factura
 La caché vive en `~/.cache/gcp/projects-<cuenta>.list` y oculta los proyectos `sys-*`.
 ```
 
-- [ ] **Step 7: Verifica en un shell real**
+- [x] **Step 7: Verifica en un shell real**
 
 ```bash
 exec zsh
@@ -662,7 +667,7 @@ gcwho
 ```
 Expected: `gcx -h` muestra las cuatro secciones y las 5 configuraciones al final. `gcwho` imprime config/cuenta/proyecto.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd ~/dotfiles
@@ -682,14 +687,14 @@ git commit -m "feat(gcp): referencia en gcx -h, aliases corregidos y cheatsheet"
 - Consumes: nada.
 - Produces: `_gcloud_lazy_load` → carga `path.zsh.inc` y `completion.zsh.inc` una sola vez.
 
-- [ ] **Step 1: Reproduce el defecto**
+- [x] **Step 1: Reproduce el defecto**
 
 ```bash
 zsh -c 'source ~/dotfiles/zshrc; gsutil ls gs://no-existe-xyz 2>&1 | head -5'
 ```
 Expected: aparece un error de `gcloud` sobre un grupo/comando `ls` inválido **antes** de la salida real de `gsutil`. Ese es el defecto: `gsutil() { gcloud "$@"; ... }` ejecuta `gcloud` con los argumentos de `gsutil`.
 
-- [ ] **Step 2: Escribe la corrección**
+- [x] **Step 2: Escribe la corrección**
 
 Sustituye las líneas 63-71 de `zshrc` por:
 
@@ -710,7 +715,7 @@ gsutil() { _gcloud_lazy_load; gsutil "$@" }
 bq()     { _gcloud_lazy_load; bq "$@" }
 ```
 
-- [ ] **Step 3: Verifica que el defecto desapareció**
+- [x] **Step 3: Verifica que el defecto desapareció**
 
 ```bash
 zsh -n ~/dotfiles/zshrc && echo "sintaxis OK"
@@ -718,14 +723,14 @@ zsh -c 'source ~/dotfiles/zshrc; gsutil ls gs://no-existe-xyz 2>&1 | head -5'
 ```
 Expected: ya **no** aparece el error de `gcloud` sobre un comando inválido. Solo la salida propia de `gsutil`.
 
-- [ ] **Step 4: Verifica que gcloud sigue funcionando**
+- [x] **Step 4: Verifica que gcloud sigue funcionando**
 
 ```bash
 zsh -c 'source ~/dotfiles/zshrc; gcloud config list --format="value(core.account)"'
 ```
 Expected: imprime la cuenta activa, sin errores.
 
-- [ ] **Step 5: Borra el `.zshrc` duplicado**
+- [x] **Step 5: Borra el `.zshrc` duplicado**
 
 Confirma primero que nadie lo usa:
 
@@ -736,7 +741,7 @@ grep -rn '"\$DOTFILES_DIR/\.zshrc"' install.sh || echo "install.sh no lo referen
 git rm .zshrc
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd ~/dotfiles
@@ -758,7 +763,7 @@ Operación única contra gcloud. No toca el repo — no se versionan configuraci
 - Consumes: el comando `gcx` de las tareas anteriores para verificar.
 - Produces: las cinco configuraciones alineadas con la tabla del spec.
 
-- [ ] **Step 1: Captura el estado actual por si hay que revertir**
+- [x] **Step 1: Captura el estado actual por si hay que revertir**
 
 ```bash
 gcloud config configurations list \
@@ -767,7 +772,7 @@ gcloud config configurations list \
 ```
 Expected: se guardan las 5 líneas actuales.
 
-- [ ] **Step 2: Corrige `personal`**
+- [x] **Step 2: Corrige `personal`**
 
 ```bash
 gcloud config configurations activate personal
@@ -776,7 +781,7 @@ gcloud config unset project
 ```
 Expected: `personal` queda con la cuenta de gmail y sin proyecto.
 
-- [ ] **Step 3: Corrige `itproject`**
+- [x] **Step 3: Corrige `itproject`**
 
 ```bash
 gcloud config configurations activate itproject
@@ -785,7 +790,7 @@ gcloud config set project itproject-n8n-customers
 ```
 Expected: `itproject` deja de ser un duplicado de `facturaya`.
 
-- [ ] **Step 4: Confirma `facturaya` (ya era correcta)**
+- [x] **Step 4: Confirma `facturaya` (ya era correcta)**
 
 ```bash
 gcloud config configurations activate facturaya
@@ -794,7 +799,7 @@ gcloud config set project factura-electronica-sv
 ```
 Expected: sin cambios efectivos; se aplica por idempotencia.
 
-- [ ] **Step 5: Corrige `kelova`**
+- [x] **Step 5: Corrige `kelova`**
 
 ```bash
 gcloud config configurations activate kelova
@@ -803,7 +808,7 @@ gcloud config set project kelova-app
 ```
 Expected: deja de combinar la cuenta de ITProject con un proyecto de Facturaya.
 
-- [ ] **Step 6: Verifica el resultado completo**
+- [x] **Step 6: Verifica el resultado completo**
 
 ```bash
 exec zsh
@@ -819,7 +824,7 @@ Expected: la sección CONFIGURACIONES ACTUALES coincide exactamente con:
 | `kelova` | jorge.ochoa@itproject41.com | kelova-app |
 | `default` | — | — |
 
-- [ ] **Step 7: Verifica que la caché es por cuenta**
+- [x] **Step 7: Verifica que la caché es por cuenta**
 
 ```bash
 gcit && gcx p -r    # cachea para jorge.ochoa@itproject41.com
@@ -828,7 +833,7 @@ ls -1 ~/.cache/gcp/
 ```
 Expected: dos archivos distintos, uno por cuenta. Ningún proyecto `sys-` en ninguno.
 
-- [ ] **Step 8: Ejecuta la suite completa una última vez**
+- [x] **Step 8: Ejecuta la suite completa una última vez**
 
 ```bash
 cd ~/dotfiles
@@ -837,7 +842,7 @@ zsh -n zshrc && zsh -n config/zsh/gcp.zsh && echo "sintaxis OK"
 ```
 Expected: `26/26 tests pasaron` y `sintaxis OK`.
 
-- [ ] **Step 9: Limpia el backup**
+- [x] **Step 9: Limpia el backup**
 
 ```bash
 rm ~/gcloud-configs-backup-2026-08-07.txt
@@ -847,11 +852,11 @@ rm ~/gcloud-configs-backup-2026-08-07.txt
 
 ## Verificación final (spec § Verificación)
 
-- [ ] `gcx` lista las cinco configuraciones y marca la activa con `●`.
-- [ ] `gcx use <cada config>` imprime cuenta y proyecto que coinciden con `gcloud config list`.
-- [ ] `gcx p` abre instantáneo tras la primera carga y no muestra ningún `sys-*`.
-- [ ] `gcx p -r` refresca y reporta el número de proyectos cacheados.
-- [ ] Cada cuenta tiene su propio archivo de caché; cambiar de config no altera la lista de otra.
-- [ ] `gsutil ls` y `bq ls` no imprimen errores de `gcloud` en la primera invocación de la sesión.
-- [ ] `gcx -h` documenta todos los comandos y aliases, y lista las configs en vivo.
-- [ ] `zsh -n zshrc` y `zsh -n config/zsh/gcp.zsh` pasan.
+- [x] `gcx` lista las cinco configuraciones y marca la activa con `●`.
+- [x] `gcx use <cada config>` imprime cuenta y proyecto que coinciden con `gcloud config list`.
+- [x] `gcx p` abre instantáneo tras la primera carga y no muestra ningún `sys-*`.
+- [x] `gcx p -r` refresca y reporta el número de proyectos cacheados.
+- [x] Cada cuenta tiene su propio archivo de caché; cambiar de config no altera la lista de otra.
+- [x] `gsutil ls` y `bq ls` no imprimen errores de `gcloud` en la primera invocación de la sesión.
+- [x] `gcx -h` documenta todos los comandos y aliases, y lista las configs en vivo.
+- [x] `zsh -n zshrc` y `zsh -n config/zsh/gcp.zsh` pasan.
