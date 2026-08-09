@@ -30,7 +30,18 @@ phase_packages() {
                     return
                 fi
                 log "Brew bundle ${label:-base}..."
-                [[ $DRY_RUN -eq 0 ]] && brew bundle --file="$file" || warn "DRY-RUN: brew bundle ${label:-base} omitido"
+                # No colapsar esto en `[[ cond ]] && cmd || warn`: en esa forma el
+                # `||` no distingue "no se ejecutó por dry-run" de "se ejecutó y
+                # falló", así que un brew bundle roto imprimía "DRY-RUN omitido"
+                # en una instalación real y devolvía 0. Es como Brewfile.cloud y
+                # Brewfile.k8s llevaban tiempo sin instalarse sin que nadie lo
+                # viera: brew aborta el archivo entero en la primera fórmula que
+                # no resuelve, y el instalador lo daba por bueno.
+                if [[ $DRY_RUN -eq 1 ]]; then
+                    warn "DRY-RUN: brew bundle ${label:-base} omitido"
+                elif ! brew bundle --file="$file"; then
+                    warn "brew bundle ${label:-base} FALLÓ — revisa $file. Las herramientas que declara NO están instaladas."
+                fi
             }
             run_bundle "" "$DOTFILES_DIR/Brewfile"        1
             run_bundle "cloud" "$DOTFILES_DIR/Brewfile.cloud" $INSTALL_CLOUD

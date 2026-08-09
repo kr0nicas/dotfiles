@@ -4,6 +4,7 @@
 # ==============================================================================
 
 tap "hashicorp/tap"
+tap "terraform-linters/tap"
 
 # --- Cloud CLIs ---
 brew "awscli"
@@ -12,8 +13,16 @@ brew "azure-cli"
 # --- IaC ---
 brew "hashicorp/tap/terraform"
 brew "hashicorp/tap/vault"
-brew "tflint"
 brew "tfsec"
+
+# tflint salió de homebrew-core y su tap oficial lo publica como cask, no como
+# fórmula — de ahí `cask` y el nombre completo. Mientras estuvo como `brew
+# "tflint"` a secas, brew abortaba este archivo en esa línea y ni tfsec ni rtk
+# ni el SDK de gcloud llegaban a instalarse.
+#
+# Es el linter de Terraform que declara nvim-lint, así que sin él nvim da
+# ENOENT en cada .tf igual que daba en YAML antes de instalar yamllint.
+cask "terraform-linters/tap/tflint"
 
 # --- Agentes IA / tokens ---
 brew "rtk"          # Rust Token Killer: comprime output de comandos para agentes (Claude Code hook)

@@ -3,6 +3,13 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · fix/brewfiles-formulas-muertas
+
+### Fixes
+
+- **lib**: no dar por bueno un brew bundle que falla (`d0869c0`)
+- **brew**: reemplazar las fórmulas que ya no existen en Homebrew (`80dca70`)
+
 ## 2026-08-09 · feat/red-diagnostico
 
 ### Features
