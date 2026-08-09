@@ -157,10 +157,15 @@ jobs:
               echo ""
               echo "── Verificación: ¿existe y es ejecutable? ──"
               fail=0
+              # trip y no trippy: el proyecto se llama trippy pero su ejecutable
+              # es `trip`. mtr llega por el paquete mtr-tiny, con el mismo
+              # binario que el paquete completo pero sin arrastrar GTK.
               for t in zsh tmux git curl jq rg fd direnv btop zstd unzip \
                        fzf starship zoxide uv fnm \
                        lazygit delta trivy sops dust curlie jless \
                        ruff shellcheck yamllint \
+                       mtr nmap socat iperf3 tshark \
+                       trip step bandwhich termshark oha doggo lnav sshuttle \
                        tflint tofu \
                        nvim; do
                 p=$(command -v "$t" 2>/dev/null || true)
