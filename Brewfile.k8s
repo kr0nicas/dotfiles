@@ -10,11 +10,28 @@
 # la fórmula se instala y queda inalcanzable, y docker-compose —que sí se
 # linkea— apunta a un docker que no existe.
 #
-# La fórmula es solo el cliente: no trae daemon. Hace falta un runtime aparte
-# (Docker Desktop, colima, OrbStack…) para que sirva de algo. No se declara aquí
-# ninguno a propósito, porque esa elección cambia por máquina.
+# La fórmula es solo el cliente: no trae daemon.
 brew "docker"
 brew "docker-compose"
+
+# El runtime. Este archivo decía antes que no se declaraba ninguno "porque esa
+# elección cambia por máquina", y el resultado fue una máquina con `docker` en
+# el PATH, sin Desktop, sin colima y sin /var/run/docker.sock: `docker run`
+# fallaba y el CLI declarado no servía para nada. Un cliente sin daemon no es
+# una elección abierta, es una instalación a medias.
+#
+# colima y no Docker Desktop: es una fórmula, así que la declara este mismo
+# archivo sin cask ni licencia, y no pone su propio binario en /usr/local/bin
+# — que es lo que obligaba al `link: false` que quitó el PR #24. Con Desktop
+# habría que reponerlo y volver al problema que ese PR arregló.
+#
+# Solo macOS. En Linux no hace falta equivalente: el daemon es nativo, y en un
+# nodo k8s o un VPS viene del aprovisionamiento o se usa containerd
+# directamente. Instalar docker.io desde estos dotfiles chocaría con eso. La
+# asimetría es deliberada, no un hueco pendiente.
+#
+# No arranca solo: `colima start` la primera vez y tras cada reinicio.
+brew "colima"
 
 # --- Kubernetes core ---
 brew "kubernetes-cli"
