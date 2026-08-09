@@ -231,10 +231,6 @@ Plugins via TPM: tmux-sensible, tmux-resurrect, tmux-continuum (auto-save every 
 | Go | `GOPATH=$HOME/go` | Managed via `go.mod`; gopls LSP on macOS |
 | Java | `jenv` + `openjdk@17` | Add `.java-version` file per project |
 
-### `config/bin/cn`
-
-Wrapper for `@continuedev/cli` — finds the fnm/nvm node binary without requiring nvm to be loaded in the current shell. Update this if the node version manager changes.
-
 ### `scripts/` y documentos sueltos
 
 Lo que no cuelga de `install.sh` y solo se descubre con un `ls`:

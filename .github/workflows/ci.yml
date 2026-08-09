@@ -37,7 +37,6 @@ jobs:
           done
           bash -n scripts/github-topics-manager.sh
           bash -n scripts/changelog.sh
-          bash -n config/bin/cn
           # La capa que hace cumplir todo el arnés: si esto no se analiza,
           # CI no comprueba justo lo que valida a CI.
           for f in .githooks/commit-msg .githooks/pre-commit .githooks/pre-push \
@@ -52,7 +51,7 @@ jobs:
       - name: Shellcheck
         run: |
           shellcheck -x -S warning install.sh
-          shellcheck -S warning scripts/*.sh config/bin/cn \
+          shellcheck -S warning scripts/*.sh \
             .githooks/commit-msg .githooks/pre-commit .githooks/pre-push \
             .githooks/lib.sh .githooks/hooks.test.sh
           # -x también aquí: sourcea lib/packages.sh para probar una de sus

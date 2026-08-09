@@ -363,12 +363,10 @@ Config en `.gitconfig` con:
     │   └── dotfiles.json        # Dynamic Profile "SRE 2026" (solo macOS)
     ├── ssh/
     │   └── colors.conf          # Color de fondo por entorno SSH
-    ├── zsh/
-    │   ├── gcp.zsh              # Comando gcx: switcher de cuentas/proyectos GCP
-    │   ├── gcp.test.zsh         # Suite de gcx (45 tests, corre sin gcloud)
-    │   └── ssh.test.zsh         # Suite de _ssh_target (13 tests, sin conexiones)
-    └── bin/
-        └── cn                   # Wrapper de @continuedev/cli
+    └── zsh/
+        ├── gcp.zsh              # Comando gcx: switcher de cuentas/proyectos GCP
+        ├── gcp.test.zsh         # Suite de gcx (45 tests, corre sin gcloud)
+        └── ssh.test.zsh         # Suite de _ssh_target (13 tests, sin conexiones)
 ```
 
 ---
@@ -388,7 +386,6 @@ Config en `.gitconfig` con:
 ~/.claude/CLAUDE.md             →  ~/dotfiles/config/claude/CLAUDE.md
 ~/.ssh/colors.conf              →  ~/dotfiles/config/ssh/colors.conf
 ~/.config/wezterm/wezterm.lua   →  ~/dotfiles/config/wezterm/wezterm.lua   (WSL2: lado Windows)
-~/.local/bin/cn                 →  ~/dotfiles/config/bin/cn
 
 ~/Library/Application Support/iTerm2/DynamicProfiles/dotfiles.json
                                 →  ~/dotfiles/config/iterm2/dotfiles.json   (solo macOS)

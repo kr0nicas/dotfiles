@@ -28,17 +28,13 @@ phase_detect() {
 
     [[ $DRY_RUN -eq 0 ]] && mkdir -p "$LOCAL_BIN" || { [[ -d "$LOCAL_BIN" ]] || warn "DRY-RUN: mkdir -p $LOCAL_BIN"; }
 
-    # Wrappers de scripts locales (config/bin/)
-    for script in "$DOTFILES_DIR/config/bin/"*; do
-        [[ -f "$script" ]] || continue
-        name=$(basename "$script")
-        if [[ $DRY_RUN -eq 0 ]]; then
-            ln -sf "$script" "$LOCAL_BIN/$name"
-            chmod +x "$script"
-        else
-            warn "DRY-RUN: ln -sf $script → $LOCAL_BIN/$name"
-        fi
-    done
+    # Aquí había un bucle que enlazaba todo `config/bin/*` en ~/.local/bin.
+    # Su único contenido era el wrapper `cn` de @continuedev/cli, retirado con
+    # él: git no versiona directorios vacíos, así que en un clon nuevo el glob
+    # no casaba nada y el bucle no hacía nada. Si vuelves a añadir un script
+    # ejecutable a `config/bin/`, hay que reponer el enlazado —no lo cubre
+    # `lib/symlinks.sh`, que enlaza rutas nombradas una a una y no un
+    # directorio entero.
 
     # ------------------------------------------------------------------------------
     # 2. VERIFICACIÓN DE DEPENDENCIAS CRÍTICAS
