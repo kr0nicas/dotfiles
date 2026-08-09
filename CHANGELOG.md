@@ -3,6 +3,20 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · refactor/retirar-continue-y-nvm
+
+### Refactors
+
+- **bin**: retirar el wrapper cn de @continuedev/cli (`a56a245`)
+
+### Documentación
+
+- quitar cn de las tres guías que lo anunciaban (`ce75499`)
+
+### Mantenimiento
+
+- **repo**: dejar de lintear un archivo que ya no existe (`4aa118f`)
+
 ## 2026-08-09 · feat/runtime-de-contenedores
 
 ### Features
