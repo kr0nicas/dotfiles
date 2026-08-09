@@ -221,6 +221,18 @@ phase_binaries() {
         install_if_missing "curlie" \
             "gh_latest_tar rs/curlie 'linux_${ARCH}.tar.gz' $LOCAL_BIN curlie"
 
+        # zoxide se baja aquí y no en phase_runtimes, que es de donde viene, por
+        # una razón concreta: su instalador oficial consulta api.github.com sin
+        # autenticar y el límite anónimo de 60 req/h por IP lo tumbaba en runners
+        # compartidos. Ya pasó en CI. gh_latest_url sí manda GH_TOKEN cuando está
+        # en el entorno, que sube el límite a 5000.
+        #
+        # ARCH_TYPE: triple de Rust. Y **musl**, no gnu: zoxide solo publica
+        # binarios musl para Linux, al revés que ruff, delta o trippy. No publica
+        # checksums, así que gh_latest_tar avisará de ello igual que con delta.
+        install_if_missing "zoxide" \
+            "gh_latest_tar ajeetdsouza/zoxide '${ARCH_TYPE}-unknown-linux-musl.tar.gz\$' $LOCAL_BIN zoxide"
+
         # ARCH_TYPE y no GH_ARCH: ruff nombra sus assets con el triple de Rust
         # (aarch64-unknown-linux-gnu), mientras que GH_ARCH traduce eso a arm64.
         # El `$` final evita matchear también el .sha256 del mismo asset; antes
