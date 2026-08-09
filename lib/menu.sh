@@ -14,7 +14,7 @@ Opciones:
   --vps            Perfil Servidor/VPS  (base + cloud, sin k8s ni gui)
   --container      Perfil Container/Docker (solo base, ultra-minimal)
   --k8s-node       Perfil Nodo Kubernetes (base + cloud + k8s, sin gui)
-  --no-cloud       Omite Cloud/IaC (aws, azure, terraform, vault, tflint, gcloud)
+  --no-cloud       Omite Cloud/IaC (aws, azure, tofu, vault, tflint, gcloud)
   --no-k8s         Omite Kubernetes (kubectl, helm, k9s, stern, kubectx, docker)
   --no-gui         Omite apps GUI (VSCode, Brave, Spotify, Postman, ngrok)
   -h, --help       Muestra esta ayuda
@@ -38,7 +38,7 @@ EOF
 
 ask_modules() {
     local r
-    read -rp "  ¿Incluir Cloud/IaC (aws, terraform, gcloud)? [Y/n]: " r
+    read -rp "  ¿Incluir Cloud/IaC (aws, tofu, gcloud)?        [Y/n]: " r
     [[ "$r" =~ ^[Nn]$ ]] && INSTALL_CLOUD=0 || INSTALL_CLOUD=1
     read -rp "  ¿Incluir Kubernetes (kubectl, helm, k9s)?      [Y/n]: " r
     [[ "$r" =~ ^[Nn]$ ]] && INSTALL_K8S=0 || INSTALL_K8S=1

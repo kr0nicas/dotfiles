@@ -48,15 +48,26 @@ jobs:
       # -x hace que shellcheck siga los `source` de install.sh y analice lib/ como
       # un conjunto. Sin él, cada lib se ve aislada y las globales que install.sh
       # define parecen sin usar (SC2034 en cascada).
+      #
+      # El nivel es "info", no "warning". Una variable mal escrita es SC2153, que
+      # shellcheck clasifica como info: a nivel warning pasaba entera, y así
+      # github-topics-manager.sh leyó VALID_TOPIPS donde el array era
+      # VALID_TOPICS desde su primer commit —mandando {"names":[""]} a la API—
+      # con este job en verde todo el tiempo. El único ruido que añade info es
+      # SC2016 en los printf que emiten markdown, desactivado en cada sitio.
       - name: Shellcheck
         run: |
-          shellcheck -x -S warning install.sh
-          shellcheck -S warning scripts/*.sh \
+          shellcheck -x -S info install.sh
+          # -x también aquí, para que este job analice exactamente igual que
+          # .githooks/pre-commit. El hook va de uno en uno y este job pasa todos
+          # los archivos juntos: sin -x, un `. lib.sh` es SC1091 en el hook y no
+          # aquí, y el commit falla contra un CI verde.
+          shellcheck -x -S info scripts/*.sh \
             .githooks/commit-msg .githooks/pre-commit .githooks/pre-push \
             .githooks/lib.sh .githooks/hooks.test.sh
           # -x también aquí: sourcea lib/packages.sh para probar una de sus
           # funciones, y sin seguir ese source shellcheck no la ve definida.
-          shellcheck -x -S warning lib/packages.test.sh
+          shellcheck -x -S info lib/packages.test.sh
 
       # Las suites corren sin gcloud, sin fzf y sin shellcheck (usan stubs y
       # degradación): es intencional, para que valgan igual en un runner

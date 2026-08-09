@@ -16,7 +16,7 @@ Cross-platform dotfiles for Jorge Ochoa (kr0nicas) — SRE 2026 setup targeting 
 ./install.sh --container  # Container/Docker preset (base only, ultra-minimal)
 ./install.sh --k8s-node   # Kubernetes node preset (base + cloud + k8s, no gui)
 ./install.sh --minimal    # Skip cloud, k8s, GUI (only base terminal env)
-./install.sh --no-cloud   # Skip aws/azure/terraform/vault/gcloud
+./install.sh --no-cloud   # Skip aws/azure/tofu/vault/gcloud
 ./install.sh --no-k8s     # Skip kubectl/helm/k9s/stern/kubectx/docker
 ./install.sh --no-gui     # Skip VSCode + extensions + Brave/Spotify/Postman
 ./install.sh --help       # Show all options
@@ -76,6 +76,7 @@ El trailer `Spec:` apunta a `docs/superpowers/`, que **sí está versionado**, n
 
 | Ruta | Versionado | Qué es |
 |---|---|---|
+| `docs/README.md` | Sí | **Índice de los siete documentos**: qué resuelve cada uno y dónde vive hoy. Empieza por aquí en vez de abrir un plan de 1.873 líneas |
 | `docs/superpowers/specs/` | Sí | Diseños aprobados, uno por trabajo. `AAAA-MM-DD-<tema>-design.md` |
 | `docs/superpowers/plans/` | Sí | El plan de implementación de ese diseño, mismo prefijo de fecha |
 | `docs/reports/` | Sí | Informes puntuales de trabajos que no dejaron código |
@@ -195,7 +196,7 @@ El dispatcher acepta además `project` como sinónimo de `p`, y `--help`/`help` 
 Entry: `init.lua` → loads `config.lazy`, `config.options`, `config.keymaps`, `config.autocmds`.
 
 Plugin files in `lua/plugins/`:
-- `lsp.lua` — Mason + mason-lspconfig + nvim-lspconfig (nvim 0.11+ API via `vim.lsp.enable()`) + nvim-cmp. gopls and terraformls are macOS-only (gated by `vim.uv.os_uname().sysname == "Darwin"`). **También vive aquí el stack de formato y lint**, no en `editor.lua`: conform.nvim (format on save: `ruff_format`, goimports, gofmt, jq, terraform_fmt, stylua) y nvim-lint (`ruff`, yamllint, shellcheck, tflint).
+- `lsp.lua` — Mason + mason-lspconfig + nvim-lspconfig (nvim 0.11+ API via `vim.lsp.enable()`) + nvim-cmp. gopls and terraformls are macOS-only (gated by `vim.uv.os_uname().sysname == "Darwin"`). **También vive aquí el stack de formato y lint**, no en `editor.lua`: conform.nvim (format on save: `ruff_format`, goimports, gofmt, jq, `tofu_fmt`, stylua) y nvim-lint (`ruff`, yamllint, shellcheck, tflint). El formateador de HCL es **`tofu_fmt`, no `terraform_fmt`**: el binario que declara el repo es `tofu` (ver la sección de IaC). `terraformls` sigue siendo el LSP —parsea HCL igual y OpenTofu es drop-in— pero al no encontrar el ejecutable `terraform` degrada a análisis sintáctico y pierde `validate`; es una limitación conocida y aceptada, no un síntoma de instalación rota.
 - `editor.lua` — solo mini.pairs, mini.surround y mini.comment
 - `telescope.lua` — fuzzy finder
 - `treesitter.lua` — syntax highlighting
@@ -243,12 +244,17 @@ Lo que no cuelga de `install.sh` y solo se descubre con un `ls`:
 | `CHEAT_CODES.md` | Chuleta personal de ~480 líneas: atajos y aliases de shell, nvim, k8s, terraform, cloud CLIs, seguridad y tmux. Documentación pura, ningún programa la lee |
 | `VIM_GUIA.md` | Notas del `vimrc` de respaldo, para cajas sin nvim |
 
-**El nivel de shellcheck del CI deja pasar variables mal escritas.** `ci.yml` y `.githooks/pre-commit` corren `shellcheck -S warning`, y una variable inexistente es SC2153, de nivel *info*. `github-topics-manager.sh` vivió así desde su primer commit: leía `VALID_TOPIPS` donde el array era `VALID_TOPICS`, mandaba `{"names":[""]}` a la API y el CI seguía en verde. Al escribir un script nuevo en `scripts/`, pásale `shellcheck -S info` a mano una vez, o ponle `set -u` para que el fallo aborte en vez de convertirse en una petición mala.
+**El nivel de shellcheck es `info`, no `warning` — no lo bajes.** Una variable mal escrita es SC2153, que shellcheck clasifica como *info*, así que a nivel `warning` pasaba entera: `github-topics-manager.sh` vivió así desde su primer commit, leyendo `VALID_TOPIPS` donde el array era `VALID_TOPICS`, mandando `{"names":[""]}` a la API con el CI en verde. `ci.yml` y `.githooks/pre-commit` corren ahora `-S info`, así que ese fallo aborta el commit en vez de llegar a producción.
+
+El único ruido que añade `info` es SC2016 —comillas simples que no expanden— y está desactivado en los dos únicos sitios donde es correcto: `scripts/changelog.sh` a nivel de archivo, porque no hace más que emitir markdown con backticks literales, y `.githooks/hooks.test.sh`, donde el `printf` escribe un stub cuyas variables las expande el stub, no el test. **Si te sale un SC2016 nuevo, mira si es real antes de copiar el `disable`**: la mayoría de las veces sí querías expandir.
+
+**El hook y el CI tienen que invocar shellcheck igual, `-x` incluido.** `.githooks/pre-commit` analiza archivo por archivo y `ci.yml` los pasa todos en una invocación, y esa diferencia es invisible a nivel `warning` pero no a nivel `info`: un `. lib.sh` cuyo destino no va como input es SC1091, de nivel info. Con el hook sin `-x` los commits fallaban contra un CI verde — el peor reparto posible, porque el que rompe no es el que se entera. Ambos llevan ahora `-x`, que hace que shellcheck siga los `# shellcheck source=` de las cabeceras. Hay dos tests en `hooks.test.sh` que fijan el nivel y el `-x`; si cambias la invocación, fallan.
 
 ## Key conventions
 
 - **Brewfile/Brewfile.{cloud,k8s,gui} are macOS-only** — never add Linux-specific packages here; add them to the apt block or the binary download section in `install.sh` section 6b. New macOS packages: classify into the right Brewfile split — base for always-needed, `.cloud` for IaC/cloud CLIs, `.k8s` for kubernetes/containers, `.gui` for Mac apps + VSCode extensions.
 - **`pinentry-mac` in Security section** — macOS-only, intentional, fine since Brewfile is macOS-only.
+- **El motor de IaC es OpenTofu (`tofu`) y es el mismo en las dos plataformas.** No lo desdobles. Hasta 2026-08-09 macOS instalaba `hashicorp/tap/terraform` y Linux instalaba `tofu`, y esa asimetría se filtró a tres sitios que nadie mira juntos: `lib/verify.sh` comprobaba `tofu`, así que su resumen final decía ❌ en **todos** los Macs para siempre; `lib/menu.sh` prometía terraform al activar cloud, falso en Linux; y conform llamaba a `terraform_fmt`, que daba ENOENT en cada `.tf` de Linux. Es la misma clase de fallo que ruff, yamllint y tflint ya habían dado: **una herramienta que un editor invoca pero que ningún instalador declara para esa plataforma**. Si añades tooling de IaC, decláralo en `Brewfile.cloud` *y* en `lib/binaries.sh`, y comprueba que aparece en la lista de `lib/verify.sh`. Un ❌ permanente en el resumen es peor que ninguno: entrena a ignorarlo.
 - **El daemon de contenedores en macOS es `colima` y no arranca solo.** Si `docker` responde `Cannot connect to the Docker daemon`, no está roto: la VM está parada. `colima start` la levanta (`colima status` para verla, `brew services start colima` para que arranque al login). La fórmula `docker` del `Brewfile.k8s` es solo el cliente; durante un tiempo estuvo declarada sin ningún runtime detrás y `docker run` fallaba en una máquina que parecía tenerlo todo. **En Linux no hay equivalente y es deliberado**: el daemon es nativo, y en un nodo k8s o un VPS lo pone el aprovisionamiento o se usa containerd — instalarlo desde estos dotfiles chocaría con eso.
 - **`~/.zshrc.local`** — for machine-specific config that should not be committed (tokens, host-specific aliases, etc.).
 - **Consistent theme** — Catppuccin Mocha across nvim, tmux status bar, starship, and git delta. Keep new UI additions on this theme.
