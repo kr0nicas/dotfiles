@@ -3,6 +3,16 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · feat/runtime-de-contenedores
+
+### Features
+
+- **brew**: declarar colima, el runtime que le faltaba al CLI de docker (`a973fce`)
+
+### Documentación
+
+- **claude**: que un docker caído no parezca un docker roto (`06b6a2e`)
+
 ## 2026-08-09 · feat/deriva-de-paquetes
 
 ### Features
