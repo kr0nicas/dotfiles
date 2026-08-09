@@ -243,7 +243,11 @@ Lo que no cuelga de `install.sh` y solo se descubre con un `ls`:
 | `CHEAT_CODES.md` | Chuleta personal de ~480 líneas: atajos y aliases de shell, nvim, k8s, terraform, cloud CLIs, seguridad y tmux. Documentación pura, ningún programa la lee |
 | `VIM_GUIA.md` | Notas del `vimrc` de respaldo, para cajas sin nvim |
 
-**El nivel de shellcheck del CI deja pasar variables mal escritas.** `ci.yml` y `.githooks/pre-commit` corren `shellcheck -S warning`, y una variable inexistente es SC2153, de nivel *info*. `github-topics-manager.sh` vivió así desde su primer commit: leía `VALID_TOPIPS` donde el array era `VALID_TOPICS`, mandaba `{"names":[""]}` a la API y el CI seguía en verde. Al escribir un script nuevo en `scripts/`, pásale `shellcheck -S info` a mano una vez, o ponle `set -u` para que el fallo aborte en vez de convertirse en una petición mala.
+**El nivel de shellcheck es `info`, no `warning` — no lo bajes.** Una variable mal escrita es SC2153, que shellcheck clasifica como *info*, así que a nivel `warning` pasaba entera: `github-topics-manager.sh` vivió así desde su primer commit, leyendo `VALID_TOPIPS` donde el array era `VALID_TOPICS`, mandando `{"names":[""]}` a la API con el CI en verde. `ci.yml` y `.githooks/pre-commit` corren ahora `-S info`, así que ese fallo aborta el commit en vez de llegar a producción.
+
+El único ruido que añade `info` es SC2016 —comillas simples que no expanden— y está desactivado en los dos únicos sitios donde es correcto: `scripts/changelog.sh` a nivel de archivo, porque no hace más que emitir markdown con backticks literales, y `.githooks/hooks.test.sh`, donde el `printf` escribe un stub cuyas variables las expande el stub, no el test. **Si te sale un SC2016 nuevo, mira si es real antes de copiar el `disable`**: la mayoría de las veces sí querías expandir.
+
+**El hook y el CI tienen que invocar shellcheck igual, `-x` incluido.** `.githooks/pre-commit` analiza archivo por archivo y `ci.yml` los pasa todos en una invocación, y esa diferencia es invisible a nivel `warning` pero no a nivel `info`: un `. lib.sh` cuyo destino no va como input es SC1091, de nivel info. Con el hook sin `-x` los commits fallaban contra un CI verde — el peor reparto posible, porque el que rompe no es el que se entera. Ambos llevan ahora `-x`, que hace que shellcheck siga los `# shellcheck source=` de las cabeceras. Hay dos tests en `hooks.test.sh` que fijan el nivel y el `-x`; si cambias la invocación, fallan.
 
 ## Key conventions
 

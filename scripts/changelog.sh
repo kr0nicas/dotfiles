@@ -11,6 +11,12 @@
 # dónde esté (ver el spec): merge commits si ya está en main, main..HEAD si
 # sigue en la rama. Ambos caminos tienen que producir el mismo encabezado,
 # o el archivo cambiaría solo por mergear.
+#
+# El desactivado de abajo es a nivel de archivo a propósito: este script no hace
+# otra cosa que emitir markdown, y los backticks de `%s` van en comillas simples
+# porque NO deben expandirse. A nivel info eso dispara SC2016 en cada printf de
+# salida — cinco hoy, y uno más por cada línea de formato que se añada.
+# shellcheck disable=SC2016
 set -euo pipefail
 
 BASE_BRANCH="${BASE_BRANCH:-main}"

@@ -132,6 +132,10 @@ mkdir -p "$STUB_DIR"
 # solo mira el código de salida pasa igual con el bug: el código viejo mandaba
 # «shellcheck install.sh» pasara lo que pasara, y un stub que siempre sale 1
 # habría dado rc=1 en ambas versiones. Lo que discrimina es QUÉ archivo recibe.
+#
+# Comillas simples obligatorias: "$@" y $STUB_LOG los tiene que expandir el
+# stub al ejecutarse, no este script al escribirlo.
+# shellcheck disable=SC2016
 printf '#!/bin/sh\nprintf "%%s\\n" "$@" >> "$STUB_LOG"\nexit 1\n' > "$STUB_DIR/shellcheck"
 chmod +x "$STUB_DIR/shellcheck"
 
@@ -144,6 +148,14 @@ assert_eq "0" "$(PATH="$STUB_DIR:$PATH" lint_staged 'README.md' >/dev/null 2>&1;
 PATH="$STUB_DIR:$PATH" lint_staged 'scripts/github-topics-manager.sh' >/dev/null 2>&1
 assert_contains "scripts/github-topics-manager.sh" "$(cat "$STUB_LOG")" \
     "shellcheck recibe el script staged, no install.sh por delegación"
+# El nivel importa: SC2153 (variable mal escrita) es info, no warning. Con
+# -S warning este hook daba verde sobre el VALID_TOPIPS de este mismo script.
+assert_contains "info" "$(cat "$STUB_LOG")" \
+    "analiza a nivel info, que es donde vive SC2153"
+# Y -x, porque el hook analiza de uno en uno y el CI todos juntos: sin él, un
+# `. lib.sh` es SC1091 aquí y no allí, y los dos caminos dejan de coincidir.
+assert_contains "-x" "$(cat "$STUB_LOG")" \
+    "sigue los source= al analizar un script suelto"
 
 : > "$STUB_LOG"
 PATH="$STUB_DIR:$PATH" lint_staged 'lib/symlinks.sh' >/dev/null 2>&1

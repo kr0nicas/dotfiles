@@ -38,8 +38,15 @@ lint_staged() {
             # comprobar. Si añades otro script sin extensión, nómbralo aquí.
             scripts/*.sh|.githooks/*.sh|\
             .githooks/commit-msg|.githooks/pre-commit|.githooks/pre-push)
+                # -x aquí también, y no solo en la delegación a install.sh: el
+                # hook analiza de uno en uno, mientras que ci.yml pasa todos los
+                # archivos en la misma invocación. A nivel info esa diferencia
+                # se nota — un `. lib.sh` cuyo destino no va como input es
+                # SC1091, así que los hooks fallaban en el commit y pasaban en
+                # el CI. Con -x shellcheck sigue los `# shellcheck source=` que
+                # ya llevan en la cabecera y ambos caminos coinciden.
                 if has shellcheck; then
-                    shellcheck -S warning "$f" \
+                    shellcheck -x -S info "$f" \
                         || { hook_err "shellcheck falló: $f"; rc=1; }
                 else
                     hook_warn "shellcheck no está instalado; no se analizó $f"
@@ -74,9 +81,14 @@ lint_staged() {
     # Nota: el prefijo "Nota:" no es decorativo — un comentario que empieza
     # por "# shellcheck" lo interpreta shellcheck como directiva y aborta el
     # análisis del archivo entero con SC1073/SC1072.
+    #
+    # Nota: el nivel es "info" y no "warning", igual que en ci.yml. Una variable
+    # mal escrita es SC2153, de nivel info: a nivel warning pasaba entera, que es
+    # como github-topics-manager.sh mandó {"names":[""]} a la API desde su primer
+    # commit con el CI en verde.
     if [ "$necesita_shellcheck_x" -eq 1 ]; then
         if has shellcheck; then
-            shellcheck -x -S warning install.sh \
+            shellcheck -x -S info install.sh \
                 || { hook_err 'shellcheck falló sobre install.sh'; rc=1; }
         else
             hook_warn 'shellcheck no está instalado; no se analizaron los scripts'
