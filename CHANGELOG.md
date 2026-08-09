@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · fix/zshrc-colision-alias-dots
+
+### Fixes
+
+- **zshrc**: que el alias viejo de dots no aborte el archivo entero (`d46e646`)
+
 ## 2026-08-09 · feat/unificar-opentofu-y-cerrar-huecos
 
 ### Features

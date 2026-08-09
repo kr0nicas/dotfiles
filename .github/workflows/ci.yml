@@ -76,6 +76,7 @@ jobs:
         run: |
           zsh config/zsh/gcp.test.zsh
           zsh config/zsh/ssh.test.zsh
+          zsh config/zsh/zshrc.test.zsh
           bash .githooks/hooks.test.sh
           bash lib/packages.test.sh
 

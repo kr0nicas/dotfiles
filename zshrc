@@ -180,6 +180,16 @@ alias va='source venv/bin/activate'
 # Antes era un alias que hacía `git add . && commit "Update dots: $(date)" && push`
 # sobre main: bajo las reglas del repo falla en tres sitios a la vez (rama
 # prohibida, mensaje inválido y add indiscriminado).
+#
+# El unalias NO es decorativo y no se quita. Toda sesión abierta antes de esa
+# migración —y todo snapshot de shell cacheado, como el que usa la tool Bash de
+# los agentes— sigue teniendo `dots` como alias. Al resourcear este archivo ahí,
+# zsh expande el alias al parsear `dots()` y aborta con «defining function based
+# on alias». El daño no es esa línea: el parseo del zshrc se detiene en seco y se
+# pierde TODO lo posterior —zoxide, el sessionizer `t`, `sp`, el wrapper ssh() y
+# los aliases de kubectl— con dos líneas de error como único síntoma.
+# Lo cubre config/zsh/zshrc.test.zsh.
+unalias dots 2>/dev/null
 dots() {
     local msg="$1" rama
     if [[ -z "$msg" ]]; then
