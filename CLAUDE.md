@@ -68,6 +68,8 @@ Los hooks se activan solos con `./install.sh` (`phase_repo` → `core.hooksPath`
 
 `git commit --no-verify` existe para emergencias reales, no para saltarse un mensaje mal escrito.
 
+**No encadenes comandos detrás de un `git commit` en la misma invocación de shell.** El hook `commit-msg` rechaza el commit —un asunto de 73 caracteres basta— pero los ficheros se quedan en el índice, y lo que venga detrás de un `;` o de un `&&` mal puesto se ejecuta igual. Un `git add CHANGELOG.md && git commit -m 'chore(repo): regenerar CHANGELOG'` escrito a continuación se lleva **todo** el índice bajo ese mensaje: el trabajo real acaba commiteado como si fuera el CHANGELOG, y el CHANGELOG acaba fuera de su propio commit. Commitea aislado y comprueba con `git log --oneline -1` que existe antes de seguir. Esto vale doblemente para agentes, que agrupan comandos en una sola llamada por eficiencia.
+
 ## Architecture
 
 ### Cross-platform split
@@ -229,3 +231,4 @@ Wrapper for `@continuedev/cli` — finds the fnm/nvm node binary without requiri
 - **El perfil de iTerm2 usa el nombre PostScript de la fuente**, no el visible: `"HackNFM-Regular 14"`, no `"Hack Nerd Font Mono 14"`. Con el nombre visible iTerm cae en silencio a la fuente por defecto y vuelven los `?`. Sácalo de la tabla `name` del `.ttf` (record 6), no lo adivines. iTerm tampoco deja marcar un dynamic profile como predeterminado desde el JSON: es un paso manual una vez por máquina.
 - **`shellcheck` no vale para zsh** — está instalado (lo usa nvim-lint para `.sh`), pero no soporta zsh. Para `zshrc` y `config/zsh/*.zsh` usa `zsh -n`.
 - **Estado leído, nunca hardcodeado** — cualquier comando que reporte estado de una herramienta externa (cuenta de gcloud, contexto de kubectl, etc.) debe leerlo de la herramienta, no repetirlo en un `echo`. Los aliases de GCP se desincronizaron precisamente así; ver la sección `gcx`.
+- **Para saber si una herramienta está instalada, pregúntaselo a una zsh de login** — `zsh -lic 'command -v X'`, no un `command -v X` suelto. Las tool calls de agente corren sobre un snapshot de shell que no reproduce el PATH de `zshrc`: le falta el `sbin` de Homebrew, así que `mtr` —que vive en `/usr/local/sbin`— parece ausente cuando está perfectamente instalado. Un inventario hecho desde el snapshot reporta falsos ausentes y lleva a "arreglar" lo que no está roto.
