@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · feat/brew-trust-hint
+
+### Features
+
+- **lib**: traducir el rechazo de un tap no confiado (`a51cbab`)
+
 ## 2026-08-09 · fix/brewfiles-formulas-muertas
 
 ### Fixes
