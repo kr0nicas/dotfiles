@@ -70,6 +70,21 @@ Los hooks se activan solos con `./install.sh` (`phase_repo` → `core.hooksPath`
 
 **No encadenes comandos detrás de un `git commit` en la misma invocación de shell.** El hook `commit-msg` rechaza el commit —un asunto de 73 caracteres basta— pero los ficheros se quedan en el índice, y lo que venga detrás de un `;` o de un `&&` mal puesto se ejecuta igual. Un `git add CHANGELOG.md && git commit -m 'chore(repo): regenerar CHANGELOG'` escrito a continuación se lleva **todo** el índice bajo ese mensaje: el trabajo real acaba commiteado como si fuera el CHANGELOG, y el CHANGELOG acaba fuera de su propio commit. Commitea aislado y comprueba con `git log --oneline -1` que existe antes de seguir. Esto vale doblemente para agentes, que agrupan comandos en una sola llamada por eficiencia.
 
+### Dónde va un spec y dónde va el borrador
+
+El trailer `Spec:` apunta a `docs/superpowers/`, que **sí está versionado**, no al directorio `.superpowers/` de la raíz, que **no lo está**. Son dos sitios distintos y confundirlos es fácil porque comparten nombre:
+
+| Ruta | Versionado | Qué es |
+|---|---|---|
+| `docs/superpowers/specs/` | Sí | Diseños aprobados, uno por trabajo. `AAAA-MM-DD-<tema>-design.md` |
+| `docs/superpowers/plans/` | Sí | El plan de implementación de ese diseño, mismo prefijo de fecha |
+| `docs/reports/` | Sí | Informes puntuales de trabajos que no dejaron código |
+| `.superpowers/sdd/` | **No** | Borrador de agente: briefs por tarea, reports y diffs de review |
+
+`.superpowers/sdd/` se autoignora con un `.gitignore` propio que contiene `*`. No es documentación y **no es fuente de verdad**: son notas de una sesión concreta, escritas mientras el trabajo estaba a medias, y contradicen al repo en cuanto el trabajo avanza. Léelo como arqueología si buscas por qué se decidió algo, nunca como referencia de cómo está el código hoy. Escribe ahí libremente; no hace falta limpiarlo.
+
+Lo que sí se versiona lo citan los propios hooks: `.githooks/commit-msg`, `pre-commit` y `pre-push` llevan en su cabecera la línea `Spec: docs/superpowers/specs/2026-08-08-arnes-trazabilidad-design.md`. Si cambias el comportamiento de un hook, actualiza su spec.
+
 ## Architecture
 
 ### Cross-platform split
@@ -219,6 +234,19 @@ Plugins via TPM: tmux-sensible, tmux-resurrect, tmux-continuum (auto-save every 
 ### `config/bin/cn`
 
 Wrapper for `@continuedev/cli` — finds the fnm/nvm node binary without requiring nvm to be loaded in the current shell. Update this if the node version manager changes.
+
+### `scripts/` y documentos sueltos
+
+Dos scripts y dos documentos que no cuelgan de `install.sh` y que solo se descubren con un `ls`:
+
+| Archivo | Qué es |
+|---|---|
+| `scripts/changelog.sh` | Regenera `CHANGELOG.md` desde el historial: merge commits si la feature ya está en `main`, `main..HEAD` si sigue en rama. `--check` no escribe y sale 1 si difiere — es lo que corre el CI |
+| `scripts/github-topics-manager.sh` | Pone topics a un repo de GitHub vía `gh api`. `-l` lista repos, `-v <repo>` muestra los topics actuales |
+| `CHEAT_CODES.md` | Chuleta personal de ~480 líneas: atajos y aliases de shell, nvim, k8s, terraform, cloud CLIs, seguridad y tmux. Documentación pura, ningún programa la lee |
+| `VIM_GUIA.md` | Notas del `vimrc` de respaldo, para cajas sin nvim |
+
+**El nivel de shellcheck del CI deja pasar variables mal escritas.** `ci.yml` y `.githooks/pre-commit` corren `shellcheck -S warning`, y una variable inexistente es SC2153, de nivel *info*. `github-topics-manager.sh` vivió así desde su primer commit: leía `VALID_TOPIPS` donde el array era `VALID_TOPICS`, mandaba `{"names":[""]}` a la API y el CI seguía en verde. Al escribir un script nuevo en `scripts/`, pásale `shellcheck -S info` a mano una vez, o ponle `set -u` para que el fallo aborte en vez de convertirse en una petición mala.
 
 ## Key conventions
 

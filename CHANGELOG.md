@@ -3,6 +3,16 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · fix/topics-manager-y-huecos-doc
+
+### Fixes
+
+- **scripts**: topics manager mandaba un topic vacío a la API (`2cf9fa1`)
+
+### Documentación
+
+- **claude**: mapear los directorios y scripts que solo salían con ls (`346e342`)
+
 ## 2026-08-09 · docs/trampas-de-tooling
 
 ### Documentación

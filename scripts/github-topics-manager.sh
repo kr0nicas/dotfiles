@@ -3,7 +3,10 @@
 # GitHub Topics Manager - Script para agregar topics a repositorios GitHub
 # Uso: ./github-topics-manager.sh <repo-name> "topic1,topic2,topic3"
 
-set -e
+# -u es deliberado: este script llegó a mandar un topic vacío a la API porque
+# un array mal escrito expandía a cero palabras sin quejarse. Con -u eso aborta.
+# Obliga a que todo acceso a $1/$2 lleve ${...:-}: son opcionales de verdad.
+set -eu
 
 # Colores para output
 RED='\033[0;31m'
@@ -62,12 +65,12 @@ check_gh_cli() {
 }
 
 # Parsear argumentos
-case "$1" in
+case "${1:-}" in
     -h|--help)
         show_help
         ;;
     -v|--verify)
-        if [ -z "$2" ]; then
+        if [ -z "${2:-}" ]; then
             echo -e "${RED}❌ Error: Se requiere nombre del repo${NC}"
             echo "Uso: $0 -v <repo-name>"
             exit 1
@@ -84,7 +87,7 @@ case "$1" in
 esac
 
 # Verificar argumentos principales
-if [ -z "$1" ] || [ -z "$2" ]; then
+if [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
     echo -e "${RED}❌ Error: Se requieren dos argumentos${NC}"
     echo ""
     echo "Uso: $0 <repo-name> \"topic1,topic2,topic3\""
@@ -141,22 +144,23 @@ if [ ${#VALID_TOPICS[@]} -eq 0 ]; then
 fi
 
 # Mostrar topics que se van a agregar
-echo -e "${GREEN}✅ Topics válidos (${#VALID_TOPIPS[@]}):${NC}"
-printf "   - %s\n" "${VALID_TOPIPS[@]}"
+echo -e "${GREEN}✅ Topics válidos (${#VALID_TOPICS[@]}):${NC}"
+printf "   - %s\n" "${VALID_TOPICS[@]}"
 
 # Crear JSON con topics
-TOPICS_JSON=$(printf '%s\n' "${VALID_TOPIPS[@]}" | jq -R . | jq -s . | jq -c '{names: .}')
+TOPICS_JSON=$(printf '%s\n' "${VALID_TOPICS[@]}" | jq -R . | jq -s . | jq -c '{names: .}')
 
 # Actualizar topics via GitHub API
 echo -e "${BLUE}🏷️ Actualizando topics en $USERNAME/$REPO_NAME...${NC}"
 
-RESPONSE=$(gh api "repos/$USERNAME/$REPO_NAME/topics" \
+# La asignación va dentro del `if`, no antes: `RESPONSE=$(...)` en su propia
+# línea aborta el script por `set -e` en cuanto gh falla, así que la rama de
+# error de abajo era inalcanzable. Dentro de la condición, `set -e` no aplica.
+if RESPONSE=$(gh api "repos/$USERNAME/$REPO_NAME/topics" \
   --method PUT \
   -H "Accept: application/vnd.github+json" \
   --input - <<< "$TOPICS_JSON" \
-  --jq '.names | join(", ")' 2>&1)
-
-if [ $? -eq 0 ]; then
+  --jq '.names | join(", ")' 2>&1); then
     echo -e "${GREEN}✅ Topics actualizados exitosamente${NC}"
     echo -e "${BLUE}📋 Nuevos topics: $RESPONSE${NC}"
 
