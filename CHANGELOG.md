@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · docs/trampas-de-tooling
+
+### Documentación
+
+- **claude**: documentar dos trampas de tooling que ya mordieron (`80de55d`)
+
 ## 2026-08-09 · fix/zoxide-sin-api-anonima
 
 ### Fixes
