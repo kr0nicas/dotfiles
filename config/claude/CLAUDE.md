@@ -11,7 +11,6 @@ en cada sesión de cada proyecto.
 | `gcx` | Switcher de cuentas y proyectos de GCP con pickers `fzf`. `gcx p` (proyectos de la cuenta activa, `-r` refresca la caché), `gcx use <config>`, `gcx who`. Referencia completa y en vivo: `gcx -h`. **No se llama `gcp`**: ese es el `cp` de coreutils. |
 | `t` | Sessionizer de tmux: picker `fzf` sobre `~/projects` y `~/go/src`; crea la sesión o reattachea si ya existe. |
 | `sp` / `ssh-pick` | Picker `fzf` de los hosts de `~/.ssh/config` y conecta. |
-| `cn` | Wrapper de `@continuedev/cli`; localiza node vía fnm sin necesitar una shell cargada. |
 | `dots` | Guarda cambios de `~/dotfiles` con el flujo rama + PR. **Lee el aviso de abajo antes de invocarlo desde una tool call.** |
 
 ## Reglas
