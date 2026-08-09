@@ -76,6 +76,7 @@ El trailer `Spec:` apunta a `docs/superpowers/`, que **sí está versionado**, n
 
 | Ruta | Versionado | Qué es |
 |---|---|---|
+| `docs/README.md` | Sí | **Índice de los siete documentos**: qué resuelve cada uno y dónde vive hoy. Empieza por aquí en vez de abrir un plan de 1.873 líneas |
 | `docs/superpowers/specs/` | Sí | Diseños aprobados, uno por trabajo. `AAAA-MM-DD-<tema>-design.md` |
 | `docs/superpowers/plans/` | Sí | El plan de implementación de ese diseño, mismo prefijo de fecha |
 | `docs/reports/` | Sí | Informes puntuales de trabajos que no dejaron código |
