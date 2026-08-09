@@ -3,6 +3,24 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-09 · feat/unificar-opentofu-y-cerrar-huecos
+
+### Features
+
+- **brew**: unificar en OpenTofu el motor de IaC de las dos plataformas (`4b6ccd6`)
+
+### Documentación
+
+- indice de docs/ para no abrir 1.873 lineas a ciegas (`2902cc8`)
+
+### CI
+
+- subir shellcheck al nivel info, donde vive SC2153 (`a06fefe`)
+
+### Mantenimiento
+
+- **nvim**: registrar el bump de catppuccin del sync de lazy (`379d441`)
+
 ## 2026-08-09 · refactor/retirar-continue-y-nvm
 
 ### Refactors
