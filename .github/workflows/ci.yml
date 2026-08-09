@@ -167,7 +167,8 @@ jobs:
               for t in zsh tmux git curl jq rg fd direnv btop zstd unzip \
                        fzf starship zoxide uv fnm \
                        lazygit delta trivy sops dust curlie jless \
-                       ruff shellcheck yamllint \
+                       ruff shellcheck yamllint golangci-lint \
+                       gitleaks faketime psql \
                        mtr nmap socat iperf3 tshark \
                        trip step bandwhich termshark oha doggo lnav sshuttle \
                        tflint tofu \
