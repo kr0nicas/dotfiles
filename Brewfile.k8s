@@ -4,7 +4,16 @@
 # ==============================================================================
 
 # --- Containers ---
-brew "docker", link: false
+# Sin `link: false`. Esa marca venía de cuando Docker Desktop ponía su propio
+# binario en /usr/local/bin y linkear la fórmula habría chocado con él. Sin
+# Desktop instalado lo único que consigue es dejar la máquina sin CLI de docker:
+# la fórmula se instala y queda inalcanzable, y docker-compose —que sí se
+# linkea— apunta a un docker que no existe.
+#
+# La fórmula es solo el cliente: no trae daemon. Hace falta un runtime aparte
+# (Docker Desktop, colima, OrbStack…) para que sirva de algo. No se declara aquí
+# ninguno a propósito, porque esa elección cambia por máquina.
+brew "docker"
 brew "docker-compose"
 
 # --- Kubernetes core ---
