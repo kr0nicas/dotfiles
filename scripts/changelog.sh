@@ -124,13 +124,22 @@ emite_rango() {
     fi
 }
 
-# La ref base: main local si existe, si no origin/main. En CI el checkout
-# del PR no siempre crea la rama local.
+# La ref base: origin/main si existe, si no la rama local. En un repo sin
+# remoto (o sin esa rama publicada) solo queda la local.
+#
+# El orden importa y antes estaba al revés. `git fetch` actualiza origin/main
+# pero NO main, así que la rama local se queda atrás en cuanto alguien mergea
+# otra PR. Con la local como base, el rango base..HEAD incluía commits que ya
+# estaban en main y los listaba como trabajo de la rama en curso. En CI no
+# pasaba: actions/checkout no crea la rama local, así que usaba origin/main.
+# El reparto era el peor posible —verde en local, rojo en CI, y el diff no
+# delata la causa— y se cobró la PR #37. El remoto es la verdad compartida:
+# preferirlo hace que las dos salidas coincidan por construcción.
 base_ref() {
-    if git rev-parse --verify --quiet "$BASE_BRANCH" >/dev/null; then
-        printf '%s' "$BASE_BRANCH"
-    else
+    if git rev-parse --verify --quiet "origin/$BASE_BRANCH" >/dev/null; then
         printf 'origin/%s' "$BASE_BRANCH"
+    else
+        printf '%s' "$BASE_BRANCH"
     fi
 }
 
