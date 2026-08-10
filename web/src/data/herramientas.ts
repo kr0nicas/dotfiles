@@ -18,6 +18,16 @@ export const herramientas: Herramienta[] = fichas
       plataformas: [...new Set(entradas.map((e) => e.plataforma))] as Plataforma[],
     }
   })
+  // Aquí SÍ vale localeCompare, al revés que en extract-tools.mjs. Allí está
+  // prohibido porque check-tools compara el JSON byte a byte contra una
+  // extracción fresca, así que un ICU distinto da un build rojo irreproducible.
+  // Este orden no se serializa ni se diffea: es presentación. Y las categorías
+  // llevan tildes («Red y diagnóstico»), donde el orden lingüístico es el
+  // correcto y el ordinal mandaría al final cualquier categoría con acento.
+  //
+  // La exención depende de que este módulo se importe solo desde servidor. Si un
+  // 'use client' lo importa, el mismo sort corre en dos ICU distintos —y además
+  // se lleva el catálogo entero al navegador; ver PresetConCuenta en types.ts.
   .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
 
 export const presets: Preset[] = datos.presets
