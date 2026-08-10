@@ -1,15 +1,21 @@
 import { Hero } from '@/components/Hero'
-import { herramientas } from '@/data/herramientas'
+import { Highlights } from '@/components/Highlights'
+import { PresetSelector } from '@/components/PresetSelector'
+import { cuentaDePreset, herramientas, presets } from '@/data/herramientas'
 
-// El recuento se hace aquí, en servidor, y viaja como prop. Si lo calculara el
-// propio Hero —que es un componente de cliente— el catálogo entero acabaría en
-// el bundle del navegador solo para imprimir una cifra.
+// Los recuentos se hacen aquí, en servidor, y viajan como props. Si los
+// calcularan los propios componentes de cliente, el catálogo entero acabaría en
+// el bundle del navegador solo para imprimir unas cifras.
 const FORMULAS = herramientas.filter((h) => h.entradas.some((e) => e.tipo === 'brew')).length
+
+const PRESETS = presets.map((p) => ({ ...p, cuenta: cuentaDePreset(p) }))
 
 export default function Home() {
   return (
     <main>
       <Hero formulas={FORMULAS} />
+      <Highlights />
+      <PresetSelector presets={PRESETS} />
     </main>
   )
 }

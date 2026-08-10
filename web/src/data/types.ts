@@ -32,6 +32,15 @@ export interface Preset {
   gui: boolean
 }
 
+/**
+ * Un preset con su recuento ya calculado. Existe para que el servidor cuente y
+ * el cliente solo pinte: `cuentaDePreset` recorre el catálogo entero, así que
+ * llamarla desde un componente de cliente embarcaría el JSON en el navegador.
+ */
+export interface PresetConCuenta extends Preset {
+  cuenta: number
+}
+
 export interface Generado {
   entradas: Entrada[]
   presets: Preset[]
