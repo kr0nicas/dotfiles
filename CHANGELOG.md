@@ -3,11 +3,56 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
-## 2026-08-10 · fix/fzf-pin-068
+## 2026-08-10 · feat/web-escaparate
+
+### Features
+
+- **web**: andamiar el escaparate con Next.js y Tailwind (`0617ff9`)
+- **web**: extraer las herramientas de los Brewfiles (`8abbb32`)
+- **web**: extraer las herramientas de lib/binaries.sh (`23281a4`)
+- **web**: extraer los paquetes apt y los presets de install.sh (`4953bfe`)
+- **web**: generar tools.generated.json desde las cuatro fuentes (`510567d`)
+- **web**: guardia bidireccional del catalogo (`31156a9`)
+- **web**: hero con terminal que se autoescribe (`b148876`)
+- **web**: highlights y selector de presets (`b4199c0`)
+- **web**: catalogo filtrable en /stack (`e034dac`)
+- **web**: capturas, gcx, teaser del stack y footer (`39e1198`)
 
 ### Fixes
 
 - **install**: subir el pin de fzf a 0.68.0 (`ed56706`)
+- **web**: ordenar el catalogo por comparacion ordinal (`7b4170b`)
+- **web**: correr los tests por glob, no por directorio (`14c6ce9`)
+- **web**: derivar del catalogo las cifras del meta description (`2326241`)
+- **web**: corregir dos fichas con descripcion falsa (`3f7442c`)
+- **web**: validar tambien la forma de cada ficha curada (`84c38ee`)
+- **web**: contar las herramientas de un preset por plataforma (`6d8b8e8`)
+
+### Refactors
+
+- **web**: compartir el gating y leer los defaults de install.sh (`9002339`)
+
+### Documentación
+
+- **docs**: añadir spec del escaparate web (`6d12a39`)
+- **docs**: plan de implementacion del escaparate web (`f0527d4`)
+- **docs**: corregir los recuentos del paso final del plan (`425c8e9`)
+- **docs**: corregir dos defectos del plan antes de ejecutarlo (`10d8290`)
+- **docs**: calibrar los suelos de la guardia al 75% del real (`b5dd18c`)
+- **docs**: calibrar el suelo de packages.sh con el recuento real (`3720fdc`)
+- **docs**: anadir la Task 4b al plan (`bc97fd9`)
+- **docs**: corregir el return del fi anidado en el plan (`dbe564b`)
+- **docs**: ordenar por comparacion ordinal, no por localeCompare (`0cdf4a3`)
+- **docs**: documentar el escaparate web (`167967f`)
+- **docs**: anotar en el plan lo que la implementacion corrigio (`ad53367`)
+
+### CI
+
+- **ci**: publicar el escaparate en GitHub Pages (`4751a11`)
+
+### Mantenimiento
+
+- **web**: ignorar la cache incremental de tsc (`159a98a`)
 
 ## 2026-08-10 · feat/install-preset-agent
 
