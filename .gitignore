@@ -7,3 +7,10 @@
 
 # Claude Code overrides locales por máquina (usar .example como plantilla)
 config/claude/settings.local.json
+
+# Escaparate web (web/): artefactos de build, nunca al repo.
+# tools.generated.json NO va aquí: se versiona a propósito, para que el diff de
+# "añadí un brew" se vea en la PR y el deploy no dependa del parser.
+web/node_modules/
+web/.next/
+web/out/
