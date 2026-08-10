@@ -1924,6 +1924,21 @@ Repite hasta ver `✔ check-tools: N entradas cubiertas por M fichas.` con `# fa
 
 No basta con que pase: hay que ver que falla cuando debe.
 
+> **Corregido al implementar (commits 31156a9 y 84c38ee).** El caso (b) de abajo
+> está **mal etiquetado**: se titula «ficha fantasma» pero lo que dispara es el
+> error de `tools.generated.json` desincronizado, que salta antes. Para provocar
+> una fantasma de verdad hay que meter una clave inexistente en el `declarado` de
+> una ficha **con el JSON en sync**. Comprobado así: sale 1 y nombra la clave y la
+> ficha.
+>
+> Y la guardia de este paso resultó tener tres huecos, los tres reproducidos con
+> `exit 0`: una ficha con `declarado: []` no la caza nada (no es huérfana ni
+> fantasma, pero sale en el catálogo fuera de los cinco presets); dos fichas con
+> el mismo `id` pasaban; y faltar `nombre`, `categoria`, `descripcion` o `url`
+> pasaba, pese a que el propio mensaje de error los pide. Además `JSON.parse` iba
+> sin `try`, así que un curado roto se comía el aviso de `npm run extract`.
+> Todo eso vive ahora en `validarFichas()`, pura y con 20 tests.
+
 ```bash
 cd web
 # a) Ficha huérfana: añade un brew inventado al Brewfile del repo
@@ -2118,6 +2133,18 @@ export function SectionHeading({
 - [ ] **Paso 4: `Hero` con la animación de tecleo**
 
 La animación respeta `prefers-reduced-motion`: si está activo, el comando aparece entero y sin cursor.
+
+> **Corregido al implementar (commit b148876).** El componente de abajo es
+> `'use client'` e importa `herramientas` para calcular `FORMULAS`. Eso mete el
+> catálogo **entero** —68 KB de JSON— en el bundle del navegador para imprimir un
+> número: la ruta `/` pasaba de 1.49 kB a 13.6 kB, y `grep bsdextrautils
+> out/_next/static/` lo encuentra en el chunk de la portada.
+>
+> Lo implementado calcula el recuento en `page.tsx`, que es servidor, y lo pasa
+> como prop: `export function Hero({ formulas }: { formulas: number })`. La cifra
+> sigue saliendo del catálogo —que es lo que este paso exigía— y solo cambia
+> dónde se cuenta. `SALIDA` pasa a construirse dentro del componente, porque
+> depende de la prop.
 
 ```tsx
 'use client'
@@ -2327,6 +2354,20 @@ export function Highlights() {
 - [ ] **Paso 2: `PresetSelector`**
 
 El recuento sale de `cuentaDePreset`, no de una constante: si mañana añades un `brew`, el número sube solo.
+
+> **Corregido al implementar (commits b4199c0 y 6d8b8e8).** Dos cosas.
+>
+> 1. Mismo defecto que el Hero: este componente es `'use client'` y llama a
+>    `cuentaDePreset`, que recorre el catálogo entero, así que volvía a embarcar
+>    los 68 KB en el navegador. Lo implementado recibe `presets: PresetConCuenta[]`
+>    ya contados desde `page.tsx`. `PresetConCuenta` vive en `types.ts`.
+> 2. `cuentaDePreset` devolvía **un solo número**, ignorando la plataforma. Un
+>    preset enciende módulos, pero dentro de un módulo hay fórmulas que solo
+>    existen en macOS y paquetes que solo existen en Debian. `--container` es una
+>    imagen de Docker —Linux— y anunciaba 78 herramientas donde se instalan 47;
+>    `--vps` decía 87 y son 50. Ahora devuelve `{ macos, linux }` y la ficha
+>    muestra las dos cifras. Reparto real del catálogo: 52 fichas en ambas
+>    plataformas, 77 solo macOS, 5 solo Linux.
 
 ```tsx
 'use client'
@@ -2959,6 +3000,12 @@ export function Footer() {
 ```
 
 - [ ] **Paso 5: Portada completa**
+
+> **Corregido al implementar (commit 39e1198).** El `page.tsx` de abajo llama a
+> `<Hero />` y `<PresetSelector />` **sin props**, que es como los definía el plan
+> antes de las correcciones de las Tasks 7 y 8. Copiado literal, no compila. Lo
+> implementado calcula `FORMULAS` y `PRESETS` en este mismo fichero —servidor— y
+> los pasa: `<Hero formulas={FORMULAS} />` y `<PresetSelector presets={PRESETS} />`.
 
 ```tsx
 import { Hero } from '@/components/Hero'
