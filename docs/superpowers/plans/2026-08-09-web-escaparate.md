@@ -1330,7 +1330,10 @@ export function crearGating(fuente) {
               `${cima.sangria}. Revisa el fichero y el parser.`,
           )
         }
-        return false
+        // `fi` de un if anidado: no cierra nuestro bloque, pero se consume
+        // igual. Ninguna línea `fi` es jamás una declaración, así que dejarla
+        // pasar al extractor no aporta nada y rompe el test del anidamiento.
+        return true
       }
 
       const apertura = linea.match(APERTURA)
