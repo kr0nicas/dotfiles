@@ -75,7 +75,7 @@
     "id": "wget",
     "nombre": "wget",
     "categoria": "Red y diagnóstico",
-    "descripcion": "Descarga ficheros y árboles completos con reintentos y reanudación, que es donde curl se queda corto.",
+    "descripcion": "Descarga sitios enteros de forma recursiva, que es lo que curl no hace: reintentos y reanudación los tiene curl también.",
     "url": "https://www.gnu.org/software/wget/",
     "declarado": ["brew:wget"]
   },
@@ -881,9 +881,9 @@
   },
   {
     "id": "vscode-docker",
-    "nombre": "Docker",
+    "nombre": "Docker DX",
     "categoria": "Editor",
-    "descripcion": "Gestiona imágenes y contenedores desde la barra lateral y da sintaxis a los Dockerfile.",
+    "descripcion": "Da linting y completado en Dockerfile, Compose y Bake, con los avisos de build de BuildKit y detección de imágenes vulnerables.",
     "url": "https://marketplace.visualstudio.com/items?itemName=docker.docker",
     "declarado": ["vscode:docker.docker"]
   },
