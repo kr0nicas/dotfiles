@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-10 · fix/changelog-base-ref
+
+### Fixes
+
+- **scripts**: basar el CHANGELOG en origin/main y no en el main local (`64cacf1`)
+
 ## 2026-08-10 · feat/web-escaparate
 
 ### Features
