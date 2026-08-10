@@ -68,7 +68,15 @@ export function PresetSelector({ presets }: { presets: PresetConCuenta[] }) {
               </span>
             ))}
           </p>
-          <p className="mt-3 text-peach">≈ {preset.cuenta} herramientas</p>
+          {/*
+            Dos cifras y no una: dentro de un mismo módulo hay fórmulas que solo
+            existen en macOS y paquetes que solo existen en Debian, así que un
+            número único sobrevende el preset en la plataforma equivocada.
+          */}
+          <p className="mt-3 text-peach">
+            ≈ {preset.cuenta.macos} en macOS <span className="text-overlay0">·</span>{' '}
+            {preset.cuenta.linux} en Linux
+          </p>
         </TerminalWindow>
 
         <div className="rounded-lg border border-surface0 bg-mantle p-6">

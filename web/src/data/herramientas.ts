@@ -36,9 +36,18 @@ export const categorias: string[] = [...new Set(herramientas.map((h) => h.catego
   a.localeCompare(b, 'es'),
 )
 
-/** Cuántas herramientas trae un preset. El recuento sale del catálogo, no de una constante. */
-export function cuentaDePreset(preset: Preset): number {
-  return herramientas.filter((h) =>
+/**
+ * Cuántas herramientas trae un preset, por plataforma. Los recuentos salen del
+ * catálogo, no de una constante.
+ *
+ * Van separados porque un solo número engaña: un preset enciende módulos, pero
+ * dentro de un módulo hay fórmulas que solo existen en macOS y paquetes que solo
+ * existen en Debian. `--container` es una imagen de Docker —o sea Linux— y
+ * contando las dos plataformas juntas anunciaba 78 cuando ahí solo se instalan
+ * 47. El módulo decide QUÉ entra; la plataforma decide QUÉ llega a instalarse.
+ */
+export function cuentaDePreset(preset: Preset): { macos: number; linux: number } {
+  const incluidas = herramientas.filter((h) =>
     h.modulos.some(
       (m) =>
         m === 'base' ||
@@ -46,5 +55,10 @@ export function cuentaDePreset(preset: Preset): number {
         (m === 'k8s' && preset.k8s) ||
         (m === 'gui' && preset.gui),
     ),
-  ).length
+  )
+
+  return {
+    macos: incluidas.filter((h) => h.plataformas.includes('macos')).length,
+    linux: incluidas.filter((h) => h.plataformas.includes('linux')).length,
+  }
 }
