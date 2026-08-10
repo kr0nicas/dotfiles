@@ -3,6 +3,21 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-10 · feat/install-preset-agent
+
+### Features
+
+- **install**: añadir preset --agent (`74b32f5`)
+
+### Refactors
+
+- **lib**: partir phase_symlinks en un grupo por destino (`5f92a0b`)
+
+### Documentación
+
+- **docs**: diseñar el preset --agent y su decisión sobre apt (`c49ad3b`)
+- **docs**: documentar el preset --agent en README y CLAUDE.md (`a28da19`)
+
 ## 2026-08-09 · fix/rtk-hook-sin-binario
 
 ### Fixes
