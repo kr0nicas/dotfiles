@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-08-10 · fix/fzf-pin-068
+
+### Fixes
+
+- **install**: subir el pin de fzf a 0.68.0 (`ed56706`)
+
 ## 2026-08-10 · feat/install-preset-agent
 
 ### Features
