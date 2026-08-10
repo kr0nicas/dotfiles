@@ -30,7 +30,7 @@ test('el gating de lib/binaries.sh clasifica bien', () => {
   assert.equal(porNombre.lazygit, 'base')
 })
 
-test('las cuatro fuentes aportan entradas', () => {
+test('las seis fuentes aportan entradas', () => {
   for (const fuente of ['Brewfile', 'Brewfile.cloud', 'Brewfile.k8s', 'Brewfile.gui',
                         'lib/binaries.sh', 'lib/packages.sh']) {
     assert.ok((datos.conteos[fuente] ?? 0) > 0, `${fuente} no aportó ninguna entrada`)

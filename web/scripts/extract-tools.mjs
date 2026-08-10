@@ -18,7 +18,15 @@ export function extraerTodo(rutaRepo) {
     ...extraerBrew(rutaRepo),
     ...extraerBinarios(rutaRepo),
     ...extraerApt(rutaRepo),
-  ].sort((a, b) => a.clave.localeCompare(b.clave))
+    // Comparación ordinal, NO localeCompare. Las claves son ASCII por
+    // construcción (`brew:go-task`, `github:golangci-lint`, `vscode:golang.go`)
+    // y no hay nada que colacionar; pero localeCompare sin locale explícito
+    // depende del ICU del runtime y del LANG del entorno, y ordena la puntuación
+    // (`- . : +`) con pesos que han cambiado entre versiones de CLDR. Como
+    // check-tools.mjs compara este fichero byte a byte contra una extracción
+    // fresca, un orden distinto en CI que en local da un build rojo imposible de
+    // reproducir en la máquina del que lo rompió.
+  ].sort((a, b) => (a.clave < b.clave ? -1 : a.clave > b.clave ? 1 : 0))
 
   const conteos = {}
   for (const e of entradas) conteos[e.fuente] = (conteos[e.fuente] ?? 0) + 1
