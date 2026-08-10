@@ -2709,14 +2709,13 @@ En la tabla de `specs/`, la fila de `2026-08-09-web-escaparate-design.md` dice t
 Y añade el plan a la tabla de `plans/`:
 
 ```
-| `2026-08-09-web-escaparate.md` | 1100 | web-escaparate | PR #NN |
+| `2026-08-09-web-escaparate.md` | 2795 | web-escaparate | PR #NN |
 ```
 
-Sustituye `#NN` por el número real que devuelva `gh pr create` en el Paso 9, y
-`1100` por la salida de `wc -l docs/superpowers/plans/2026-08-09-web-escaparate.md`.
+Sustituye `#NN` por el número real que devuelva `gh pr create` en el Paso 9.
 
 Y en la cabecera del índice, cambia `Nueve documentos, ~4.600 líneas.` por
-`Diez documentos, ~5.700 líneas.`, ajustando la cifra a la suma real:
+`Diez documentos, ~7.400 líneas.`. Confirma la cifra antes de escribirla:
 
 ```bash
 wc -l docs/README.md docs/superpowers/specs/*.md docs/superpowers/plans/*.md docs/reports/*.md | tail -1
