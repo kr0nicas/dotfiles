@@ -20,6 +20,48 @@ brew_untrusted_taps() {
         | sort -u
 }
 
+# ¿Puede esta caja instalar paquetes del sistema sin que nadie teclee nada?
+#
+# `sudo -n true` y no `command -v sudo`: lo que importa no es que sudo exista,
+# sino que conteste sin pedir contraseña. Una caja de agente no tiene a quién
+# preguntársela, así que un sudo que prompt-ea equivale a no tener sudo — con la
+# diferencia de que se cuelga esperando en vez de fallar.
+#
+# Vive a nivel de archivo, como brew_untrusted_taps, para poder probarla sin un
+# sistema delante: `id` y `sudo` son comandos externos, así que un test los
+# sombrea con funciones del mismo nombre. lib/packages.test.sh lo hace así.
+packages_can_elevate() {
+    [[ "$(id -u)" -eq 0 ]] && return 0
+    command -v sudo >/dev/null 2>&1 || return 1
+    sudo -n true 2>/dev/null
+}
+
+# phase_packages, pero sin abortar la instalación en una caja sin root.
+#
+# Solo la usa el preset --agent, y existe porque el bloque de Debian es todo
+# `sudo apt` y su primera línea —`sudo apt update`— no lleva `|| true`: en un
+# sandbox sin root muere ahí y se lleva por delante el instalador entero bajo
+# `set -e`. Se degrada en vez de omitirse a secas porque de esta fase salen
+# justo las herramientas que un agente usa más: rg, fd, bat, jq, yq y unzip NO
+# están en lib/binaries.sh.
+phase_packages_if_possible() {
+    # macOS nunca se salta: aquí la fase es `brew bundle`, que no usa sudo, y es
+    # además la ÚNICA fuente de binarios del repo en Mac (phase_binaries es solo
+    # Linux). Y en dry-run tampoco, porque la fase ya no instala nada y saltarla
+    # haría que la salida de `--dry-run --agent` dependiera de si esta máquina
+    # tiene sudo — el oráculo dejaría de ser determinista.
+    if [[ ${IS_MAC:-0} -eq 1 ]] || [[ $DRY_RUN -eq 1 ]] || packages_can_elevate; then
+        phase_packages
+        return
+    fi
+
+    section "Herramientas Base"
+    warn "Sin root y sin sudo no interactivo: se omiten los paquetes del sistema."
+    warn "La imagen base debe traer, además de curl/git/zsh que ya exige phase_detect:"
+    warn "    jq yq ripgrep fd-find bat eza unzip zstd age direnv btop gh"
+    warn "El que más duele es unzip: sin él, jless, lnav y tflint se saltan en la fase siguiente."
+}
+
 phase_packages() {
     # ------------------------------------------------------------------------------
     # 3. INSTALACIÓN DE HERRAMIENTAS BASE

@@ -14,6 +14,9 @@ Opciones:
   --vps            Perfil Servidor/VPS  (base + cloud, sin k8s ni gui)
   --container      Perfil Container/Docker (solo base, ultra-minimal)
   --k8s-node       Perfil Nodo Kubernetes (base + cloud + k8s, sin gui)
+  --agent          Perfil Caja de agente: el consumidor es Claude Code, no una
+                   persona. Herramientas, hooks de git y ~/.claude; sin tmux ni
+                   nvim, y sin las configs que solo lee una shell interactiva
   --no-cloud       Omite Cloud/IaC (aws, azure, tofu, vault, tflint, gcloud)
   --no-k8s         Omite Kubernetes (kubectl, helm, k9s, stern, kubectx, docker)
   --no-gui         Omite apps GUI (VSCode, Brave, Spotify, Postman, ngrok)
@@ -30,6 +33,8 @@ Ejemplos:
   ./install.sh --vps                    # Servidor cloud sin k8s ni gui
   ./install.sh --container              # Dev container / Docker image
   ./install.sh --k8s-node               # Nodo de cluster Kubernetes
+  ./install.sh --agent                  # Caja para un agente de Claude Code
+  ./install.sh --agent --no-k8s         # Igual, sin kubectl/helm/k9s
   ./install.sh --minimal                # Solo shell + nvim + langs
   ./install.sh --no-cloud --no-k8s      # Workstation sin SRE tools
 EOF
@@ -53,18 +58,20 @@ show_menu() {
     echo "  2) Servidor / VPS          (base + cloud, sin k8s ni gui)"
     echo "  3) Container / Docker      (solo base, ultra-minimal)"
     echo "  4) Nodo Kubernetes         (base + cloud + k8s, sin gui)"
-    echo "  5) Personalizado           (te pregunto módulo por módulo)"
+    echo "  5) Caja de agente          (herramientas + hooks + ~/.claude, sin editores)"
+    echo "  6) Personalizado           (te pregunto módulo por módulo)"
     echo "  q) Cancelar"
     echo
     local choice
-    read -rp "Opción [1-5/q]: " choice
+    read -rp "Opción [1-6/q]: " choice
     echo
     case "$choice" in
         1)   INSTALL_CLOUD=1; INSTALL_K8S=1; INSTALL_GUI=1; ok "Perfil: Workstation completo" ;;
         2)   INSTALL_CLOUD=1; INSTALL_K8S=0; INSTALL_GUI=0; ok "Perfil: Servidor / VPS" ;;
         3)   INSTALL_CLOUD=0; INSTALL_K8S=0; INSTALL_GUI=0; ok "Perfil: Container / Docker" ;;
         4)   INSTALL_CLOUD=1; INSTALL_K8S=1; INSTALL_GUI=0; ok "Perfil: Nodo Kubernetes" ;;
-        5)   ask_modules; ok "Perfil: Personalizado" ;;
+        5)   INSTALL_AGENT=1; INSTALL_GUI=0;                ok "Perfil: Caja de agente" ;;
+        6)   ask_modules; ok "Perfil: Personalizado" ;;
         q|Q) echo "Cancelado."; exit 0 ;;
         *)   err "Opción inválida: '$choice'" ;;
     esac
