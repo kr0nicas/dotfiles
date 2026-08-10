@@ -14,3 +14,6 @@ config/claude/settings.local.json
 web/node_modules/
 web/.next/
 web/out/
+# Caché incremental de tsc. La escribe `npx tsc --noEmit`, que es como se
+# comprueban los tipos sin pasar por `next build`.
+web/tsconfig.tsbuildinfo
