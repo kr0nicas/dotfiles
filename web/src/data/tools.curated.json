@@ -1,0 +1,1074 @@
+[
+  {
+    "id": "zsh",
+    "nombre": "zsh",
+    "categoria": "Core",
+    "descripcion": "Shell interactiva sobre la que se monta todo el entorno: completado, globbing y hooks que bash no tiene.",
+    "url": "https://www.zsh.org",
+    "declarado": ["brew:zsh", "apt:zsh"]
+  },
+  {
+    "id": "zsh-autosuggestions",
+    "nombre": "zsh-autosuggestions",
+    "categoria": "Core",
+    "descripcion": "Sugiere en gris el comando que ya escribiste antes, para aceptarlo con una tecla en vez de repetirlo entero.",
+    "url": "https://github.com/zsh-users/zsh-autosuggestions",
+    "declarado": ["brew:zsh-autosuggestions", "apt:zsh-autosuggestions"]
+  },
+  {
+    "id": "zsh-syntax-highlighting",
+    "nombre": "zsh-syntax-highlighting",
+    "categoria": "Core",
+    "descripcion": "Colorea la línea mientras la escribes, así un comando inexistente o unas comillas sin cerrar se ven antes de pulsar Enter.",
+    "url": "https://github.com/zsh-users/zsh-syntax-highlighting",
+    "declarado": ["brew:zsh-syntax-highlighting", "apt:zsh-syntax-highlighting"]
+  },
+  {
+    "id": "zsh-completions",
+    "nombre": "zsh-completions",
+    "categoria": "Core",
+    "descripcion": "Añade completado por tabulador para cientos de comandos que no lo traen de serie.",
+    "url": "https://github.com/zsh-users/zsh-completions",
+    "declarado": ["brew:zsh-completions"]
+  },
+  {
+    "id": "starship",
+    "nombre": "starship",
+    "categoria": "Terminal",
+    "descripcion": "Dibuja el prompt con el contexto que importa —rama de git, versión del lenguaje, proyecto de cloud— sin frenar la shell.",
+    "url": "https://starship.rs",
+    "declarado": ["brew:starship"]
+  },
+  {
+    "id": "fzf",
+    "nombre": "fzf",
+    "categoria": "CLI moderna",
+    "descripcion": "Filtro difuso interactivo que convierte cualquier lista en un selector; es el motor de los pickers de gcx, del sessionizer y del histórico.",
+    "url": "https://github.com/junegunn/fzf",
+    "declarado": ["brew:fzf"]
+  },
+  {
+    "id": "zoxide",
+    "nombre": "zoxide",
+    "categoria": "CLI moderna",
+    "descripcion": "Aprende a qué directorios saltas y te lleva ahí escribiendo un fragmento del nombre en vez de la ruta.",
+    "url": "https://github.com/ajeetdsouza/zoxide",
+    "declarado": ["brew:zoxide", "github:zoxide"]
+  },
+  {
+    "id": "direnv",
+    "nombre": "direnv",
+    "categoria": "Core",
+    "descripcion": "Carga y descarga variables de entorno al entrar y salir de un directorio, para no arrastrar credenciales de un proyecto a otro.",
+    "url": "https://direnv.net",
+    "declarado": ["brew:direnv", "apt:direnv"]
+  },
+  {
+    "id": "curl",
+    "nombre": "curl",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Habla con cualquier endpoint HTTP desde la terminal y enseña exactamente qué se envió y qué volvió.",
+    "url": "https://curl.se",
+    "declarado": ["brew:curl", "apt:curl"]
+  },
+  {
+    "id": "wget",
+    "nombre": "wget",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Descarga ficheros y árboles completos con reintentos y reanudación, que es donde curl se queda corto.",
+    "url": "https://www.gnu.org/software/wget/",
+    "declarado": ["brew:wget"]
+  },
+  {
+    "id": "unzip",
+    "nombre": "unzip",
+    "categoria": "Core",
+    "descripcion": "Descomprime los .zip en los que muchos proyectos publican sus releases.",
+    "url": "https://infozip.sourceforge.net/UnZip.html",
+    "declarado": ["apt:unzip"]
+  },
+  {
+    "id": "zstd",
+    "nombre": "zstd",
+    "categoria": "Core",
+    "descripcion": "Descomprime los .tar.zst que ya usan varias releases de GitHub, donde gzip no llega.",
+    "url": "https://github.com/facebook/zstd",
+    "declarado": ["apt:zstd"]
+  },
+  {
+    "id": "gnupg",
+    "nombre": "GnuPG",
+    "categoria": "Seguridad",
+    "descripcion": "Firma commits y descifra secretos; es el backend criptográfico del que dependen pass y sops.",
+    "url": "https://gnupg.org",
+    "declarado": ["apt:gnupg"]
+  },
+  {
+    "id": "openssl",
+    "nombre": "OpenSSL",
+    "categoria": "Seguridad",
+    "descripcion": "Inspecciona certificados, genera claves y depura un handshake TLS que falla sin decir por qué.",
+    "url": "https://www.openssl.org",
+    "declarado": ["brew:openssl@3"]
+  },
+  {
+    "id": "bsdextrautils",
+    "nombre": "bsdextrautils",
+    "categoria": "Core",
+    "descripcion": "Trae `column`, que es lo que alinea las tablas de los pickers de gcx en Debian y Ubuntu.",
+    "url": "https://github.com/util-linux/util-linux",
+    "declarado": ["apt:bsdextrautils"]
+  },
+  {
+    "id": "tree",
+    "nombre": "tree",
+    "categoria": "CLI moderna",
+    "descripcion": "Imprime la jerarquía de un directorio de un vistazo, sin encadenar find con sed.",
+    "url": "https://oldmanprogrammer.net/source.php?dir=projects/tree",
+    "declarado": ["brew:tree"]
+  },
+  {
+    "id": "telnet",
+    "nombre": "telnet",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Comprueba a pelo si un puerto acepta conexiones cuando hay que descartar firewall antes que aplicación.",
+    "url": "https://formulae.brew.sh/formula/telnet",
+    "declarado": ["brew:telnet"]
+  },
+  {
+    "id": "bat",
+    "nombre": "bat",
+    "categoria": "CLI moderna",
+    "descripcion": "Muestra ficheros con resaltado de sintaxis, números de línea e integración con git; sustituye a cat para leer.",
+    "url": "https://github.com/sharkdp/bat",
+    "declarado": ["brew:bat", "apt:bat"]
+  },
+  {
+    "id": "eza",
+    "nombre": "eza",
+    "categoria": "CLI moderna",
+    "descripcion": "Lista directorios con colores, iconos y estado de git en la misma columna que los permisos.",
+    "url": "https://eza.rocks",
+    "declarado": ["brew:eza", "apt:eza"]
+  },
+  {
+    "id": "fd",
+    "nombre": "fd",
+    "categoria": "CLI moderna",
+    "descripcion": "Busca ficheros por nombre con sintaxis sensata y respetando .gitignore por defecto.",
+    "url": "https://github.com/sharkdp/fd",
+    "declarado": ["brew:fd", "apt:fd-find"]
+  },
+  {
+    "id": "ripgrep",
+    "nombre": "ripgrep",
+    "categoria": "CLI moderna",
+    "descripcion": "Busca por contenido en un árbol entero en milisegundos, saltándose lo ignorado por git.",
+    "url": "https://github.com/BurntSushi/ripgrep",
+    "declarado": ["brew:ripgrep", "apt:ripgrep"]
+  },
+  {
+    "id": "jq",
+    "nombre": "jq",
+    "categoria": "CLI moderna",
+    "descripcion": "Filtra y transforma JSON en la tubería, que es como se lee la salida de cualquier CLI de cloud.",
+    "url": "https://jqlang.github.io/jq/",
+    "declarado": ["brew:jq", "apt:jq"]
+  },
+  {
+    "id": "yq",
+    "nombre": "yq",
+    "categoria": "CLI moderna",
+    "descripcion": "Aplica expresiones de jq sobre YAML, o sea sobre manifiestos de Kubernetes y workflows de CI.",
+    "url": "https://github.com/kislyuk/yq",
+    "declarado": ["brew:python-yq", "apt:yq"]
+  },
+  {
+    "id": "delta",
+    "nombre": "delta",
+    "categoria": "Git",
+    "descripcion": "Renderiza los diffs de git con sintaxis coloreada y resaltado dentro de la línea, no solo la línea entera.",
+    "url": "https://github.com/dandavison/delta",
+    "declarado": ["brew:delta", "github:delta"]
+  },
+  {
+    "id": "dust",
+    "nombre": "dust",
+    "categoria": "CLI moderna",
+    "descripcion": "Enseña qué directorios se están comiendo el disco, ordenados y con barras, sin las banderas de du.",
+    "url": "https://github.com/bootandy/dust",
+    "declarado": ["brew:dust", "github:dust"]
+  },
+  {
+    "id": "sd",
+    "nombre": "sd",
+    "categoria": "CLI moderna",
+    "descripcion": "Sustituye texto con expresiones regulares legibles, sin la sintaxis de sed ni sus diferencias entre BSD y GNU.",
+    "url": "https://github.com/chmln/sd",
+    "declarado": ["brew:sd"]
+  },
+  {
+    "id": "jless",
+    "nombre": "jless",
+    "categoria": "CLI moderna",
+    "descripcion": "Navega un JSON grande plegando y desplegando ramas, en vez de hacer scroll sobre miles de líneas.",
+    "url": "https://jless.io",
+    "declarado": ["brew:jless", "github:jless"]
+  },
+  {
+    "id": "lnav",
+    "nombre": "lnav",
+    "categoria": "CLI moderna",
+    "descripcion": "Fusiona varios ficheros de log en una línea de tiempo y deja consultarlos con SQL.",
+    "url": "https://lnav.org",
+    "declarado": ["brew:lnav", "github:lnav"]
+  },
+  {
+    "id": "btop",
+    "nombre": "btop",
+    "categoria": "CLI moderna",
+    "descripcion": "Monitoriza CPU, memoria, disco y red en una TUI donde además se matan procesos.",
+    "url": "https://github.com/aristocratos/btop",
+    "declarado": ["brew:btop", "apt:btop"]
+  },
+  {
+    "id": "tldr",
+    "nombre": "tldr",
+    "categoria": "CLI moderna",
+    "descripcion": "Da los cinco ejemplos que de verdad se usan de un comando, en vez de las cuarenta páginas del man.",
+    "url": "https://tldr.sh",
+    "declarado": ["brew:tldr"]
+  },
+  {
+    "id": "viddy",
+    "nombre": "viddy",
+    "categoria": "CLI moderna",
+    "descripcion": "Repite un comando en bucle resaltando lo que cambia y guardando el histórico, que es lo que le falta a watch.",
+    "url": "https://github.com/sachaos/viddy",
+    "declarado": ["brew:viddy"]
+  },
+  {
+    "id": "git",
+    "nombre": "git",
+    "categoria": "Git",
+    "descripcion": "Control de versiones distribuido; aquí va configurado con delta como pager y los hooks del repo activos.",
+    "url": "https://git-scm.com",
+    "declarado": ["brew:git", "apt:git"]
+  },
+  {
+    "id": "gh",
+    "nombre": "GitHub CLI",
+    "categoria": "Git",
+    "descripcion": "Abre, revisa y mergea pull requests desde la terminal, y da acceso directo a la API con `gh api`.",
+    "url": "https://cli.github.com",
+    "declarado": ["brew:gh", "apt:gh"]
+  },
+  {
+    "id": "glab",
+    "nombre": "glab",
+    "categoria": "Git",
+    "descripcion": "Lo mismo que gh pero contra GitLab: merge requests, pipelines e issues sin abrir el navegador.",
+    "url": "https://gitlab.com/gitlab-org/cli",
+    "declarado": ["brew:glab"]
+  },
+  {
+    "id": "lazygit",
+    "nombre": "lazygit",
+    "categoria": "Git",
+    "descripcion": "TUI para stagear por líneas, reordenar commits y resolver rebases sin memorizar el comando exacto.",
+    "url": "https://github.com/jesseduffield/lazygit",
+    "declarado": ["brew:lazygit", "github:lazygit"]
+  },
+  {
+    "id": "git-extras",
+    "nombre": "git-extras",
+    "categoria": "Git",
+    "descripcion": "Añade subcomandos de conveniencia como `git summary`, `git changelog` o `git delete-branch`.",
+    "url": "https://github.com/tj/git-extras",
+    "declarado": ["brew:git-extras"]
+  },
+  {
+    "id": "pre-commit",
+    "nombre": "pre-commit",
+    "categoria": "Git",
+    "descripcion": "Gestiona hooks declarados en YAML para proyectos que traen los suyos, al margen de los `.githooks` de este repo.",
+    "url": "https://pre-commit.com",
+    "declarado": ["brew:pre-commit"]
+  },
+  {
+    "id": "gitleaks",
+    "nombre": "gitleaks",
+    "categoria": "Seguridad",
+    "descripcion": "Rastrea claves y tokens filtrados en el árbol de trabajo y en todo el historial de commits.",
+    "url": "https://github.com/gitleaks/gitleaks",
+    "declarado": ["brew:gitleaks", "github:gitleaks"]
+  },
+  {
+    "id": "neovim",
+    "nombre": "Neovim",
+    "categoria": "Editor",
+    "descripcion": "Editor principal, con lazy.nvim, LSP, treesitter y navegación integrada con los paneles de tmux.",
+    "url": "https://neovim.io",
+    "declarado": ["brew:neovim"]
+  },
+  {
+    "id": "tree-sitter-cli",
+    "nombre": "tree-sitter-cli",
+    "categoria": "Editor",
+    "descripcion": "Compila las gramáticas que Neovim usa para resaltar y plegar código entendiendo su estructura.",
+    "url": "https://tree-sitter.github.io",
+    "declarado": ["brew:tree-sitter-cli"]
+  },
+  {
+    "id": "stylua",
+    "nombre": "StyLua",
+    "categoria": "Editor",
+    "descripcion": "Formatea el Lua de la propia configuración de Neovim al guardar, vía conform.nvim.",
+    "url": "https://github.com/JohnnyMorganz/StyLua",
+    "declarado": ["brew:stylua"]
+  },
+  {
+    "id": "tmux",
+    "nombre": "tmux",
+    "categoria": "Terminal",
+    "descripcion": "Mantiene las sesiones vivas al caerse el SSH y parte la pantalla en paneles que sobreviven al reinicio.",
+    "url": "https://github.com/tmux/tmux",
+    "declarado": ["brew:tmux", "apt:tmux"]
+  },
+  {
+    "id": "wezterm",
+    "nombre": "WezTerm",
+    "categoria": "Terminal",
+    "descripcion": "Emulador de terminal acelerado por GPU y configurado en Lua, el mismo fichero en macOS, Linux y WSL2.",
+    "url": "https://wezterm.org",
+    "declarado": ["cask:wezterm"]
+  },
+  {
+    "id": "iterm2",
+    "nombre": "iTerm2",
+    "categoria": "Terminal",
+    "descripcion": "Terminal alternativa en macOS; el repo le inyecta un perfil dinámico con el tema y la fuente ya puestos.",
+    "url": "https://iterm2.com",
+    "declarado": ["cask:iterm2"]
+  },
+  {
+    "id": "font-hack-nerd-font",
+    "nombre": "Hack Nerd Font",
+    "categoria": "Terminal",
+    "descripcion": "Fuente monoespaciada con los glifos que dibujan los iconos de starship, eza y lualine.",
+    "url": "https://www.nerdfonts.com",
+    "declarado": ["cask:font-hack-nerd-font"]
+  },
+  {
+    "id": "font-source-code-pro",
+    "nombre": "Source Code Pro",
+    "categoria": "Terminal",
+    "descripcion": "Monoespaciada de respaldo para editores y capturas donde no hacen falta glifos de Nerd Font.",
+    "url": "https://github.com/adobe-fonts/source-code-pro",
+    "declarado": ["cask:font-source-code-pro"]
+  },
+  {
+    "id": "mtr",
+    "nombre": "mtr",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Combina ping y traceroute en una vista continua que señala en qué salto se pierden los paquetes.",
+    "url": "https://www.bitwizard.nl/mtr/",
+    "declarado": ["brew:mtr", "apt:mtr-tiny"]
+  },
+  {
+    "id": "trippy",
+    "nombre": "trippy",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Traceroute en TUI con histogramas de latencia por salto y soporte de varios protocolos.",
+    "url": "https://trippy.rs",
+    "declarado": ["brew:trippy", "github:trip"]
+  },
+  {
+    "id": "nmap",
+    "nombre": "nmap",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Descubre qué hosts y puertos están vivos en una red, y qué servicio hay detrás de cada uno.",
+    "url": "https://nmap.org",
+    "declarado": ["brew:nmap", "apt:nmap"]
+  },
+  {
+    "id": "socat",
+    "nombre": "socat",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Conecta dos flujos cualesquiera —sockets, ficheros, procesos— para montar túneles y proxies improvisados.",
+    "url": "http://www.dest-unreach.org/socat/",
+    "declarado": ["brew:socat", "apt:socat"]
+  },
+  {
+    "id": "iperf3",
+    "nombre": "iperf3",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Mide el ancho de banda real entre dos máquinas para distinguir un problema de red de uno de aplicación.",
+    "url": "https://iperf.fr",
+    "declarado": ["brew:iperf3", "apt:iperf3"]
+  },
+  {
+    "id": "doggo",
+    "nombre": "doggo",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Consulta DNS con salida legible y soporte de DoH y DoT, donde dig obliga a leer un volcado crudo.",
+    "url": "https://doggo.mrkaran.dev",
+    "declarado": ["brew:doggo", "github:doggo"]
+  },
+  {
+    "id": "curlie",
+    "nombre": "curlie",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Envuelve curl con la sintaxis y el coloreado de HTTPie, conservando sus banderas y su rendimiento.",
+    "url": "https://curlie.io",
+    "declarado": ["brew:curlie", "github:curlie"]
+  },
+  {
+    "id": "bandwhich",
+    "nombre": "bandwhich",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Enseña en vivo qué proceso y qué conexión están consumiendo el ancho de banda.",
+    "url": "https://github.com/imsnif/bandwhich",
+    "declarado": ["brew:bandwhich", "github:bandwhich"]
+  },
+  {
+    "id": "oha",
+    "nombre": "oha",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Lanza carga contra un endpoint HTTP y dibuja latencias y percentiles mientras corre.",
+    "url": "https://github.com/hatoo/oha",
+    "declarado": ["brew:oha", "github:oha"]
+  },
+  {
+    "id": "termshark",
+    "nombre": "termshark",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Da la interfaz de Wireshark dentro de la terminal, para analizar capturas en un servidor sin escritorio.",
+    "url": "https://termshark.io",
+    "declarado": ["brew:termshark", "github:termshark"]
+  },
+  {
+    "id": "tshark",
+    "nombre": "tshark",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Captura y disecciona tráfico desde la línea de comandos; es el motor que termshark pinta.",
+    "url": "https://www.wireshark.org/docs/man-pages/tshark.html",
+    "declarado": ["apt:tshark"]
+  },
+  {
+    "id": "nghttp2",
+    "nombre": "nghttp2",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Trae `nghttp` y `h2load` para depurar HTTP/2 y medir cuánto aguanta un servidor que lo habla.",
+    "url": "https://nghttp2.org",
+    "declarado": ["brew:nghttp2"]
+  },
+  {
+    "id": "sshuttle",
+    "nombre": "sshuttle",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Monta una VPN improvisada sobre una sesión SSH, sin instalar nada en el lado remoto.",
+    "url": "https://sshuttle.readthedocs.io",
+    "declarado": ["brew:sshuttle", "github:sshuttle"]
+  },
+  {
+    "id": "ngrok",
+    "nombre": "ngrok",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Expone un puerto local en una URL pública para probar webhooks contra la máquina de desarrollo.",
+    "url": "https://ngrok.com",
+    "declarado": ["cask:ngrok"]
+  },
+  {
+    "id": "grpcurl",
+    "nombre": "grpcurl",
+    "categoria": "Red y diagnóstico",
+    "descripcion": "Llama a servicios gRPC desde la terminal y lista sus métodos por reflexión, como curl con REST.",
+    "url": "https://github.com/fullstorydev/grpcurl",
+    "declarado": ["brew:grpcurl"]
+  },
+  {
+    "id": "awscli",
+    "nombre": "AWS CLI",
+    "categoria": "Cloud e IaC",
+    "descripcion": "Opera cualquier servicio de AWS desde la terminal y gestiona perfiles y credenciales.",
+    "url": "https://aws.amazon.com/cli/",
+    "declarado": ["brew:awscli"]
+  },
+  {
+    "id": "azure-cli",
+    "nombre": "Azure CLI",
+    "categoria": "Cloud e IaC",
+    "descripcion": "Equivalente para Azure: suscripciones, grupos de recursos y despliegues sin pasar por el portal.",
+    "url": "https://learn.microsoft.com/cli/azure/",
+    "declarado": ["brew:azure-cli"]
+  },
+  {
+    "id": "gcloud",
+    "nombre": "Google Cloud SDK",
+    "categoria": "Cloud e IaC",
+    "descripcion": "Trae `gcloud`, `gsutil` y `bq`; es lo que hay debajo del switcher gcx de cuentas y proyectos.",
+    "url": "https://cloud.google.com/sdk",
+    "declarado": ["cask:gcloud-cli"]
+  },
+  {
+    "id": "opentofu",
+    "nombre": "OpenTofu",
+    "categoria": "Cloud e IaC",
+    "descripcion": "Motor de infraestructura como código del repo, drop-in de Terraform y el mismo en las dos plataformas.",
+    "url": "https://opentofu.org",
+    "declarado": ["brew:opentofu", "github:tofu"]
+  },
+  {
+    "id": "tflint",
+    "nombre": "tflint",
+    "categoria": "Cloud e IaC",
+    "descripcion": "Caza errores de HCL que el plan no ve: tipos de instancia inexistentes, atributos obsoletos, convenciones rotas.",
+    "url": "https://github.com/terraform-linters/tflint",
+    "declarado": ["cask:terraform-linters/tap/tflint", "github:tflint"]
+  },
+  {
+    "id": "tfsec",
+    "nombre": "tfsec",
+    "categoria": "Cloud e IaC",
+    "descripcion": "Revisa el código de infraestructura buscando configuraciones inseguras antes de que lleguen a aplicarse.",
+    "url": "https://github.com/aquasecurity/tfsec",
+    "declarado": ["brew:tfsec"]
+  },
+  {
+    "id": "vault",
+    "nombre": "Vault",
+    "categoria": "Cloud e IaC",
+    "descripcion": "Cliente de HashiCorp Vault para leer secretos y pedir credenciales dinámicas de corta vida.",
+    "url": "https://www.vaultproject.io",
+    "declarado": ["brew:hashicorp/tap/vault"]
+  },
+  {
+    "id": "rtk",
+    "nombre": "rtk",
+    "categoria": "Cloud e IaC",
+    "descripcion": "Comprime la salida de kubectl, aws o git antes de que la lea un agente de IA, recortando entre el 60 y el 90 % de tokens.",
+    "url": "https://www.rtk-ai.app/",
+    "declarado": ["brew:rtk"]
+  },
+  {
+    "id": "postgresql-client",
+    "nombre": "cliente de PostgreSQL",
+    "categoria": "Cloud e IaC",
+    "descripcion": "Da `psql` y `pg_dump` para conectarse a las bases gestionadas de cloud sin levantar un servidor local.",
+    "url": "https://www.postgresql.org/docs/current/app-psql.html",
+    "declarado": ["brew:libpq", "apt:postgresql-client"]
+  },
+  {
+    "id": "kubectl",
+    "nombre": "kubectl",
+    "categoria": "Kubernetes",
+    "descripcion": "Cliente oficial del clúster: aplica manifiestos, consulta recursos y abre logs y shells en pods.",
+    "url": "https://kubernetes.io/docs/reference/kubectl/",
+    "declarado": ["brew:kubernetes-cli", "github:kubectl"]
+  },
+  {
+    "id": "helm",
+    "nombre": "Helm",
+    "categoria": "Kubernetes",
+    "descripcion": "Empaqueta y despliega aplicaciones del clúster como charts parametrizables, con historial y rollback.",
+    "url": "https://helm.sh",
+    "declarado": ["brew:helm", "github:helm"]
+  },
+  {
+    "id": "k9s",
+    "nombre": "k9s",
+    "categoria": "Kubernetes",
+    "descripcion": "TUI para navegar el clúster —pods, logs, shells, eventos— sin escribir kubectl para cada consulta.",
+    "url": "https://k9scli.io",
+    "declarado": ["brew:k9s", "github:k9s"]
+  },
+  {
+    "id": "kubectx",
+    "nombre": "kubectx y kubens",
+    "categoria": "Kubernetes",
+    "descripcion": "Cambia de clúster y de namespace con un picker, en vez de editar el kubeconfig o recordar el nombre entero.",
+    "url": "https://github.com/ahmetb/kubectx",
+    "declarado": ["brew:kubectx", "github:kubectx", "github:kubens"]
+  },
+  {
+    "id": "kubecolor",
+    "nombre": "kubecolor",
+    "categoria": "Kubernetes",
+    "descripcion": "Colorea la salida de kubectl para distinguir de un vistazo un pod caído de uno sano.",
+    "url": "https://kubecolor.github.io",
+    "declarado": ["brew:kubecolor"]
+  },
+  {
+    "id": "kustomize",
+    "nombre": "kustomize",
+    "categoria": "Kubernetes",
+    "descripcion": "Genera manifiestos por entorno a base de parches sobre una base común, sin plantillas ni duplicación.",
+    "url": "https://kustomize.io",
+    "declarado": ["brew:kustomize"]
+  },
+  {
+    "id": "stern",
+    "nombre": "stern",
+    "categoria": "Kubernetes",
+    "descripcion": "Sigue los logs de varios pods a la vez, con un color por pod para no perder el hilo.",
+    "url": "https://github.com/stern/stern",
+    "declarado": ["brew:stern", "github:stern"]
+  },
+  {
+    "id": "istioctl",
+    "nombre": "istioctl",
+    "categoria": "Kubernetes",
+    "descripcion": "Instala y depura la malla de servicios Istio, incluida la configuración que llega a cada sidecar.",
+    "url": "https://istio.io",
+    "declarado": ["brew:istioctl"]
+  },
+  {
+    "id": "kubeshark",
+    "nombre": "kubeshark",
+    "categoria": "Kubernetes",
+    "descripcion": "Captura el tráfico que se cruzan los pods para ver qué se están diciendo de verdad entre servicios.",
+    "url": "https://kubeshark.co",
+    "declarado": ["brew:kubeshark", "github:kubeshark"]
+  },
+  {
+    "id": "dive",
+    "nombre": "dive",
+    "categoria": "Kubernetes",
+    "descripcion": "Explora una imagen capa por capa y señala qué ficheros sobran, que es por donde crecen los MB.",
+    "url": "https://github.com/wagoodman/dive",
+    "declarado": ["brew:dive", "github:dive"]
+  },
+  {
+    "id": "docker",
+    "nombre": "Docker CLI",
+    "categoria": "Kubernetes",
+    "descripcion": "Construye y ejecuta contenedores; en macOS necesita el daemon de colima detrás, porque la fórmula es solo el cliente.",
+    "url": "https://docs.docker.com/reference/cli/docker/",
+    "declarado": ["brew:docker"]
+  },
+  {
+    "id": "docker-compose",
+    "nombre": "Docker Compose",
+    "categoria": "Kubernetes",
+    "descripcion": "Levanta un stack de varios contenedores desde un YAML, para reproducir dependencias en local.",
+    "url": "https://docs.docker.com/compose/",
+    "declarado": ["brew:docker-compose"]
+  },
+  {
+    "id": "colima",
+    "nombre": "colima",
+    "categoria": "Kubernetes",
+    "descripcion": "Aporta la VM que hace de daemon de contenedores en macOS, alternativa libre a Docker Desktop.",
+    "url": "https://github.com/abiosoft/colima",
+    "declarado": ["brew:colima"]
+  },
+  {
+    "id": "age",
+    "nombre": "age",
+    "categoria": "Seguridad",
+    "descripcion": "Cifra ficheros con una sola clave y sin opciones que elegir mal, al contrario que GPG.",
+    "url": "https://github.com/FiloSottile/age",
+    "declarado": ["brew:age", "apt:age"]
+  },
+  {
+    "id": "sops",
+    "nombre": "sops",
+    "categoria": "Seguridad",
+    "descripcion": "Cifra solo los valores de un YAML o JSON, así el fichero de secretos se puede versionar y revisar en diff.",
+    "url": "https://getsops.io",
+    "declarado": ["brew:sops", "github:sops"]
+  },
+  {
+    "id": "trivy",
+    "nombre": "trivy",
+    "categoria": "Seguridad",
+    "descripcion": "Escanea imágenes, dependencias y manifiestos en busca de CVEs y de secretos incrustados.",
+    "url": "https://trivy.dev",
+    "declarado": ["brew:trivy", "github:trivy"]
+  },
+  {
+    "id": "step",
+    "nombre": "step",
+    "categoria": "Seguridad",
+    "descripcion": "Emite e inspecciona certificados y JWT desde la terminal, sin pelearse con los subcomandos de OpenSSL.",
+    "url": "https://smallstep.com/docs/step-cli/",
+    "declarado": ["brew:step", "github:step"]
+  },
+  {
+    "id": "pass",
+    "nombre": "pass",
+    "categoria": "Seguridad",
+    "descripcion": "Gestor de contraseñas que son ficheros cifrados con GPG dentro de un repo de git.",
+    "url": "https://www.passwordstore.org",
+    "declarado": ["brew:pass"]
+  },
+  {
+    "id": "pinentry-mac",
+    "nombre": "pinentry-mac",
+    "categoria": "Seguridad",
+    "descripcion": "Pide la passphrase de GPG en un diálogo nativo de macOS y la guarda en el llavero.",
+    "url": "https://github.com/GPGTools/pinentry",
+    "declarado": ["brew:pinentry-mac"]
+  },
+  {
+    "id": "go",
+    "nombre": "Go",
+    "categoria": "Lenguajes",
+    "descripcion": "Toolchain de Go, con gopls conectado a Neovim para completado y navegación.",
+    "url": "https://go.dev",
+    "declarado": ["brew:go"]
+  },
+  {
+    "id": "golangci-lint",
+    "nombre": "golangci-lint",
+    "categoria": "Lenguajes",
+    "descripcion": "Corre decenas de linters de Go en una sola pasada y con una configuración común.",
+    "url": "https://golangci-lint.run",
+    "declarado": ["brew:golangci-lint", "github:golangci-lint"]
+  },
+  {
+    "id": "openjdk",
+    "nombre": "OpenJDK 17",
+    "categoria": "Lenguajes",
+    "descripcion": "JDK fijado a la versión 17; el repo declara la versión explícita a propósito, nunca la fórmula sin versionar.",
+    "url": "https://openjdk.org",
+    "declarado": ["brew:openjdk@17"]
+  },
+  {
+    "id": "jenv",
+    "nombre": "jenv",
+    "categoria": "Lenguajes",
+    "descripcion": "Selecciona el JDK por proyecto a partir de un fichero `.java-version`.",
+    "url": "https://www.jenv.be",
+    "declarado": ["brew:jenv"]
+  },
+  {
+    "id": "maven",
+    "nombre": "Maven",
+    "categoria": "Lenguajes",
+    "descripcion": "Construye y gestiona dependencias de proyectos Java a partir del `pom.xml`.",
+    "url": "https://maven.apache.org",
+    "declarado": ["brew:maven"]
+  },
+  {
+    "id": "gradle",
+    "nombre": "Gradle",
+    "categoria": "Lenguajes",
+    "descripcion": "La otra herramienta de build de la JVM, con caché incremental y scripts en Kotlin o Groovy.",
+    "url": "https://gradle.org",
+    "declarado": ["brew:gradle"]
+  },
+  {
+    "id": "uv",
+    "nombre": "uv",
+    "categoria": "Lenguajes",
+    "descripcion": "Sustituye a pip, virtualenv y pyenv de una vez: entornos y dependencias de Python en segundos.",
+    "url": "https://docs.astral.sh/uv/",
+    "declarado": ["brew:uv"]
+  },
+  {
+    "id": "ruff",
+    "nombre": "ruff",
+    "categoria": "Lenguajes",
+    "descripcion": "Analiza y formatea Python lo bastante rápido como para correr al guardar el fichero.",
+    "url": "https://docs.astral.sh/ruff/",
+    "declarado": ["brew:ruff", "github:ruff"]
+  },
+  {
+    "id": "fnm",
+    "nombre": "fnm",
+    "categoria": "Lenguajes",
+    "descripcion": "Cambia de versión de Node al entrar en un directorio, leyendo `.nvmrc` o `.node-version`.",
+    "url": "https://github.com/Schniz/fnm",
+    "declarado": ["brew:fnm"]
+  },
+  {
+    "id": "shellcheck",
+    "nombre": "shellcheck",
+    "categoria": "Lenguajes",
+    "descripcion": "Detecta los fallos clásicos de bash —variables sin comillas, comparaciones rotas— y los bloquea en el hook de pre-commit.",
+    "url": "https://www.shellcheck.net",
+    "declarado": ["brew:shellcheck", "github:shellcheck"]
+  },
+  {
+    "id": "yamllint",
+    "nombre": "yamllint",
+    "categoria": "Lenguajes",
+    "descripcion": "Valida indentación, duplicados y formato de los YAML antes de que los rechace el servidor que los lee.",
+    "url": "https://yamllint.readthedocs.io",
+    "declarado": ["brew:yamllint", "github:yamllint"]
+  },
+  {
+    "id": "llm",
+    "nombre": "llm",
+    "categoria": "Misc",
+    "descripcion": "Consulta modelos de lenguaje desde la tubería, para pasarle la salida de un comando y recibir texto de vuelta.",
+    "url": "https://llm.datasette.io",
+    "declarado": ["brew:llm"]
+  },
+  {
+    "id": "gemini-cli",
+    "nombre": "Gemini CLI",
+    "categoria": "Misc",
+    "descripcion": "Agente de Google en la terminal, como segunda opinión al lado de Claude Code.",
+    "url": "https://github.com/google-gemini/gemini-cli",
+    "declarado": ["brew:gemini-cli"]
+  },
+  {
+    "id": "libfaketime",
+    "nombre": "libfaketime",
+    "categoria": "Misc",
+    "descripcion": "Miente a un proceso sobre la hora del sistema, que es la forma de probar caducidades de certificados y de tokens.",
+    "url": "https://github.com/wolfcw/libfaketime",
+    "declarado": ["brew:libfaketime", "apt:faketime"]
+  },
+  {
+    "id": "brave-browser",
+    "nombre": "Brave",
+    "categoria": "Misc",
+    "descripcion": "Navegador basado en Chromium con bloqueo de rastreadores de serie.",
+    "url": "https://brave.com",
+    "declarado": ["cask:brave-browser"]
+  },
+  {
+    "id": "spotify",
+    "nombre": "Spotify",
+    "categoria": "Misc",
+    "descripcion": "Música mientras se trabaja; está aquí porque una máquina nueva se configura entera de una pasada.",
+    "url": "https://www.spotify.com",
+    "declarado": ["cask:spotify"]
+  },
+  {
+    "id": "postman",
+    "nombre": "Postman",
+    "categoria": "Misc",
+    "descripcion": "Cliente gráfico de APIs para colecciones compartidas y flujos de autenticación que en curl serían tediosos.",
+    "url": "https://www.postman.com",
+    "declarado": ["cask:postman"]
+  },
+  {
+    "id": "visual-studio-code",
+    "nombre": "Visual Studio Code",
+    "categoria": "Editor",
+    "descripcion": "Editor gráfico para cuando hace falta depurador visual o pantalla compartida; sus extensiones también las declara el repo.",
+    "url": "https://code.visualstudio.com",
+    "declarado": ["cask:visual-studio-code"]
+  },
+  {
+    "id": "vscode-claude-code",
+    "nombre": "Claude Code",
+    "categoria": "Editor",
+    "descripcion": "Mete el agente de Anthropic dentro del editor, compartiendo contexto con el proyecto abierto.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code",
+    "declarado": ["vscode:anthropic.claude-code"]
+  },
+  {
+    "id": "vscode-continue",
+    "nombre": "Continue",
+    "categoria": "Editor",
+    "descripcion": "Conecta el editor a modelos propios o locales para autocompletado y chat sobre el repositorio.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=Continue.continue",
+    "declarado": ["vscode:continue.continue"]
+  },
+  {
+    "id": "vscode-eslint",
+    "nombre": "ESLint",
+    "categoria": "Editor",
+    "descripcion": "Marca los errores de ESLint en el propio código JavaScript y TypeScript mientras se escribe.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint",
+    "declarado": ["vscode:dbaeumer.vscode-eslint"]
+  },
+  {
+    "id": "vscode-docker",
+    "nombre": "Docker",
+    "categoria": "Editor",
+    "descripcion": "Gestiona imágenes y contenedores desde la barra lateral y da sintaxis a los Dockerfile.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=docker.docker",
+    "declarado": ["vscode:docker.docker"]
+  },
+  {
+    "id": "vscode-protobuf",
+    "nombre": "Protobuf",
+    "categoria": "Editor",
+    "descripcion": "Resalta y valida ficheros `.proto`, que es donde se define el contrato de los servicios gRPC.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=drblury.protobuf-vsc",
+    "declarado": ["vscode:drblury.protobuf-vsc"]
+  },
+  {
+    "id": "vscode-gitlens",
+    "nombre": "GitLens",
+    "categoria": "Editor",
+    "descripcion": "Anota cada línea con quién la cambió y por qué, y deja saltar de ahí al commit completo.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens",
+    "declarado": ["vscode:eamodio.gitlens"]
+  },
+  {
+    "id": "vscode-prettier",
+    "nombre": "Prettier",
+    "categoria": "Editor",
+    "descripcion": "Formatea al guardar todo lo que es web —JS, TS, JSON, CSS, Markdown— con reglas no negociables.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode",
+    "declarado": ["vscode:esbenp.prettier-vscode"]
+  },
+  {
+    "id": "vscode-copilot-chat",
+    "nombre": "GitHub Copilot Chat",
+    "categoria": "Editor",
+    "descripcion": "Pregunta sobre el código abierto y propone cambios sin salir del editor.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat",
+    "declarado": ["vscode:github.copilot-chat"]
+  },
+  {
+    "id": "vscode-github-actions",
+    "nombre": "GitHub Actions",
+    "categoria": "Editor",
+    "descripcion": "Valida los workflows contra su esquema y enseña el estado de las ejecuciones del repositorio.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-github-actions",
+    "declarado": ["vscode:github.vscode-github-actions"]
+  },
+  {
+    "id": "vscode-go",
+    "nombre": "Go",
+    "categoria": "Editor",
+    "descripcion": "Integra gopls, el depurador y los tests de Go en el editor.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=golang.go",
+    "declarado": ["vscode:golang.go"]
+  },
+  {
+    "id": "vscode-cloud-code",
+    "nombre": "Cloud Code",
+    "categoria": "Editor",
+    "descripcion": "Despliega y depura contra Google Cloud y GKE desde el editor, con plantillas de manifiestos.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=GoogleCloudTools.cloudcode",
+    "declarado": ["vscode:googlecloudtools.cloudcode"]
+  },
+  {
+    "id": "vscode-terraform",
+    "nombre": "HashiCorp Terraform",
+    "categoria": "Editor",
+    "descripcion": "Da completado y navegación sobre HCL vía terraform-ls, que también entiende el código de OpenTofu.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=HashiCorp.terraform",
+    "declarado": ["vscode:hashicorp.terraform"]
+  },
+  {
+    "id": "vscode-containers",
+    "nombre": "Container Tools",
+    "categoria": "Editor",
+    "descripcion": "Construye y ejecuta contenedores desde el editor, con vista de registries y de recursos.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-containers",
+    "declarado": ["vscode:ms-azuretools.vscode-containers"]
+  },
+  {
+    "id": "vscode-debugpy",
+    "nombre": "Python Debugger",
+    "categoria": "Editor",
+    "descripcion": "Aporta el backend de depuración de Python: puntos de ruptura, inspección y ejecución paso a paso.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy",
+    "declarado": ["vscode:ms-python.debugpy"]
+  },
+  {
+    "id": "vscode-python",
+    "nombre": "Python",
+    "categoria": "Editor",
+    "descripcion": "Selecciona el intérprete y el entorno virtual del proyecto y ejecuta sus tests.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=ms-python.python",
+    "declarado": ["vscode:ms-python.python"]
+  },
+  {
+    "id": "vscode-pylance",
+    "nombre": "Pylance",
+    "categoria": "Editor",
+    "descripcion": "Añade inferencia de tipos y completado rápido sobre el código Python del proyecto.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance",
+    "declarado": ["vscode:ms-python.vscode-pylance"]
+  },
+  {
+    "id": "vscode-jupyter",
+    "nombre": "Jupyter",
+    "categoria": "Editor",
+    "descripcion": "Ejecuta cuadernos dentro del editor, útil para explorar datos o probar una consulta antes de escribirla en un script.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter",
+    "declarado": ["vscode:ms-toolsai.jupyter"]
+  },
+  {
+    "id": "vscode-remote-containers",
+    "nombre": "Dev Containers",
+    "categoria": "Editor",
+    "descripcion": "Abre el proyecto dentro de un contenedor, así el entorno de desarrollo es el mismo para todos.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers",
+    "declarado": ["vscode:ms-vscode-remote.remote-containers"]
+  },
+  {
+    "id": "vscode-java",
+    "nombre": "Language Support for Java",
+    "categoria": "Editor",
+    "descripcion": "Aporta el servidor de lenguaje de Java: completado, refactor y errores en vivo.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=redhat.java",
+    "declarado": ["vscode:redhat.java"]
+  },
+  {
+    "id": "vscode-yaml",
+    "nombre": "YAML",
+    "categoria": "Editor",
+    "descripcion": "Valida YAML contra su esquema, que es lo que evita descubrir un typo al aplicar el manifiesto.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml",
+    "declarado": ["vscode:redhat.vscode-yaml"]
+  },
+  {
+    "id": "vscode-sonarlint",
+    "nombre": "SonarQube for IDE",
+    "categoria": "Editor",
+    "descripcion": "Señala fallos de calidad y de seguridad mientras se escribe, con la explicación de por qué lo son.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=SonarSource.sonarlint-vscode",
+    "declarado": ["vscode:sonarsource.sonarlint-vscode"]
+  },
+  {
+    "id": "vscode-spell-checker",
+    "nombre": "Code Spell Checker",
+    "categoria": "Editor",
+    "descripcion": "Corrige la ortografía de comentarios, cadenas y nombres de variables sin quejarse del código.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker",
+    "declarado": ["vscode:streetsidesoftware.code-spell-checker"]
+  },
+  {
+    "id": "vscode-gradle",
+    "nombre": "Gradle for Java",
+    "categoria": "Editor",
+    "descripcion": "Lanza tareas de Gradle y resuelve dependencias desde el editor.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-gradle",
+    "declarado": ["vscode:vscjava.vscode-gradle"]
+  },
+  {
+    "id": "vscode-java-pack",
+    "nombre": "Extension Pack for Java",
+    "categoria": "Editor",
+    "descripcion": "Agrupa depurador, tests y gestión de proyectos Java en una sola instalación.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack",
+    "declarado": ["vscode:vscjava.vscode-java-pack"]
+  },
+  {
+    "id": "vscode-maven",
+    "nombre": "Maven for Java",
+    "categoria": "Editor",
+    "descripcion": "Navega el árbol de dependencias del `pom.xml` y ejecuta objetivos de Maven desde la barra lateral.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-maven",
+    "declarado": ["vscode:vscjava.vscode-maven"]
+  },
+  {
+    "id": "vscode-icons",
+    "nombre": "vscode-icons",
+    "categoria": "Editor",
+    "descripcion": "Pone un icono por tipo de fichero, para localizar el que buscas en un árbol grande sin leer los nombres.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons",
+    "declarado": ["vscode:vscode-icons-team.vscode-icons"]
+  },
+  {
+    "id": "vscode-jinja",
+    "nombre": "Jinja",
+    "categoria": "Editor",
+    "descripcion": "Resalta las plantillas Jinja que usan Ansible y varios generadores de configuración.",
+    "url": "https://marketplace.visualstudio.com/items?itemName=wholroyd.jinja",
+    "declarado": ["vscode:wholroyd.jinja"]
+  }
+]
