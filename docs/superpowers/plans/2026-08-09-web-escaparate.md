@@ -1132,6 +1132,449 @@ spec: son ortogonales a quien usa la caja.'
 
 ---
 
+### Task 4b: Extraer el gating a un helper y leer los defaults de `install.sh`
+
+Añadida durante la ejecución, por decisión del usuario, tras dos hallazgos de la
+revisión de las Tasks 3 y 4.
+
+**Ficheros:**
+- Crear: `web/scripts/gating.mjs`, `web/scripts/gating.test.mjs`
+- Modificar: `web/scripts/extract-binaries.mjs`, `web/scripts/extract-apt.mjs`, `web/scripts/extract-presets.mjs`, `web/scripts/extract-presets.test.mjs`
+
+**Interfaces:**
+- Consume: nada nuevo.
+- Produce: `crearGating(fuente: string)` → `{ procesar(linea): boolean, modulo(): 'base'|'cloud'|'k8s'|null }`. `procesar` devuelve `true` si consumió la línea (era un `if`/`else`/`fi` de gating). `modulo()` devuelve `null` cuando estamos en la rama `else` de un bloque de gating.
+
+**Por qué esta tarea existe.** La máquina de estados de gating estaba copiada en
+`extract-binaries.mjs` y `extract-apt.mjs`. Con dos copias, los tres defectos que
+la revisión encontró habría que arreglarlos dos veces:
+
+1. **La rama `else` atribuye mal.** Dentro de `if [[ $INSTALL_K8S -eq 1 ]] … else
+   … fi`, el `else` es el camino de *no* instalar. Una declaración ahí se
+   atribuía igualmente a `k8s`. Hoy ambos `else` del repo solo tienen un `warn`,
+   así que no hay bug vivo — pero es un agujero sin guardar.
+2. **`CIERRE` usaba `<=` en vez de `===`.** Un `fi` en una columna *menor* que su
+   `if` cerraba el bloque igualmente. Eso ya no es un anidamiento que el parser
+   entienda: es la estructura del fichero cambiando debajo. Debe fallar ruidoso.
+3. **Los defaults de los presets estaban asumidos, no leídos.**
+   `extract-presets.mjs` daba por hecho que un módulo no mencionado vale `true`.
+   Es correcto hoy (`install.sh:52-54`), pero nadie lo comprueba.
+
+**Oráculo de regresión.** El refactor no puede cambiar ningún recuento:
+`lib/binaries.sh` → 31 (base 21, k8s 8, cloud 2); `lib/packages.sh` → 27
+(base 26, cloud 1); `install.sh` → 5 presets, `--agent` en cloud/k8s `true` y gui
+`false`. Captura esos números **antes** de tocar nada y compáralos al final.
+
+- [ ] **Paso 1: Capturar el estado actual como oráculo**
+
+```bash
+cd web && node -e "
+Promise.all([
+  import('./scripts/extract-binaries.mjs'),
+  import('./scripts/extract-apt.mjs'),
+  import('./scripts/extract-presets.mjs'),
+]).then(([b, a, p]) => {
+  const cuenta = (xs) => xs.reduce((m, x) => ({ ...m, [x.modulo]: (m[x.modulo] ?? 0) + 1 }), {})
+  console.log('binarios', b.extraerBinarios('..').length, cuenta(b.extraerBinarios('..')))
+  console.log('apt', a.extraerApt('..').length, cuenta(a.extraerApt('..')))
+  console.log('presets', JSON.stringify(p.extraerPresets('..')))
+})" | tee /tmp/oraculo-antes.txt
+```
+
+Guarda esa salida. Es lo que tienes que reproducir byte a byte al terminar.
+
+- [ ] **Paso 2: Escribir el test del helper (falla)**
+
+`web/scripts/gating.test.mjs`:
+
+```js
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { crearGating } from './gating.mjs'
+
+/** Recorre un guion y devuelve [linea, modulo] de las líneas NO consumidas. */
+function recorrer(guion) {
+  const g = crearGating('fichero-de-prueba')
+  const salida = []
+  for (const linea of guion.split('\n')) {
+    if (g.procesar(linea)) continue
+    if (linea.trim()) salida.push([linea.trim(), g.modulo()])
+  }
+  return salida
+}
+
+test('fuera de todo bloque el módulo es base', () => {
+  assert.deepEqual(recorrer('herramienta_a'), [['herramienta_a', 'base']])
+})
+
+test('dentro de un bloque de gating el módulo es el del bloque', () => {
+  const guion = [
+    '        if [[ $INSTALL_K8S -eq 1 ]]; then',
+    '            herramienta_a',
+    '        fi',
+    '        herramienta_b',
+  ].join('\n')
+
+  assert.deepEqual(recorrer(guion), [['herramienta_a', 'k8s'], ['herramienta_b', 'base']])
+})
+
+test('un if anidado no cierra el bloque de gating', () => {
+  const guion = [
+    '        if [[ $INSTALL_CLOUD -eq 1 ]]; then',
+    '            if ! command -v x >/dev/null 2>&1; then',
+    '                herramienta_a',
+    '            fi',
+    '            herramienta_b',
+    '        fi',
+  ].join('\n')
+
+  assert.deepEqual(recorrer(guion), [
+    ['if ! command -v x >/dev/null 2>&1; then', 'cloud'],
+    ['herramienta_a', 'cloud'],
+    ['herramienta_b', 'cloud'],
+  ])
+})
+
+test('en la rama else el módulo es null: ahí vive el camino de no instalar', () => {
+  const guion = [
+    '        if [[ $INSTALL_K8S -eq 1 ]]; then',
+    '            herramienta_a',
+    '        else',
+    '            herramienta_b',
+    '        fi',
+    '        herramienta_c',
+  ].join('\n')
+
+  assert.deepEqual(recorrer(guion), [
+    ['herramienta_a', 'k8s'],
+    ['herramienta_b', null],
+    ['herramienta_c', 'base'],
+  ])
+})
+
+test('un else más indentado que el bloque no es el suyo', () => {
+  const guion = [
+    '        if [[ $INSTALL_K8S -eq 1 ]]; then',
+    '            if ! command -v x >/dev/null 2>&1; then',
+    '                herramienta_a',
+    '            else',
+    '                herramienta_b',
+    '            fi',
+    '        fi',
+  ].join('\n')
+
+  const modulos = recorrer(guion).map(([, m]) => m)
+  assert.ok(modulos.every((m) => m === 'k8s'), `esperaba todo k8s, salió ${modulos.join()}`)
+})
+
+test('un fi por fuera del bloque abierto lanza en vez de cerrar en silencio', () => {
+  const guion = [
+    '        if [[ $INSTALL_K8S -eq 1 ]]; then',
+    '            herramienta_a',
+    '    fi',
+  ].join('\n')
+
+  assert.throws(() => recorrer(guion), /fichero-de-prueba.*columna/s)
+})
+```
+
+- [ ] **Paso 3: Ejecutar y ver que falla**
+
+```bash
+cd web && node --test scripts/gating.test.mjs
+```
+
+Esperado: FAIL — `Cannot find module '.../gating.mjs'`.
+
+- [ ] **Paso 4: Implementar el helper**
+
+`web/scripts/gating.mjs`:
+
+```js
+// Máquina de estados del gating por módulos, compartida por los extractores de
+// lib/binaries.sh y lib/packages.sh. Los dos ficheros usan la misma forma
+// (`if [[ $INSTALL_K8S -eq 1 ]]` … `else` … `fi`) y tenerla dos veces significaba
+// arreglar cada defecto dos veces.
+
+const APERTURA = /^(\s*)if\s+\[\[\s+\$INSTALL_(K8S|CLOUD)\s+-eq\s+1\s+\]\]/
+const ELSE = /^(\s*)else\b/
+const CIERRE = /^(\s*)fi\b/
+
+/**
+ * @param {string} fuente ruta del fichero, solo para los mensajes de error
+ * @returns {{procesar: (linea: string) => boolean, modulo: () => 'base'|'cloud'|'k8s'|null}}
+ */
+export function crearGating(fuente) {
+  /** @type {{sangria: number, modulo: 'k8s'|'cloud', enElse: boolean}[]} */
+  const pila = []
+
+  return {
+    procesar(linea) {
+      // El cierre va primero: un `fi` a la columna del `if` de gating lo cierra;
+      // uno más indentado pertenece a un if anidado y no es nuestro.
+      const cierre = linea.match(CIERRE)
+      if (cierre && pila.length) {
+        const cima = pila[pila.length - 1]
+        if (cierre[1].length === cima.sangria) {
+          pila.pop()
+          return true
+        }
+        if (cierre[1].length < cima.sangria) {
+          // Antes esto cerraba el bloque igualmente (`<=`). Un `fi` por fuera del
+          // `if` que lo abrió no es un anidamiento: es que la estructura del
+          // fichero cambió y el parser ya no la entiende. Fallar ruidoso, porque
+          // el modo de fallo silencioso es publicar módulos equivocados.
+          throw new Error(
+            `${fuente}: un \`fi\` en la columna ${cierre[1].length} cierra por fuera del ` +
+              `bloque \`$INSTALL_${cima.modulo.toUpperCase()}\` abierto en la columna ` +
+              `${cima.sangria}. Revisa el fichero y el parser.`,
+          )
+        }
+        return false
+      }
+
+      const apertura = linea.match(APERTURA)
+      if (apertura) {
+        pila.push({
+          sangria: apertura[1].length,
+          modulo: apertura[2] === 'K8S' ? 'k8s' : 'cloud',
+          enElse: false,
+        })
+        return true
+      }
+
+      const rama = linea.match(ELSE)
+      if (rama && pila.length && rama[1].length === pila[pila.length - 1].sangria) {
+        pila[pila.length - 1].enElse = true
+        return true
+      }
+
+      return false
+    },
+
+    modulo() {
+      if (!pila.length) return 'base'
+      // Cualquier marco en su rama `else` invalida lo de dentro: ahí vive el
+      // camino de *no* instalar, no una declaración.
+      if (pila.some((m) => m.enElse)) return null
+      return pila[pila.length - 1].modulo
+    },
+  }
+}
+```
+
+- [ ] **Paso 5: Ver que los tests del helper pasan**
+
+```bash
+cd web && node --test scripts/gating.test.mjs
+```
+
+Esperado: `# pass 6`, `# fail 0`.
+
+- [ ] **Paso 6: Migrar `extract-binaries.mjs`**
+
+Borra `APERTURA_GATING`, `CIERRE`, `pila` y `moduloActual`, importa el helper, y
+haz que `registrar` reciba el módulo. Sustituye el bucle y las piezas que toca:
+
+```js
+import { crearGating } from './gating.mjs'
+```
+
+Elimina las constantes `APERTURA_GATING` y `CIERRE` (ya no se usan aquí). Dentro
+de `extraerBinarios`, sustituye la declaración de `pila` y `moduloActual` por:
+
+```js
+  const gating = crearGating(FUENTE)
+```
+
+`registrar` pasa a recibir el módulo en vez de leerlo de una global:
+
+```js
+  const registrar = (nombre, repo, modulo) => {
+    const existente = porNombre.get(nombre)
+    if (existente) {
+      // Ya declarada por otro patrón: completa el repo si faltaba y no dupliques.
+      if (!existente.repo && repo) existente.repo = repo
+      return
+    }
+    const entrada = {
+      clave: `github:${nombre}`,
+      nombre,
+      tipo: 'github',
+      modulo,
+      plataforma: 'linux',
+      fuente: FUENTE,
+    }
+    if (repo) entrada.repo = repo
+    porNombre.set(nombre, entrada)
+  }
+```
+
+Y el bucle:
+
+```js
+  for (const linea of lineas) {
+    if (gating.procesar(linea)) continue
+
+    const modulo = gating.modulo()
+    // null = rama `else` de un gating: ahí no se instala nada.
+    if (modulo === null) continue
+
+    const iim = linea.match(INSTALL_IF_MISSING)
+    if (iim) { registrar(iim[1], repoDe(linea), modulo); continue }
+
+    const cmd = linea.match(COMMAND_V)
+    if (cmd) { registrar(cmd[1], undefined, modulo); continue }
+
+    const gh = linea.match(GH_DIRECTO)
+    if (gh) { registrar(gh[2], gh[1], modulo); continue }
+  }
+```
+
+- [ ] **Paso 7: Migrar `extract-apt.mjs`**
+
+Elimina `APERTURA_GATING`, `CIERRE`, `pila` y `moduloActual`. Añade el import y,
+dentro de `extraerApt`:
+
+```js
+  const gating = crearGating(FUENTE)
+```
+
+En el bucle, sustituye los dos bloques de cierre/apertura por:
+
+```js
+    if (gating.procesar(linea)) continue
+
+    const modulo = gating.modulo()
+    if (modulo === null) continue
+```
+
+y dentro del bucle de paquetes, borra la línea `const modulo = moduloActual()`
+(el módulo ya viene de arriba). El resto del cuerpo no cambia.
+
+- [ ] **Paso 8: Leer los defaults en `extract-presets.mjs`**
+
+Primero el test. Añade estos dos a `web/scripts/extract-presets.test.mjs`, y
+extiende el `GUION` de ese fichero con las tres asignaciones por defecto,
+poniéndolas **antes** del `while`:
+
+```js
+INSTALL_CLOUD=1
+INSTALL_K8S=1
+INSTALL_GUI=1
+```
+
+Tests nuevos:
+
+```js
+test('los defaults salen de install.sh, no de una constante', () => {
+  // Mismo guion pero con k8s apagado por defecto: --agent, que no menciona k8s,
+  // tiene que heredar false. Con el default asumido a mano seguiría diciendo true.
+  const guion = GUION.replace('INSTALL_K8S=1', 'INSTALL_K8S=0')
+  const agent = extraerPresets(repoFalso(guion)).find((p) => p.flag === '--agent')
+
+  assert.deepEqual(agent, { flag: '--agent', cloud: true, k8s: false, gui: false })
+})
+
+test('lanza si install.sh no declara los tres defaults', () => {
+  const guion = GUION.replace('INSTALL_GUI=1\n', '')
+  assert.throws(() => extraerPresets(repoFalso(guion)), /INSTALL_GUI/)
+})
+```
+
+Ahora la implementación. En `extract-presets.mjs`, añade la constante y la
+función de lectura, y usa el resultado como base:
+
+```js
+const DEFAULT = /^INSTALL_(CLOUD|K8S|GUI)=([01])\s*$/
+
+/**
+ * Lee las asignaciones por defecto de install.sh. Están a columna 0 y antes del
+ * bucle de flags. Leerlas en vez de asumir que valen 1 es lo que evita que la
+ * web siga diciendo "cloud=ON" el día que ese default cambie.
+ */
+function leerDefaults(lineas, fuente) {
+  const defaults = {}
+  for (const linea of lineas) {
+    const m = linea.match(DEFAULT)
+    if (m) defaults[m[1]] = m[2] === '1'
+  }
+  for (const nombre of ['CLOUD', 'K8S', 'GUI']) {
+    if (!(nombre in defaults)) {
+      throw new Error(
+        `${fuente}: no se encontró la asignación por defecto INSTALL_${nombre}=0|1. ` +
+          `Sin ella no se puede saber qué hereda un preset que no la menciona.`,
+      )
+    }
+  }
+  return defaults
+}
+```
+
+y dentro de `extraerPresets`, tras leer las líneas:
+
+```js
+  const defaults = leerDefaults(lineas, FUENTE)
+```
+
+y `leer` pasa a caer en el default leído en vez de en `true`:
+
+```js
+    // Un preset solo apaga lo que nombra; lo que calla lo hereda del default que
+    // declara install.sh. --agent no menciona cloud ni k8s a propósito.
+    const leer = (nombre) => {
+      const v = cuerpo.match(new RegExp(`INSTALL_${nombre}=([01])`))
+      return v ? v[1] === '1' : defaults[nombre]
+    }
+```
+
+- [ ] **Paso 9: Suite completa y comparación con el oráculo**
+
+```bash
+cd web && node --test scripts/
+```
+
+Esperado: `# fail 0`, con 8 tests más que antes (6 de gating + 2 de defaults).
+
+```bash
+cd web && node -e "
+Promise.all([
+  import('./scripts/extract-binaries.mjs'),
+  import('./scripts/extract-apt.mjs'),
+  import('./scripts/extract-presets.mjs'),
+]).then(([b, a, p]) => {
+  const cuenta = (xs) => xs.reduce((m, x) => ({ ...m, [x.modulo]: (m[x.modulo] ?? 0) + 1 }), {})
+  console.log('binarios', b.extraerBinarios('..').length, cuenta(b.extraerBinarios('..')))
+  console.log('apt', a.extraerApt('..').length, cuenta(a.extraerApt('..')))
+  console.log('presets', JSON.stringify(p.extraerPresets('..')))
+})" > /tmp/oraculo-despues.txt
+diff /tmp/oraculo-antes.txt /tmp/oraculo-despues.txt && echo "SIN CAMBIOS ✔"
+```
+
+Esperado: `SIN CAMBIOS ✔`. **Si el diff no está vacío, el refactor cambió
+comportamiento y no está terminado** — no ajustes el oráculo.
+
+- [ ] **Paso 10: Commit**
+
+```bash
+git add web/scripts/
+git commit -m 'refactor(web): compartir el gating y leer los defaults de install.sh
+
+La maquina de estados del gating estaba copiada en los dos extractores, asi que
+sus tres defectos habia que arreglarlos dos veces. Ahora vive en gating.mjs:
+
+- La rama `else` de un bloque es el camino de NO instalar; lo que se declare ahi
+  ya no se atribuye al modulo. Hoy no hay ninguna, pero era un agujero abierto.
+- Un `fi` por fuera del `if` que lo abrio lanza en vez de cerrar en silencio. No
+  es un anidamiento: es la estructura del fichero cambiando bajo el parser.
+- Los defaults de los presets se leen de install.sh en vez de asumirse a 1. Era
+  el ultimo sitio del extractor que hardcodeaba estado en vez de leerlo.
+
+Verificado contra el oraculo: los recuentos de las tres fuentes no cambian.'
+```
+
+---
+
 ### Task 5: Orquestador y `tools.generated.json`
 
 **Ficheros:**
