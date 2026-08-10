@@ -1657,16 +1657,23 @@ La animación respeta `prefers-reduced-motion`: si está activo, el comando apar
 'use client'
 
 import { useEffect, useState } from 'react'
+import { herramientas } from '@/data/herramientas'
 import { CopyButton } from './CopyButton'
 import { TerminalWindow } from './TerminalWindow'
 
 const COMANDO = 'git clone https://github.com/kr0nicas/dotfiles ~/dotfiles && ~/dotfiles/install.sh'
 
+// Leído del catálogo, no escrito a mano: es la misma regla que gcx aplica a los
+// mensajes de estado. Un 41 tecleado aquí envejece al primer brew nuevo y nadie
+// lo nota. La línea de symlinks no lleva cifra por el mismo motivo: el número de
+// enlaces no sale de ninguna fuente que este componente pueda leer.
+const FORMULAS = herramientas.filter((h) => h.entradas.some((e) => e.tipo === 'brew')).length
+
 const SALIDA = [
   { texto: '✔ detect · macOS arm64', color: 'text-green' },
-  { texto: '✔ packages · 41 fórmulas', color: 'text-green' },
+  { texto: `✔ packages · ${FORMULAS} fórmulas`, color: 'text-green' },
   { texto: '✔ binaries · sha256 verificados', color: 'text-green' },
-  { texto: '✔ symlinks · 13 enlaces', color: 'text-green' },
+  { texto: '✔ symlinks · configs enlazadas', color: 'text-green' },
 ]
 
 export function Hero() {
@@ -2043,11 +2050,27 @@ export function ToolCard({ h }: { h: Herramienta }) {
 ```tsx
 'use client'
 
+import type { Modulo, Plataforma } from '@/data/types'
+
+export const MODULOS = ['base', 'cloud', 'k8s', 'gui'] as const
+export const PLATAFORMAS = ['macos', 'linux'] as const
+
 export interface Filtros {
   q: string
-  modulo: string
-  plataforma: string
+  modulo: Modulo | ''
+  plataforma: Plataforma | ''
   categoria: string
+}
+
+// La querystring es entrada de fuera: `?m=loquesea` tiene que degradar a "todos"
+// y no a "ningún resultado", que parecería el buscador roto. Estas dos guardas
+// son además lo que hace que los `includes` de Catalogo typecheen sin castear.
+export function comoModulo(v: string): Modulo | '' {
+  return (MODULOS as readonly string[]).includes(v) ? (v as Modulo) : ''
+}
+
+export function comoPlataforma(v: string): Plataforma | '' {
+  return (PLATAFORMAS as readonly string[]).includes(v) ? (v as Plataforma) : ''
 }
 
 export function FilterBar({
@@ -2076,7 +2099,7 @@ export function FilterBar({
         />
         <select
           value={filtros.plataforma}
-          onChange={(e) => onCambio({ plataforma: e.target.value })}
+          onChange={(e) => onCambio({ plataforma: comoPlataforma(e.target.value) })}
           aria-label="Filtrar por plataforma"
           className={select}
         >
@@ -2086,15 +2109,16 @@ export function FilterBar({
         </select>
         <select
           value={filtros.modulo}
-          onChange={(e) => onCambio({ modulo: e.target.value })}
+          onChange={(e) => onCambio({ modulo: comoModulo(e.target.value) })}
           aria-label="Filtrar por módulo"
           className={select}
         >
           <option value="">Todo módulo</option>
-          <option value="base">base</option>
-          <option value="cloud">cloud</option>
-          <option value="k8s">k8s</option>
-          <option value="gui">gui</option>
+          {MODULOS.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
         </select>
         <select
           value={filtros.categoria}
@@ -2126,7 +2150,7 @@ export function FilterBar({
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useMemo } from 'react'
 import { herramientas, categorias } from '@/data/herramientas'
-import { FilterBar, type Filtros } from './FilterBar'
+import { FilterBar, comoModulo, comoPlataforma, type Filtros } from './FilterBar'
 import { ToolCard } from './ToolCard'
 
 function normalizar(s: string) {
@@ -2139,8 +2163,8 @@ export function Catalogo() {
 
   const filtros: Filtros = {
     q: params.get('q') ?? '',
-    modulo: params.get('m') ?? '',
-    plataforma: params.get('p') ?? '',
+    modulo: comoModulo(params.get('m') ?? ''),
+    plataforma: comoPlataforma(params.get('p') ?? ''),
     categoria: params.get('c') ?? '',
   }
 
@@ -2157,8 +2181,8 @@ export function Catalogo() {
   const visibles = useMemo(() => {
     const q = normalizar(filtros.q)
     return herramientas.filter((h) => {
-      if (filtros.modulo && !h.modulos.includes(filtros.modulo as never)) return false
-      if (filtros.plataforma && !h.plataformas.includes(filtros.plataforma as never)) return false
+      if (filtros.modulo && !h.modulos.includes(filtros.modulo)) return false
+      if (filtros.plataforma && !h.plataformas.includes(filtros.plataforma)) return false
       if (filtros.categoria && h.categoria !== filtros.categoria) return false
       if (!q) return true
       return normalizar(`${h.nombre} ${h.descripcion} ${h.categoria}`).includes(q)
