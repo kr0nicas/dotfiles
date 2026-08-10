@@ -33,6 +33,7 @@
 - [🖥️ WezTerm](#️-wezterm)
 - [🖥️ iTerm2 (macOS)](#️-iterm2-macos)
 - [🤖 Claude Code](#-claude-code)
+- [🌐 Escaparate web](#-escaparate-web)
 - [🔧 Git](#-git)
 - [🗂️ Estructura de archivos](#️-estructura-de-archivos)
 - [🔗 Symlinks creados](#-symlinks-creados)
@@ -321,6 +322,23 @@ Si ves `?` en lugar de iconos en `ls`/prompt, es que la ventana sigue con el per
 
 ---
 
+## 🌐 Escaparate web
+
+`web/` — sitio en Next.js publicado en GitHub Pages que enseña el entorno y deja
+navegar el catálogo completo de herramientas.
+
+El catálogo **se deriva de este repo**: un extractor lee los Brewfiles,
+`lib/binaries.sh` y el bloque apt, y una guardia rompe el CI si el catálogo y el
+instalador dejan de coincidir. Si añades una herramienta:
+
+```bash
+cd web && npm run extract   # regenera tools.generated.json
+# añade su ficha en web/src/data/tools.curated.json
+npm run check               # confirma que cuadra
+```
+
+---
+
 ## 🔧 Git
 
 Config en `.gitconfig` con:
@@ -363,6 +381,7 @@ Config en `.gitconfig` con:
 ├── docs/
 │   ├── reports/                 # Informes puntuales (auditorias, inventarios)
 │   └── superpowers/             # Specs y planes de implementacion
+├── web/                         # Escaparate en Next.js (GitHub Pages)
 └── config/
     ├── nvim/                    # Config Neovim (Lua)
     │   ├── init.lua

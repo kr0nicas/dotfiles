@@ -176,6 +176,56 @@ rtk config.toml             -> ~/dotfiles/config/rtk/config.toml  (macOS: ~/Libr
 - **El hook va versionado, y `settings.json` no lleva `skip-worktree`.** Antes sí lo llevaba, para que `rtk init -g --hook-only` —que escribe en `~/.claude/settings.json`, o sea, por el symlink, en el archivo del repo— no ensuciara el árbol. El precio fue peor que el problema: durante meses el archivo versionado quedó congelado mientras la config real de la máquina evolucionaba, y una máquina nueva recibía una config obsoleta sin que nada avisara. **Un archivo con `skip-worktree` es un archivo que dejó de estar respaldado.** Ahora el hook está declarado y guardado en el archivo versionado, así que no hay que correr `rtk init` en ninguna máquina y la marca no hace falta. Lo específico de una máquina va en `~/.claude/settings.local.json`, que existe justo para eso y no se versiona.
 - **Uso**: `rtk gain` (ahorro de tokens), `RTK_DISABLED=1 <cmd>` (bypass puntual).
 
+### `web/` — el escaparate
+
+Sitio en Next.js 15 con `output: 'export'`, desplegado en GitHub Pages por
+`.github/workflows/web.yml`. Vive en el repo, así que comparte PRs y hooks:
+el ámbito de commit es `web`.
+
+- **El catálogo de herramientas no se escribe a mano.** `web/scripts/extract-*.mjs`
+  parsea `Brewfile*`, `lib/binaries.sh`, el bloque apt de `lib/packages.sh` y los
+  presets de `install.sh`, y escribe `web/src/data/tools.generated.json`, que **se
+  versiona**. A mano solo va `tools.curated.json`: nombre de presentación,
+  categoría, descripción y URL.
+- **`check-tools.mjs` es la guardia y falla en las dos direcciones**: una
+  herramienta del repo sin ficha curada, y una ficha que declara algo que el repo
+  ya no instala. Corre en `npm run build` y en CI, con el mismo papel que
+  `scripts/changelog.sh --check`. **Si añades un `brew`, corre `npm run extract` y
+  commitea el JSON**, o la PR se pone roja.
+- **La guardia valida además la forma de cada ficha** —los cinco campos, que
+  `declarado` no esté vacío y que no se repita ningún `id`— porque ninguna de esas
+  tres cosas la caza la comprobación contra el repo: una ficha sin claves no es
+  huérfana ni fantasma, pero saldría en el catálogo fuera de todos los presets.
+  Esa parte vive en `validarFichas()`, que es pura y está cubierta por tests.
+- **`lib/binaries.sh` declara herramientas de tres formas y el parser caza las
+  tres.** `install_if_missing "x"` es la mayoría, pero `kubectl`, `helm`,
+  `kubectx`, `kubens` y `tofu` van por bloques `if ! command -v x` a medida.
+  Mirar solo la primera forma deja fuera las cinco más visibles del catálogo sin
+  dar ningún error. Si tocas la forma de esas declaraciones, mira
+  `extract-binaries.mjs`.
+- **Los mínimos por fuente de `check-tools.mjs` existen porque el parser es regex
+  sobre bash**: si deja de casar, no falla — publica un catálogo mutilado. Bajar
+  un mínimo para poner verde un build rojo es desactivar la guardia.
+- **El catálogo no puede importarse desde un componente de cliente.** Son 68 KB de
+  JSON: un `'use client'` que llame a `herramientas` o a `cuentaDePreset` se los
+  lleva enteros al navegador para imprimir una cifra. Los recuentos se calculan en
+  `page.tsx`, que es servidor, y viajan como props (`PresetConCuenta` en
+  `types.ts`). La excepción es `/stack`, donde el filtrado *es* cliente y el
+  catálogo tiene que estar ahí. Se comprueba grepeando una clave del JSON en
+  `out/_next/static/`: si aparece en el chunk de la portada, alguien lo reintrodujo.
+- **Los recuentos de presets van por plataforma, no en un solo número.** Un preset
+  enciende módulos, pero dentro de un módulo hay fórmulas que solo existen en macOS
+  y paquetes que solo existen en Debian. `--container` es una imagen de Docker —o
+  sea Linux— y con un contador único anunciaba 78 herramientas donde se instalan 47.
+- **`basePath: '/dotfiles'`** es obligatorio: es una *project page*. Sin él, los
+  assets dan 404 en producción y en local no, que es la peor forma de descubrirlo.
+- El estado de los filtros de `/stack` vive en la querystring, así que
+  `useSearchParams` obliga a un `<Suspense>`. Sin él **`next build` falla y
+  `next dev` no**.
+- Comandos, siempre desde `web/`: `npm run dev`, `npm test` (extractores y
+  guardia), `npm run extract` (regenerar el JSON), `npm run check` (guardia),
+  `npm run build` (guardia + export a `web/out/`).
+
 ### gcx — switcher de cuentas y proyectos de GCP
 
 `config/zsh/gcp.zsh`. Comando para saltar entre configuraciones (cuentas) y proyectos de Google Cloud con pickers `fzf`. Reemplazó a cuatro aliases que imprimían con `echo` una cuenta hardcodeada que ya no coincidía con la config que activaban.
