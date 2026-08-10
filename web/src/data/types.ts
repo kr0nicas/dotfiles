@@ -1,0 +1,46 @@
+export type Modulo = 'base' | 'cloud' | 'k8s' | 'gui'
+export type Plataforma = 'macos' | 'linux'
+export type TipoEntrada = 'brew' | 'cask' | 'vscode' | 'apt' | 'github'
+
+/** Lo que el repo declara. Generado, nunca escrito a mano. */
+export interface Entrada {
+  clave: string
+  nombre: string
+  tipo: TipoEntrada
+  modulo: Modulo
+  plataforma: Plataforma
+  fuente: string
+  repo?: string
+  categoriaBrewfile?: string
+}
+
+/** Lo que una máquina no puede saber. Escrito a mano. */
+export interface Curada {
+  id: string
+  nombre: string
+  categoria: string
+  descripcion: string
+  url: string
+  /** Claves de `Entrada` que esta ficha cubre, p.ej. ['brew:fd', 'apt:fd-find']. */
+  declarado: string[]
+}
+
+export interface Preset {
+  flag: string
+  cloud: boolean
+  k8s: boolean
+  gui: boolean
+}
+
+export interface Generado {
+  entradas: Entrada[]
+  presets: Preset[]
+  conteos: Record<string, number>
+}
+
+/** Lo que consume la UI: una ficha curada + de dónde sale realmente. */
+export interface Herramienta extends Omit<Curada, 'declarado'> {
+  modulos: Modulo[]
+  plataformas: Plataforma[]
+  entradas: Entrada[]
+}
