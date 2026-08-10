@@ -8,7 +8,7 @@
     "build": "node scripts/check-tools.mjs && next build",
     "extract": "node scripts/extract-tools.mjs",
     "check": "node scripts/check-tools.mjs",
-    "test": "node --test scripts/"
+    "test": "node --test 'scripts/*.test.mjs'"
   },
   "dependencies": {
     "next": "^15.1.0",
