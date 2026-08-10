@@ -1315,16 +1315,28 @@ import { extraerTodo, serializar, RAIZ_REPO, DESTINO } from './extract-tools.mjs
 
 const CURADO = join(import.meta.dirname, '..', 'src', 'data', 'tools.curated.json')
 
-// Suelo por fuente. Se suben al añadir herramientas y SOLO se bajan a mano, en
-// el mismo commit que retira la herramienta y explicando por qué. Bajarlos para
-// poner verde un build rojo es desactivar la guardia: existen porque el parser
-// es regex sobre bash y "dejar de ver" una herramienta no produce ningún error.
+// Suelo por fuente. Existen porque el parser es regex sobre bash y "dejar de
+// ver" una herramienta no produce ningún error: sin esto, romper la forma de las
+// arrays de binaries.sh publicaría un catálogo mutilado con el CI en verde.
+//
+// Calibrados al ~75% del recuento real, no a un pelo por debajo. Lo que tienen
+// que cazar es que el parser deje de casar —eso tumba el conteo a la mitad o a
+// cero—, no que retires una herramienta a propósito. Un suelo pegado al valor
+// real convierte cada retirada legítima en un build rojo, y una guardia que da
+// falsos positivos es una guardia que se acaba bajando sin mirar.
+//
+// Se suben al añadir herramientas y SOLO se bajan a mano, en el mismo commit que
+// retira la herramienta y explicando por qué. Bajarlos para poner verde un build
+// rojo es desactivar la guardia.
+//
+// Recuentos reales al escribir esto: Brewfile 73, .cloud 9, .k8s 15, .gui 32,
+// binaries.sh 31.
 const MINIMOS = {
-  'Brewfile': 60,
-  'Brewfile.cloud': 8,
-  'Brewfile.k8s': 12,
-  'Brewfile.gui': 25,
-  'lib/binaries.sh': 30,
+  'Brewfile': 55,
+  'Brewfile.cloud': 7,
+  'Brewfile.k8s': 11,
+  'Brewfile.gui': 24,
+  'lib/binaries.sh': 23,
   'lib/packages.sh': 15,
 }
 
