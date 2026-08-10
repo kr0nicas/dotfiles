@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { crearGating } from './gating.mjs'
 
 const FUENTE = 'lib/binaries.sh'
 
@@ -11,9 +12,6 @@ const COMMAND_V = /^\s*if\s+!\s+command\s+-v\s+([A-Za-z0-9_.-]+)\s/
 // que van dentro de la cadena de un install_if_missing (que lo llevan sin
 // comillas y ya las coge INSTALL_IF_MISSING).
 const GH_DIRECTO = /gh_latest_tar\s+(\S+)\s+"[^"]*"\s+"\$LOCAL_BIN"\s+([A-Za-z0-9_.-]+)/
-
-const APERTURA_GATING = /^(\s*)if\s+\[\[\s+\$INSTALL_(K8S|CLOUD)\s+-eq\s+1\s+\]\]/
-const CIERRE = /^(\s*)fi\b/
 
 /** Repo de GitHub asociado a la línea, si la línea lo nombra. */
 function repoDe(linea) {
@@ -29,14 +27,11 @@ function repoDe(linea) {
 export function extraerBinarios(rutaRepo) {
   const lineas = readFileSync(join(rutaRepo, FUENTE), 'utf8').split('\n')
 
-  /** @type {{sangria: string, modulo: 'k8s'|'cloud'}[]} */
-  const pila = []
+  const gating = crearGating(FUENTE)
   /** @type {Map<string, import('../src/data/types.ts').Entrada>} */
   const porNombre = new Map()
 
-  const moduloActual = () => (pila.length ? pila[pila.length - 1].modulo : 'base')
-
-  const registrar = (nombre, repo) => {
+  const registrar = (nombre, repo, modulo) => {
     const existente = porNombre.get(nombre)
     if (existente) {
       // Ya declarada por otro patrón: completa el repo si faltaba y no dupliques.
@@ -47,7 +42,7 @@ export function extraerBinarios(rutaRepo) {
       clave: `github:${nombre}`,
       nombre,
       tipo: 'github',
-      modulo: moduloActual(),
+      modulo,
       plataforma: 'linux',
       fuente: FUENTE,
     }
@@ -56,28 +51,20 @@ export function extraerBinarios(rutaRepo) {
   }
 
   for (const linea of lineas) {
-    // El cierre se evalúa antes que la apertura: un `fi` a la columna del `if`
-    // de gating lo cierra; cualquier `fi` más indentado es de un if anidado.
-    const cierre = linea.match(CIERRE)
-    if (cierre && pila.length && cierre[1].length <= pila[pila.length - 1].sangria.length) {
-      pila.pop()
-      continue
-    }
+    if (gating.procesar(linea)) continue
 
-    const apertura = linea.match(APERTURA_GATING)
-    if (apertura) {
-      pila.push({ sangria: apertura[1], modulo: apertura[2] === 'K8S' ? 'k8s' : 'cloud' })
-      continue
-    }
+    const modulo = gating.modulo()
+    // null = rama `else` de un gating: ahí no se instala nada.
+    if (modulo === null) continue
 
     const iim = linea.match(INSTALL_IF_MISSING)
-    if (iim) { registrar(iim[1], repoDe(linea)); continue }
+    if (iim) { registrar(iim[1], repoDe(linea), modulo); continue }
 
     const cmd = linea.match(COMMAND_V)
-    if (cmd) { registrar(cmd[1], undefined); continue }
+    if (cmd) { registrar(cmd[1], undefined, modulo); continue }
 
     const gh = linea.match(GH_DIRECTO)
-    if (gh) { registrar(gh[2], gh[1]); continue }
+    if (gh) { registrar(gh[2], gh[1], modulo); continue }
   }
 
   return [...porNombre.values()]

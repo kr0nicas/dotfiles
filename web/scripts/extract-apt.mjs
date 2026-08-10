@@ -1,11 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { crearGating } from './gating.mjs'
 
 const FUENTE = 'lib/packages.sh'
 
 const APT_INSTALL = /\bapt(?:-get)?\s+install\s+(.*)$/
-const APERTURA_GATING = /^(\s*)if\s+\[\[\s+\$INSTALL_(K8S|CLOUD)\s+-eq\s+1\s+\]\]/
-const CIERRE = /^(\s*)fi\b/
 // Un paquete de Debian: letras, dígitos y `+ - . :`. Todo lo demás de la línea
 // (flags, redirecciones, `||`, `true`) se descarta.
 const PAQUETE = /^[a-z0-9][a-z0-9+.:-]*$/
@@ -18,24 +17,16 @@ const PAQUETE = /^[a-z0-9][a-z0-9+.:-]*$/
 export function extraerApt(rutaRepo) {
   const lineas = readFileSync(join(rutaRepo, FUENTE), 'utf8').split('\n')
 
-  const pila = []
+  const gating = crearGating(FUENTE)
   const porNombre = new Map()
-  const moduloActual = () => (pila.length ? pila[pila.length - 1].modulo : 'base')
 
   for (let i = 0; i < lineas.length; i++) {
     const linea = lineas[i]
 
-    const cierre = linea.match(CIERRE)
-    if (cierre && pila.length && cierre[1].length <= pila[pila.length - 1].sangria.length) {
-      pila.pop()
-      continue
-    }
+    if (gating.procesar(linea)) continue
 
-    const apertura = linea.match(APERTURA_GATING)
-    if (apertura) {
-      pila.push({ sangria: apertura[1], modulo: apertura[2] === 'K8S' ? 'k8s' : 'cloud' })
-      continue
-    }
+    const modulo = gating.modulo()
+    if (modulo === null) continue
 
     const apt = linea.match(APT_INSTALL)
     if (!apt) continue
@@ -53,7 +44,6 @@ export function extraerApt(rutaRepo) {
 
     for (const trozo of resto.split(/\s+/)) {
       if (!trozo || trozo.startsWith('-') || !PAQUETE.test(trozo)) continue
-      const modulo = moduloActual()
       if (!porNombre.has(trozo)) {
         porNombre.set(trozo, {
           clave: `apt:${trozo}`,

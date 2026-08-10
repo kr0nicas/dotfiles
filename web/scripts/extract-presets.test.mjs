@@ -12,6 +12,10 @@ function repoFalso(contenido) {
 }
 
 const GUION = `
+INSTALL_CLOUD=1
+INSTALL_K8S=1
+INSTALL_GUI=1
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dry-run)   DRY_RUN=1 ;;
@@ -41,4 +45,18 @@ test('--agent hereda cloud y k8s encendidos porque no los toca', () => {
   // máquina, así que deja cloud y k8s en su valor por defecto (1).
   const agent = extraerPresets(repoFalso(GUION)).find((p) => p.flag === '--agent')
   assert.deepEqual(agent, { flag: '--agent', cloud: true, k8s: true, gui: false })
+})
+
+test('los defaults salen de install.sh, no de una constante', () => {
+  // Mismo guion pero con k8s apagado por defecto: --agent, que no menciona k8s,
+  // tiene que heredar false. Con el default asumido a mano seguiría diciendo true.
+  const guion = GUION.replace('INSTALL_K8S=1', 'INSTALL_K8S=0')
+  const agent = extraerPresets(repoFalso(guion)).find((p) => p.flag === '--agent')
+
+  assert.deepEqual(agent, { flag: '--agent', cloud: true, k8s: false, gui: false })
+})
+
+test('lanza si install.sh no declara los tres defaults', () => {
+  const guion = GUION.replace('INSTALL_GUI=1\n', '')
+  assert.throws(() => extraerPresets(repoFalso(guion)), /INSTALL_GUI/)
 })
