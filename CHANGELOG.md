@@ -43,6 +43,7 @@ No lo edites a mano: el CI regenera y compara.
 - **docs**: corregir el return del fi anidado en el plan (`dbe564b`)
 - **docs**: ordenar por comparacion ordinal, no por localeCompare (`0cdf4a3`)
 - **docs**: documentar el escaparate web (`167967f`)
+- **docs**: anotar en el plan lo que la implementacion corrigio (`ad53367`)
 
 ### CI
 
