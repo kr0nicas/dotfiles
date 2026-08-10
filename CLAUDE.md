@@ -30,6 +30,7 @@ zsh config/zsh/ssh.test.zsh              # Test suite de _ssh_target (13 tests, 
 zsh config/zsh/zshrc.test.zsh            # Test suite del zshrc como archivo (4 tests: colisiones alias/función)
 bash lib/symlinks.test.sh                # Grupos de symlinks y preset --agent (27 tests, no toca el HOME)
 bash lib/packages.test.sh                # brew_untrusted_taps y packages_can_elevate (15 tests, sin brew ni apt)
+bash scripts/changelog.test.sh           # base_ref de changelog.sh (5 tests, repos desechables en un temporal)
 zsh -n zshrc && zsh -n config/zsh/gcp.zsh  # Chequeo de sintaxis zsh (shellcheck NO sirve: no soporta zsh)
 ```
 
@@ -52,6 +53,8 @@ Nunca se commitea directo a `main`: está protegido en GitHub y `pre-push` lo re
 2. **Commit al cerrar cada unidad de trabajo**, sin esperar a que te lo pidan. El cuerpo explica el *porqué*; el diff ya dice el qué.
 3. **PR al terminar.** `gh pr create --fill`, y `gh pr merge --merge --delete-branch` (`--no-ff`, nunca squash: el CHANGELOG se genera de esa estructura).
 4. **Regenerar el CHANGELOG** con `./scripts/changelog.sh` como último paso antes del push final. El CI falla si difiere. Va **siempre en su propio commit**, que no toca nada más — de lo contrario el archivo es insatisfacible: el commit que lo regenera se excluye de su propio listado, así que mezclarlo con otro cambio deja el CHANGELOG desactualizado en el momento en que se genera.
+
+**La base del CHANGELOG es `origin/main`, no el `main` local, y el orden no es cosmético.** `git fetch` actualiza `origin/main` pero **no** la rama `main` local, así que basta con que alguien mergee otra PR para que tu `main` se quede atrás. Con la rama local como base, el rango `base..HEAD` incluye commits que ya están integrados y los lista como trabajo de tu rama. En CI eso no pasaba —`actions/checkout` no crea la rama local, así que ya usaba `origin/main`— y el reparto era el peor posible: **verde en local, rojo en CI, y el diff no delata la causa**. Se cobró la PR #37. Preferir el remoto hace que las dos salidas coincidan por construcción; lo fija `scripts/changelog.test.sh`, cuyo test central es que la salida sea idéntica con y sin rama `main` local. Si un repo no tiene remoto, cae a la local y sigue funcionando.
 
 Convención de commits, validada por `.githooks/commit-msg`:
 
@@ -308,7 +311,8 @@ Lo que no cuelga de `install.sh` y solo se descubre con un `ls`:
 
 | Archivo | Qué es |
 |---|---|
-| `scripts/changelog.sh` | Regenera `CHANGELOG.md` desde el historial: merge commits si la feature ya está en `main`, `main..HEAD` si sigue en rama. `--check` no escribe y sale 1 si difiere — es lo que corre el CI |
+| `scripts/changelog.sh` | Regenera `CHANGELOG.md` desde el historial: merge commits si la feature ya está en `main`, `origin/main..HEAD` si sigue en rama. `--check` no escribe y sale 1 si difiere — es lo que corre el CI |
+| `scripts/changelog.test.sh` | Tests de `base_ref`. Monta repos desechables con su propio origin bare; no toca el repo real ni la red |
 | `scripts/github-topics-manager.sh` | Pone topics a un repo de GitHub vía `gh api`. `-l` lista repos, `-v <repo>` muestra los topics actuales |
 | `scripts/github-topics-manager.README.md` | Manual del anterior: reglas de validación de GitHub y catálogos de topics sugeridos por categoría |
 | `CHEAT_CODES.md` | Chuleta personal de ~480 líneas: atajos y aliases de shell, nvim, k8s, terraform, cloud CLIs, seguridad y tmux. Documentación pura, ningún programa la lee |
