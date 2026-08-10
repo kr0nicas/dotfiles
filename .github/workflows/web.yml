@@ -1,0 +1,81 @@
+name: Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'Brewfile*'
+      - 'lib/binaries.sh'
+      - 'lib/packages.sh'
+      - 'install.sh'
+      - '.github/workflows/web.yml'
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'Brewfile*'
+      - 'lib/binaries.sh'
+      - 'lib/packages.sh'
+      - 'install.sh'
+      - '.github/workflows/web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build y guardia del catálogo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: web
+        run: npm ci
+
+      - name: Tests de los extractores
+        working-directory: web
+        run: npm test
+
+      # La guardia va antes del build y es la que de verdad importa: compara el
+      # tools.generated.json versionado contra lo que el repo declara hoy, en
+      # las dos direcciones. Si alguien añade un brew sin regenerarlo, aquí se
+      # cae — no en producción, con el catálogo mintiendo.
+      - name: Guardia del catálogo
+        working-directory: web
+        run: npm run check
+
+      - name: Build estático
+        working-directory: web
+        run: npx next build
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: web/out
+
+  deploy:
+    name: Desplegar en Pages
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
