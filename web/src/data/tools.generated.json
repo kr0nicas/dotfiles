@@ -1,0 +1,1671 @@
+{
+  "entradas": [
+    {
+      "clave": "apt:age",
+      "nombre": "age",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:bat",
+      "nombre": "bat",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:bsdextrautils",
+      "nombre": "bsdextrautils",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:btop",
+      "nombre": "btop",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:curl",
+      "nombre": "curl",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:direnv",
+      "nombre": "direnv",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:eza",
+      "nombre": "eza",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:faketime",
+      "nombre": "faketime",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:fd-find",
+      "nombre": "fd-find",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:gh",
+      "nombre": "gh",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:git",
+      "nombre": "git",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:gnupg",
+      "nombre": "gnupg",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:iperf3",
+      "nombre": "iperf3",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:jq",
+      "nombre": "jq",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:mtr-tiny",
+      "nombre": "mtr-tiny",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:nmap",
+      "nombre": "nmap",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:postgresql-client",
+      "nombre": "postgresql-client",
+      "tipo": "apt",
+      "modulo": "cloud",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:ripgrep",
+      "nombre": "ripgrep",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:socat",
+      "nombre": "socat",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:tmux",
+      "nombre": "tmux",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:tshark",
+      "nombre": "tshark",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:unzip",
+      "nombre": "unzip",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:yq",
+      "nombre": "yq",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:zsh",
+      "nombre": "zsh",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:zsh-autosuggestions",
+      "nombre": "zsh-autosuggestions",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:zsh-syntax-highlighting",
+      "nombre": "zsh-syntax-highlighting",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:zstd",
+      "nombre": "zstd",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "brew:age",
+      "nombre": "age",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Security"
+    },
+    {
+      "clave": "brew:awscli",
+      "nombre": "awscli",
+      "tipo": "brew",
+      "modulo": "cloud",
+      "plataforma": "macos",
+      "fuente": "Brewfile.cloud",
+      "categoriaBrewfile": "Cloud CLIs"
+    },
+    {
+      "clave": "brew:azure-cli",
+      "nombre": "azure-cli",
+      "tipo": "brew",
+      "modulo": "cloud",
+      "plataforma": "macos",
+      "fuente": "Brewfile.cloud",
+      "categoriaBrewfile": "Cloud CLIs"
+    },
+    {
+      "clave": "brew:bandwhich",
+      "nombre": "bandwhich",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:bat",
+      "nombre": "bat",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:btop",
+      "nombre": "btop",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:colima",
+      "nombre": "colima",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Containers"
+    },
+    {
+      "clave": "brew:curl",
+      "nombre": "curl",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:curlie",
+      "nombre": "curlie",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:delta",
+      "nombre": "delta",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:direnv",
+      "nombre": "direnv",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:dive",
+      "nombre": "dive",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Diagnóstico de imágenes"
+    },
+    {
+      "clave": "brew:docker",
+      "nombre": "docker",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Containers"
+    },
+    {
+      "clave": "brew:docker-compose",
+      "nombre": "docker-compose",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Containers"
+    },
+    {
+      "clave": "brew:doggo",
+      "nombre": "doggo",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:dust",
+      "nombre": "dust",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:eza",
+      "nombre": "eza",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:fd",
+      "nombre": "fd",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:fnm",
+      "nombre": "fnm",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Languages"
+    },
+    {
+      "clave": "brew:fzf",
+      "nombre": "fzf",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:gemini-cli",
+      "nombre": "gemini-cli",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Misc"
+    },
+    {
+      "clave": "brew:gh",
+      "nombre": "gh",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:git",
+      "nombre": "git",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:git-extras",
+      "nombre": "git-extras",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:gitleaks",
+      "nombre": "gitleaks",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Security"
+    },
+    {
+      "clave": "brew:glab",
+      "nombre": "glab",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:go",
+      "nombre": "go",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Languages"
+    },
+    {
+      "clave": "brew:golangci-lint",
+      "nombre": "golangci-lint",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Linters & formatters (nvim: nvim-lint + conform.nvim)"
+    },
+    {
+      "clave": "brew:gradle",
+      "nombre": "gradle",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Languages"
+    },
+    {
+      "clave": "brew:grpcurl",
+      "nombre": "grpcurl",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Service mesh / observability"
+    },
+    {
+      "clave": "brew:hashicorp/tap/vault",
+      "nombre": "hashicorp/tap/vault",
+      "tipo": "brew",
+      "modulo": "cloud",
+      "plataforma": "macos",
+      "fuente": "Brewfile.cloud",
+      "categoriaBrewfile": "IaC"
+    },
+    {
+      "clave": "brew:helm",
+      "nombre": "helm",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Kubernetes core"
+    },
+    {
+      "clave": "brew:iperf3",
+      "nombre": "iperf3",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:istioctl",
+      "nombre": "istioctl",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Service mesh / observability"
+    },
+    {
+      "clave": "brew:jenv",
+      "nombre": "jenv",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Languages"
+    },
+    {
+      "clave": "brew:jless",
+      "nombre": "jless",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:jq",
+      "nombre": "jq",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:k9s",
+      "nombre": "k9s",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Kubernetes TUI / ergonomía"
+    },
+    {
+      "clave": "brew:kubecolor",
+      "nombre": "kubecolor",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Kubernetes TUI / ergonomía"
+    },
+    {
+      "clave": "brew:kubectx",
+      "nombre": "kubectx",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Kubernetes TUI / ergonomía"
+    },
+    {
+      "clave": "brew:kubernetes-cli",
+      "nombre": "kubernetes-cli",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Kubernetes core"
+    },
+    {
+      "clave": "brew:kubeshark",
+      "nombre": "kubeshark",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Service mesh / observability"
+    },
+    {
+      "clave": "brew:kustomize",
+      "nombre": "kustomize",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Kubernetes core"
+    },
+    {
+      "clave": "brew:lazygit",
+      "nombre": "lazygit",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:libfaketime",
+      "nombre": "libfaketime",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Misc"
+    },
+    {
+      "clave": "brew:libpq",
+      "nombre": "libpq",
+      "tipo": "brew",
+      "modulo": "cloud",
+      "plataforma": "macos",
+      "fuente": "Brewfile.cloud",
+      "categoriaBrewfile": "Cloud CLIs"
+    },
+    {
+      "clave": "brew:llm",
+      "nombre": "llm",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Misc"
+    },
+    {
+      "clave": "brew:lnav",
+      "nombre": "lnav",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:maven",
+      "nombre": "maven",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Languages"
+    },
+    {
+      "clave": "brew:mtr",
+      "nombre": "mtr",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:neovim",
+      "nombre": "neovim",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:nghttp2",
+      "nombre": "nghttp2",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Misc"
+    },
+    {
+      "clave": "brew:nmap",
+      "nombre": "nmap",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:oha",
+      "nombre": "oha",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:openjdk@17",
+      "nombre": "openjdk@17",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Languages"
+    },
+    {
+      "clave": "brew:openssl@3",
+      "nombre": "openssl@3",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Misc"
+    },
+    {
+      "clave": "brew:opentofu",
+      "nombre": "opentofu",
+      "tipo": "brew",
+      "modulo": "cloud",
+      "plataforma": "macos",
+      "fuente": "Brewfile.cloud",
+      "categoriaBrewfile": "IaC"
+    },
+    {
+      "clave": "brew:pass",
+      "nombre": "pass",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Security"
+    },
+    {
+      "clave": "brew:pinentry-mac",
+      "nombre": "pinentry-mac",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Security"
+    },
+    {
+      "clave": "brew:pre-commit",
+      "nombre": "pre-commit",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Linters & formatters (nvim: nvim-lint + conform.nvim)"
+    },
+    {
+      "clave": "brew:python-yq",
+      "nombre": "python-yq",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:ripgrep",
+      "nombre": "ripgrep",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:rtk",
+      "nombre": "rtk",
+      "tipo": "brew",
+      "modulo": "cloud",
+      "plataforma": "macos",
+      "fuente": "Brewfile.cloud",
+      "categoriaBrewfile": "Agentes IA / tokens"
+    },
+    {
+      "clave": "brew:ruff",
+      "nombre": "ruff",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Linters & formatters (nvim: nvim-lint + conform.nvim)"
+    },
+    {
+      "clave": "brew:sd",
+      "nombre": "sd",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:shellcheck",
+      "nombre": "shellcheck",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Linters & formatters (nvim: nvim-lint + conform.nvim)"
+    },
+    {
+      "clave": "brew:socat",
+      "nombre": "socat",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:sops",
+      "nombre": "sops",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Security"
+    },
+    {
+      "clave": "brew:sshuttle",
+      "nombre": "sshuttle",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:starship",
+      "nombre": "starship",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:step",
+      "nombre": "step",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:stern",
+      "nombre": "stern",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Kubernetes TUI / ergonomía"
+    },
+    {
+      "clave": "brew:stylua",
+      "nombre": "stylua",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Linters & formatters (nvim: nvim-lint + conform.nvim)"
+    },
+    {
+      "clave": "brew:telnet",
+      "nombre": "telnet",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Misc"
+    },
+    {
+      "clave": "brew:termshark",
+      "nombre": "termshark",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:tfsec",
+      "nombre": "tfsec",
+      "tipo": "brew",
+      "modulo": "cloud",
+      "plataforma": "macos",
+      "fuente": "Brewfile.cloud",
+      "categoriaBrewfile": "IaC"
+    },
+    {
+      "clave": "brew:tldr",
+      "nombre": "tldr",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:tmux",
+      "nombre": "tmux",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:tree",
+      "nombre": "tree",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:tree-sitter-cli",
+      "nombre": "tree-sitter-cli",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Linters & formatters (nvim: nvim-lint + conform.nvim)"
+    },
+    {
+      "clave": "brew:trippy",
+      "nombre": "trippy",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Red y diagnóstico"
+    },
+    {
+      "clave": "brew:trivy",
+      "nombre": "trivy",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Security"
+    },
+    {
+      "clave": "brew:uv",
+      "nombre": "uv",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Languages"
+    },
+    {
+      "clave": "brew:viddy",
+      "nombre": "viddy",
+      "tipo": "brew",
+      "modulo": "k8s",
+      "plataforma": "macos",
+      "fuente": "Brewfile.k8s",
+      "categoriaBrewfile": "Kubernetes TUI / ergonomía"
+    },
+    {
+      "clave": "brew:wget",
+      "nombre": "wget",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:yamllint",
+      "nombre": "yamllint",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Linters & formatters (nvim: nvim-lint + conform.nvim)"
+    },
+    {
+      "clave": "brew:zoxide",
+      "nombre": "zoxide",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Modern CLI (Rust-powered)"
+    },
+    {
+      "clave": "brew:zsh",
+      "nombre": "zsh",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:zsh-autosuggestions",
+      "nombre": "zsh-autosuggestions",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:zsh-completions",
+      "nombre": "zsh-completions",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "brew:zsh-syntax-highlighting",
+      "nombre": "zsh-syntax-highlighting",
+      "tipo": "brew",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Core CLI"
+    },
+    {
+      "clave": "cask:brave-browser",
+      "nombre": "brave-browser",
+      "tipo": "cask",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "Apps GUI"
+    },
+    {
+      "clave": "cask:font-hack-nerd-font",
+      "nombre": "font-hack-nerd-font",
+      "tipo": "cask",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Terminal casks (siempre necesarios)"
+    },
+    {
+      "clave": "cask:font-source-code-pro",
+      "nombre": "font-source-code-pro",
+      "tipo": "cask",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Terminal casks (siempre necesarios)"
+    },
+    {
+      "clave": "cask:gcloud-cli",
+      "nombre": "gcloud-cli",
+      "tipo": "cask",
+      "modulo": "cloud",
+      "plataforma": "macos",
+      "fuente": "Brewfile.cloud",
+      "categoriaBrewfile": "Casks"
+    },
+    {
+      "clave": "cask:iterm2",
+      "nombre": "iterm2",
+      "tipo": "cask",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Terminal casks (siempre necesarios)"
+    },
+    {
+      "clave": "cask:ngrok",
+      "nombre": "ngrok",
+      "tipo": "cask",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "Apps GUI"
+    },
+    {
+      "clave": "cask:postman",
+      "nombre": "postman",
+      "tipo": "cask",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "Apps GUI"
+    },
+    {
+      "clave": "cask:spotify",
+      "nombre": "spotify",
+      "tipo": "cask",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "Apps GUI"
+    },
+    {
+      "clave": "cask:terraform-linters/tap/tflint",
+      "nombre": "terraform-linters/tap/tflint",
+      "tipo": "cask",
+      "modulo": "cloud",
+      "plataforma": "macos",
+      "fuente": "Brewfile.cloud",
+      "categoriaBrewfile": "IaC"
+    },
+    {
+      "clave": "cask:visual-studio-code",
+      "nombre": "visual-studio-code",
+      "tipo": "cask",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "Apps GUI"
+    },
+    {
+      "clave": "cask:wezterm",
+      "nombre": "wezterm",
+      "tipo": "cask",
+      "modulo": "base",
+      "plataforma": "macos",
+      "fuente": "Brewfile",
+      "categoriaBrewfile": "Terminal casks (siempre necesarios)"
+    },
+    {
+      "clave": "github:bandwhich",
+      "nombre": "bandwhich",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:curlie",
+      "nombre": "curlie",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:delta",
+      "nombre": "delta",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:dive",
+      "nombre": "dive",
+      "tipo": "github",
+      "modulo": "k8s",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:doggo",
+      "nombre": "doggo",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:dust",
+      "nombre": "dust",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:gitleaks",
+      "nombre": "gitleaks",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:golangci-lint",
+      "nombre": "golangci-lint",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:helm",
+      "nombre": "helm",
+      "tipo": "github",
+      "modulo": "k8s",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:jless",
+      "nombre": "jless",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:k9s",
+      "nombre": "k9s",
+      "tipo": "github",
+      "modulo": "k8s",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:kubectl",
+      "nombre": "kubectl",
+      "tipo": "github",
+      "modulo": "k8s",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:kubectx",
+      "nombre": "kubectx",
+      "tipo": "github",
+      "modulo": "k8s",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh",
+      "repo": "ahmetb/kubectx"
+    },
+    {
+      "clave": "github:kubens",
+      "nombre": "kubens",
+      "tipo": "github",
+      "modulo": "k8s",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh",
+      "repo": "ahmetb/kubectx"
+    },
+    {
+      "clave": "github:kubeshark",
+      "nombre": "kubeshark",
+      "tipo": "github",
+      "modulo": "k8s",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:lazygit",
+      "nombre": "lazygit",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:lnav",
+      "nombre": "lnav",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:oha",
+      "nombre": "oha",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:ruff",
+      "nombre": "ruff",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:shellcheck",
+      "nombre": "shellcheck",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:sops",
+      "nombre": "sops",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:sshuttle",
+      "nombre": "sshuttle",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:step",
+      "nombre": "step",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:stern",
+      "nombre": "stern",
+      "tipo": "github",
+      "modulo": "k8s",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:termshark",
+      "nombre": "termshark",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:tflint",
+      "nombre": "tflint",
+      "tipo": "github",
+      "modulo": "cloud",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:tofu",
+      "nombre": "tofu",
+      "tipo": "github",
+      "modulo": "cloud",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:trip",
+      "nombre": "trip",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:trivy",
+      "nombre": "trivy",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:yamllint",
+      "nombre": "yamllint",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "github:zoxide",
+      "nombre": "zoxide",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
+      "clave": "vscode:anthropic.claude-code",
+      "nombre": "anthropic.claude-code",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:continue.continue",
+      "nombre": "continue.continue",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:dbaeumer.vscode-eslint",
+      "nombre": "dbaeumer.vscode-eslint",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:docker.docker",
+      "nombre": "docker.docker",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:drblury.protobuf-vsc",
+      "nombre": "drblury.protobuf-vsc",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:eamodio.gitlens",
+      "nombre": "eamodio.gitlens",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:esbenp.prettier-vscode",
+      "nombre": "esbenp.prettier-vscode",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:github.copilot-chat",
+      "nombre": "github.copilot-chat",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:github.vscode-github-actions",
+      "nombre": "github.vscode-github-actions",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:golang.go",
+      "nombre": "golang.go",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:googlecloudtools.cloudcode",
+      "nombre": "googlecloudtools.cloudcode",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:hashicorp.terraform",
+      "nombre": "hashicorp.terraform",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:ms-azuretools.vscode-containers",
+      "nombre": "ms-azuretools.vscode-containers",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:ms-python.debugpy",
+      "nombre": "ms-python.debugpy",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:ms-python.python",
+      "nombre": "ms-python.python",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:ms-python.vscode-pylance",
+      "nombre": "ms-python.vscode-pylance",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:ms-toolsai.jupyter",
+      "nombre": "ms-toolsai.jupyter",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:ms-vscode-remote.remote-containers",
+      "nombre": "ms-vscode-remote.remote-containers",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:redhat.java",
+      "nombre": "redhat.java",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:redhat.vscode-yaml",
+      "nombre": "redhat.vscode-yaml",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:sonarsource.sonarlint-vscode",
+      "nombre": "sonarsource.sonarlint-vscode",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:streetsidesoftware.code-spell-checker",
+      "nombre": "streetsidesoftware.code-spell-checker",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:vscjava.vscode-gradle",
+      "nombre": "vscjava.vscode-gradle",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:vscjava.vscode-java-pack",
+      "nombre": "vscjava.vscode-java-pack",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:vscjava.vscode-maven",
+      "nombre": "vscjava.vscode-maven",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:vscode-icons-team.vscode-icons",
+      "nombre": "vscode-icons-team.vscode-icons",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    },
+    {
+      "clave": "vscode:wholroyd.jinja",
+      "nombre": "wholroyd.jinja",
+      "tipo": "vscode",
+      "modulo": "gui",
+      "plataforma": "macos",
+      "fuente": "Brewfile.gui",
+      "categoriaBrewfile": "VS Code Extensions"
+    }
+  ],
+  "presets": [
+    {
+      "flag": "--minimal",
+      "cloud": false,
+      "k8s": false,
+      "gui": false
+    },
+    {
+      "flag": "--vps",
+      "cloud": true,
+      "k8s": false,
+      "gui": false
+    },
+    {
+      "flag": "--container",
+      "cloud": false,
+      "k8s": false,
+      "gui": false
+    },
+    {
+      "flag": "--k8s-node",
+      "cloud": true,
+      "k8s": true,
+      "gui": false
+    },
+    {
+      "flag": "--agent",
+      "cloud": true,
+      "k8s": true,
+      "gui": false
+    }
+  ],
+  "conteos": {
+    "lib/packages.sh": 27,
+    "Brewfile": 73,
+    "Brewfile.cloud": 9,
+    "Brewfile.k8s": 15,
+    "Brewfile.gui": 32,
+    "lib/binaries.sh": 31
+  }
+}
