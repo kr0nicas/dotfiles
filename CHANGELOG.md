@@ -20,7 +20,6 @@ No lo edites a mano: el CI regenera y compara.
 
 ### Fixes
 
-- **install**: subir el pin de fzf a 0.68.0 (`ed56706`)
 - **web**: ordenar el catalogo por comparacion ordinal (`7b4170b`)
 - **web**: correr los tests por glob, no por directorio (`14c6ce9`)
 - **web**: derivar del catalogo las cifras del meta description (`2326241`)
@@ -53,6 +52,12 @@ No lo edites a mano: el CI regenera y compara.
 ### Mantenimiento
 
 - **web**: ignorar la cache incremental de tsc (`159a98a`)
+
+## 2026-08-10 · fix/fzf-pin-068
+
+### Fixes
+
+- **install**: subir el pin de fzf a 0.68.0 (`ed56706`)
 
 ## 2026-08-10 · feat/install-preset-agent
 
