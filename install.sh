@@ -46,7 +46,7 @@ DOTFILES_DIR="$SCRIPT_DIR"
 
 # --- Variables globales -------------------------------------------------------
 FNM_VERSION="1.38.1"
-FZF_VERSION="0.66.0"
+FZF_VERSION="0.68.0"
 LOCAL_BIN="$HOME/.local/bin"
 DRY_RUN=0
 INSTALL_CLOUD=1
