@@ -52,6 +52,7 @@ DRY_RUN=0
 INSTALL_CLOUD=1
 INSTALL_K8S=1
 INSTALL_GUI=1
+INSTALL_AGENT=0
 PROFILE_FLAG=0
 UPDATE_REQUESTED=0
 EXISTING_INSTALL=0
@@ -92,6 +93,10 @@ while [[ $# -gt 0 ]]; do
         --vps)       INSTALL_CLOUD=1; INSTALL_K8S=0; INSTALL_GUI=0; PROFILE_FLAG=1 ;;
         --container) INSTALL_CLOUD=0; INSTALL_K8S=0; INSTALL_GUI=0; PROFILE_FLAG=1 ;;
         --k8s-node)  INSTALL_CLOUD=1; INSTALL_K8S=1; INSTALL_GUI=0; PROFILE_FLAG=1 ;;
+        # --agent no toca cloud ni k8s: es ortogonal a la carga de la máquina
+        # (un agente puede necesitar kubectl igual que una persona). Lo que sí
+        # apaga es gui, que en una caja sin pantalla no lo abre nadie.
+        --agent)     INSTALL_AGENT=1; INSTALL_GUI=0; PROFILE_FLAG=1 ;;
         --no-cloud)  INSTALL_CLOUD=0; PROFILE_FLAG=1 ;;
         --no-k8s)    INSTALL_K8S=0; PROFILE_FLAG=1 ;;
         --no-gui)    INSTALL_GUI=0; PROFILE_FLAG=1 ;;
@@ -114,13 +119,32 @@ fi
 [[ $PROFILE_FLAG -eq 0 && -t 0 ]] && show_menu
 [[ $DRY_RUN -eq 1 ]] && warn "Modo DRY-RUN activo — no se realizarán cambios."
 log "Módulos: base=ON, cloud=$([[ $INSTALL_CLOUD -eq 1 ]] && echo ON || echo OFF), k8s=$([[ $INSTALL_K8S -eq 1 ]] && echo ON || echo OFF), gui=$([[ $INSTALL_GUI -eq 1 ]] && echo ON || echo OFF)"
+[[ $INSTALL_AGENT -eq 1 ]] && log "Preset agente: sin editores, y de los symlinks solo ~/.claude"
 
 # --- Fases, en orden ------------------------------------------------------------
+# El preset --agent cambia tres cosas de esta lista y ninguna más: phase_packages
+# puede degradar si no hay root, phase_editors no corre, y de los symlinks va
+# solo el bloque de ~/.claude. El porqué está en la sección --agent de CLAUDE.md.
 phase_detect      # SO, arquitectura, dependencias críticas
-phase_packages    # brew bundle (macOS) / apt (Debian-Ubuntu)
+
+if [[ $INSTALL_AGENT -eq 1 ]]; then
+    phase_packages_if_possible   # apt/brew; se salta si no hay root ni sudo -n
+else
+    phase_packages               # brew bundle (macOS) / apt (Debian-Ubuntu)
+fi
+
 phase_runtimes    # fnm+Node, fzf, starship, zoxide, uv
 phase_binaries    # binarios SRE desde GitHub Releases (solo Linux)
-phase_editors     # tmux/TPM, Neovim/lazy.nvim, Claude Code
-phase_symlinks    # symlinks de dotfiles
+
+if [[ $INSTALL_AGENT -eq 0 ]]; then
+    phase_editors # tmux/TPM, Neovim/lazy.nvim, Claude Code
+fi
+
+if [[ $INSTALL_AGENT -eq 1 ]]; then
+    phase_symlinks_agent   # SOLO ~/.claude (settings, statusline, CLAUDE.md)
+else
+    phase_symlinks         # symlinks de dotfiles
+fi
+
 phase_repo        # hooks de git (core.hooksPath)
 phase_verify      # limpieza de caché zsh + resumen final

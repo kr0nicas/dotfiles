@@ -1,6 +1,6 @@
 # `docs/` — índice
 
-Siete documentos, ~4.300 líneas. Este índice existe para que no tengas que abrir
+Ocho documentos, ~4.450 líneas. Este índice existe para que no tengas que abrir
 un plan de 1.873 líneas para averiguar de qué iba.
 
 **Todo lo que hay aquí es histórico.** Son diseños y planes de trabajos que ya
@@ -23,6 +23,7 @@ mueven ni se renombran**: un trailer roto no lo detecta ningún test.
 | `2026-08-07-gcp-switcher-design.md` | Cuatro aliases de GCP en `zshrc` imprimían con `echo` una cuenta hardcodeada que ya no coincidía con la config que activaban | `config/zsh/gcp.zsh`, sección **gcx** de `CLAUDE.md` |
 | `2026-08-08-arnes-trazabilidad-design.md` | El repo tenía medio arnés sin saberlo: CI y convención de commits de facto, pero nada que los hiciera cumplir | `.githooks/`, sección **Flujo de trabajo** de `CLAUDE.md` |
 | `2026-08-08-ruff-design.md` | `Error running flake8: ENOENT` al abrir cualquier `.py`: un linter declarado en nvim que ningún instalador instalaba | `config/nvim/lua/plugins/lsp.lua`, `Brewfile`, `lib/binaries.sh` |
+| `2026-08-09-preset-agent-design.md` | Los cuatro presets asumían una persona delante de una terminal: en una caja de agente casi toda la instalación se gastaba en configs que una zsh no interactiva nunca lee | `install.sh`, `lib/symlinks.sh`, `lib/packages.sh`, sección **`--agent`** de `CLAUDE.md` |
 
 ## `plans/` — implementación de esos diseños
 
