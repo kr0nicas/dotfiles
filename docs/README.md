@@ -1,12 +1,14 @@
 # `docs/` — índice
 
-Ocho documentos, ~4.450 líneas. Este índice existe para que no tengas que abrir
+Nueve documentos, ~4.600 líneas. Este índice existe para que no tengas que abrir
 un plan de 1.873 líneas para averiguar de qué iba.
 
-**Todo lo que hay aquí es histórico.** Son diseños y planes de trabajos que ya
-están en `main`: describen el repo en el momento en que se escribieron, no el de
-hoy. Sirven para responder *por qué se decidió algo*; para saber *cómo está el
-código ahora*, la fuente es `CLAUDE.md` y el propio código.
+**Casi todo lo que hay aquí es histórico.** Son diseños y planes de trabajos que
+ya están en `main`: describen el repo en el momento en que se escribieron, no el
+de hoy. Sirven para responder *por qué se decidió algo*; para saber *cómo está
+el código ahora*, la fuente es `CLAUDE.md` y el propio código. La excepción son
+los documentos marcados **sin implementar** en las tablas de abajo, que describen
+trabajo aprobado pero todavía no hecho.
 
 Si buscas el borrador de trabajo de una sesión de agente, no está aquí: vive en
 `.superpowers/sdd/`, que no se versiona. Son dos sitios distintos con el mismo
@@ -24,6 +26,7 @@ mueven ni se renombran**: un trailer roto no lo detecta ningún test.
 | `2026-08-08-arnes-trazabilidad-design.md` | El repo tenía medio arnés sin saberlo: CI y convención de commits de facto, pero nada que los hiciera cumplir | `.githooks/`, sección **Flujo de trabajo** de `CLAUDE.md` |
 | `2026-08-08-ruff-design.md` | `Error running flake8: ENOENT` al abrir cualquier `.py`: un linter declarado en nvim que ningún instalador instalaba | `config/nvim/lua/plugins/lsp.lua`, `Brewfile`, `lib/binaries.sh` |
 | `2026-08-09-preset-agent-design.md` | Los cuatro presets asumían una persona delante de una terminal: en una caja de agente casi toda la instalación se gastaba en configs que una zsh no interactiva nunca lee | `install.sh`, `lib/symlinks.sh`, `lib/packages.sh`, sección **`--agent`** de `CLAUDE.md` |
+| `2026-08-09-web-escaparate-design.md` | El repo solo se explica en 554 líneas de README: nada que enseñe cómo se ve el entorno ni que deje navegar las ~130 herramientas repartidas entre cuatro Brewfiles y dos ficheros de `lib/` | **Sin implementar** — irá en `web/` |
 
 ## `plans/` — implementación de esos diseños
 
