@@ -1330,14 +1330,14 @@ const CURADO = join(import.meta.dirname, '..', 'src', 'data', 'tools.curated.jso
 // rojo es desactivar la guardia.
 //
 // Recuentos reales al escribir esto: Brewfile 73, .cloud 9, .k8s 15, .gui 32,
-// binaries.sh 31.
+// binaries.sh 31, packages.sh 27.
 const MINIMOS = {
   'Brewfile': 55,
   'Brewfile.cloud': 7,
   'Brewfile.k8s': 11,
   'Brewfile.gui': 24,
   'lib/binaries.sh': 23,
-  'lib/packages.sh': 15,
+  'lib/packages.sh': 20,
 }
 
 const errores = []
