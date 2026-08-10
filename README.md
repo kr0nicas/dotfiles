@@ -60,17 +60,36 @@ cd ~/dotfiles && ./install.sh
 ```bash
 ./install.sh --dry-run                # Simula sin cambios
 ./install.sh --minimal                # Solo terminal env (zsh, tmux, nvim, langs) — ideal VPS/contenedores
+./install.sh --agent                  # Caja para un agente de Claude Code, no para una persona
 ./install.sh --no-gui                 # Sin VSCode/Brave/Spotify (servidor con DE pero sin apps)
 ./install.sh --no-cloud --no-k8s      # Workstation sin SRE tools
 ./install.sh --help                   # Ver todas las opciones
 ```
 
+**Presets** — eligen módulos y, en el caso de `--agent`, también fases:
+
+| Preset | Qué instala |
+|---|---|
+| `--vps` | Base + cloud, sin k8s ni GUI |
+| `--k8s-node` | Base + cloud + k8s, sin GUI |
+| `--container` | Solo base, ultra-minimal |
+| `--minimal` | Solo base (equivale a `--no-cloud --no-k8s --no-gui`) |
+| `--agent` | Herramientas, hooks de git y `~/.claude`. **Nada interactivo**: ni tmux, ni nvim, ni zshrc, ni prompt, ni perfiles de terminal |
+
+**Flags compositivos** — se pueden combinar entre sí y con un preset:
+
 | Flag | Omite |
 |---|---|
-| `--minimal` | Cloud + Kubernetes + GUI (todo lo opcional) |
-| `--no-cloud` | aws, azure, terraform, vault, tflint, gcloud |
+| `--no-cloud` | aws, azure, tofu, vault, tflint, gcloud |
 | `--no-k8s` | kubectl, helm, k9s, stern, kubectx, docker |
 | `--no-gui` | VSCode + extensiones, Brave, Spotify, Postman, ngrok |
+
+> 🤖 **`--agent`** existe porque la tool Bash de Claude Code es una zsh **no
+> interactiva que no sourcea `zshrc`**: en esa caja no se renderiza nunca el
+> prompt de starship, ni los aliases, ni los keybindings de fzf, y no hay
+> terminal para tmux, nvim o wezterm. Instalarlo todo sería gastar la
+> instalación en configs que nada va a leer. Detalle y decisiones en
+> [`docs/superpowers/specs/2026-08-09-preset-agent-design.md`](docs/superpowers/specs/2026-08-09-preset-agent-design.md).
 
 El `Brewfile` base (siempre instalado) cubre: shell, CLIs modernas, nvim + linters, lenguajes, security y fonts.
 
@@ -326,7 +345,9 @@ Config en `.gitconfig` con:
 │   ├── runtimes.sh              # fnm+Node, fzf, starship, zoxide, uv
 │   ├── binaries.sh              # GitHub Releases + checksums (solo Linux)
 │   ├── editors.sh               # tmux/TPM, Neovim/lazy.nvim, Claude Code
-│   ├── symlinks.sh              # Todos los symlinks
+│   ├── symlinks.sh              # Symlinks, un grupo por destino (--agent pide solo ~/.claude)
+│   ├── symlinks.test.sh         # Suite de los grupos de symlinks (27 tests, sin tocar el HOME)
+│   ├── packages.test.sh         # Suite de packages.sh (15 tests, sin brew ni apt)
 │   ├── repo.sh                  # Hooks de git (core.hooksPath -> .githooks)
 │   └── verify.sh                # Limpieza de cache zsh + resumen final
 ├── .githooks/                   # commit-msg, pre-commit, pre-push + suite propia

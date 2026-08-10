@@ -15,6 +15,7 @@ Cross-platform dotfiles for Jorge Ochoa (kr0nicas) — SRE 2026 setup targeting 
 ./install.sh --vps        # VPS/server preset (base + cloud, no k8s/gui)
 ./install.sh --container  # Container/Docker preset (base only, ultra-minimal)
 ./install.sh --k8s-node   # Kubernetes node preset (base + cloud + k8s, no gui)
+./install.sh --agent      # Caja de agente: herramientas + hooks + ~/.claude, nada interactivo
 ./install.sh --minimal    # Skip cloud, k8s, GUI (only base terminal env)
 ./install.sh --no-cloud   # Skip aws/azure/tofu/vault/gcloud
 ./install.sh --no-k8s     # Skip kubectl/helm/k9s/stern/kubectx/docker
@@ -27,6 +28,8 @@ source ~/.zshrc                          # Reload shell after config changes
 zsh config/zsh/gcp.test.zsh              # Test suite del switcher gcx (45 tests, corre sin gcloud instalado)
 zsh config/zsh/ssh.test.zsh              # Test suite de _ssh_target (13 tests, no abre ninguna conexión)
 zsh config/zsh/zshrc.test.zsh            # Test suite del zshrc como archivo (4 tests: colisiones alias/función)
+bash lib/symlinks.test.sh                # Grupos de symlinks y preset --agent (27 tests, no toca el HOME)
+bash lib/packages.test.sh                # brew_untrusted_taps y packages_can_elevate (15 tests, sin brew ni apt)
 zsh -n zshrc && zsh -n config/zsh/gcp.zsh  # Chequeo de sintaxis zsh (shellcheck NO sirve: no soporta zsh)
 ```
 
@@ -114,7 +117,7 @@ The OS split is the core architectural decision:
 | `lib/runtimes.sh` | `phase_runtimes` — fnm+Node, fzf, starship, zoxide, uv |
 | `lib/binaries.sh` | `phase_binaries` — GitHub Releases + verificación de checksums (solo Linux) |
 | `lib/editors.sh` | `phase_editors` — tmux/TPM, Neovim/lazy.nvim, Claude Code |
-| `lib/symlinks.sh` | `phase_symlinks` — todos los symlinks |
+| `lib/symlinks.sh` | `phase_symlinks` — un grupo por destino (`symlinks_shell`, `symlinks_claude`…), más `phase_symlinks_agent`, que solo llama al de `~/.claude` |
 | `lib/repo.sh` | `phase_repo` — hooks de git (`core.hooksPath` → `.githooks`) |
 | `lib/verify.sh` | `phase_verify` — limpieza de caché zsh + resumen final |
 
@@ -126,6 +129,21 @@ Convenciones que hay que respetar al tocar esto:
 - **`shellcheck -x -S warning install.sh`** es lo que exige el CI, y cubre todo `lib/`. No analices los `lib/` sueltos: darán falsos positivos.
 - **Nada de `cd` suelto dentro de una fase.** Envuélvelo en un subshell; si no, un `cd` fallido deja las fases siguientes en el directorio equivocado.
 - **Equivalencia al refactorizar**: `./install.sh --dry-run [flags]` es determinista. Captura la salida antes y después y compárala — es el oráculo que prueba que no cambiaste comportamiento.
+
+### El preset `--agent`
+
+Los otros cuatro presets (`--vps`, `--container`, `--k8s-node`, `--minimal`) eligen **módulos**; `--agent` es el único que además cambia **qué fases corren**, porque el consumidor de la caja no es una persona. La tool Bash de Claude Code es una zsh **no interactiva que no sourcea `zshrc`**: ahí no existe `gcx`, no se renderiza el prompt de starship, no hay keybindings de fzf ni autosuggestions, y sin terminal delante no hay tmux, nvim, wezterm ni perfil de iTerm2. `starship` aparece en el PATH, pero solo porque vive en `/usr/local/bin` — no porque se dibuje nada.
+
+`--agent` = `phase_detect` + `phase_packages_if_possible` + `phase_runtimes` + `phase_binaries` + `phase_symlinks_agent` + `phase_repo` + `phase_verify`. No corre `phase_editors` y de los symlinks solo enlaza los tres de `~/.claude/`. No toca `INSTALL_CLOUD` ni `INSTALL_K8S` —son ortogonales a quién usa la caja, y `--agent --no-k8s` compone— pero sí apaga `INSTALL_GUI`.
+
+- **`phase_packages` se incluye, y no es negociable por comodidad: `rg`, `fd`, `bat`, `jq`, `yq`, `unzip` y `zstd` NO están en `lib/binaries.sh`.** Salen de esa fase (apt en Linux, Brewfile en macOS), y son justo lo que más usa un agente. En macOS es además la **única** fuente de binarios del repo, porque `phase_binaries` es solo Linux. Si vas a razonar sobre qué se puede omitir de un preset, mira de qué fase sale cada herramienta antes de opinar.
+- **`phase_packages_if_possible` es el envoltorio, y `phase_packages` no se toca.** El bloque de Debian es todo `sudo apt` y su `apt update` no lleva `|| true`: sin root muere ahí y se lleva el instalador entero bajo `set -e`. El envoltorio corre la fase si es macOS (brew no usa sudo), si es `--dry-run` (para que el oráculo no dependa de tener sudo en esta máquina) o si `packages_can_elevate`; si no, avisa y enumera lo que debe traer la imagen base. Degradar `phase_packages` en sí habría hecho que un apt roto dejara de ser ruidoso en `--vps`.
+- **`packages_can_elevate` usa `sudo -n true`, no `command -v sudo`.** Lo que importa no es que sudo exista sino que conteste sin pedir contraseña: en una caja de agente no hay nadie para teclearla, y un sudo que prompt-ea no falla — se cuelga.
+- **`--agent` no instala Claude Code** (vive en `phase_editors`, con tmux y nvim). No duele: en esa caja `claude` ya está por construcción, es lo que está corriendo.
+- **En macOS el `Brewfile` base sigue trayendo tmux, nvim y fonts.** El preset salta fases y symlinks, no fórmulas.
+- **`phase_verify` se adapta, no se omite**: con `--agent` esconde las filas de `tpm` y `lazy.nvim` —serían un ❌ permanente por diseño— y cambia el `source ~/.zshrc` por el aviso que sí aplica, que `~/.local/bin` esté en el PATH del agente.
+
+Spec: `docs/superpowers/specs/2026-08-09-preset-agent-design.md`.
 
 ### Symlinks (created by install.sh)
 
