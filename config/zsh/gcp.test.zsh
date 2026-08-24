@@ -31,6 +31,12 @@ assert_contains() {
 
 # Caché aislada para los tests
 export GCP_CACHE_DIR="${TMPDIR:-/tmp}/gcp-test-cache-$$"
+
+# Config de gcloud aislada: las funciones ADC leen CLOUDSDK_CONFIG en cada
+# llamada, así que apuntarla a un temporal basta para no tocar el HOME real.
+export CLOUDSDK_CONFIG="${TMPDIR:-/tmp}/gcp-test-gcloud-$$"
+mkdir -p "$CLOUDSDK_CONFIG"
+
 source "${0:A:h}/gcp.zsh"
 
 print "\n_gcp_cache_path"
@@ -215,6 +221,17 @@ assert_contains "gckel"    "$help_out" "documenta el alias nuevo"
 assert_contains "$GCP_CACHE_DIR" "$help_out" "muestra la ruta real de la caché"
 assert_contains "sys-"     "$help_out" "explica el filtrado de sys-*"
 
-rm -rf "$GCP_CACHE_DIR"
+print "\n_gcp_adc_*_path (rutas del almacén ADC)"
+assert_eq "$CLOUDSDK_CONFIG/adc" "$(_gcp_adc_dir)" \
+    "el almacén cuelga de CLOUDSDK_CONFIG"
+assert_eq "$CLOUDSDK_CONFIG/application_default_credentials.json" \
+    "$(_gcp_adc_live_path)" "la ADC viva cuelga de CLOUDSDK_CONFIG"
+assert_eq "$CLOUDSDK_CONFIG/adc/jorge.ochoa_itproject41.com.json" \
+    "$(_gcp_adc_store_path 'jorge.ochoa@itproject41.com')" \
+    "sanitiza la @ del email igual que _gcp_cache_path"
+assert_eq "$CLOUDSDK_CONFIG/adc/raro__.json" \
+    "$(_gcp_adc_store_path 'raro/ ')" "sanitiza caracteres de ruta"
+
+rm -rf "$GCP_CACHE_DIR" "$CLOUDSDK_CONFIG"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))

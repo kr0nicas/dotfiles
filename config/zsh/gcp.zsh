@@ -70,6 +70,27 @@ _gcp_who() {
     print -r -- "  proyecto  ${proj:-—}"
 }
 
+# --- ADC por cuenta -----------------------------------------------------------
+# Las Application Default Credentials (tofu, SDKs, apps) viven en un archivo
+# aparte que `gcloud config configurations activate` no toca: cambiar de config
+# sin cambiarlas deja a las herramientas atacando la cuenta anterior. Guardamos
+# una copia por cuenta y `gcx use` la instala al cambiar. No va en
+# GCP_CACHE_DIR: son credenciales, no caché regenerable, y ~/.cache es
+# candidato a limpieza.
+
+_gcp_adc_dir() {
+    print -r -- "${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}/adc"
+}
+
+_gcp_adc_live_path() {
+    print -r -- "${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}/application_default_credentials.json"
+}
+
+_gcp_adc_store_path() {
+    local account="$1"
+    print -r -- "$(_gcp_adc_dir)/${account//[^a-zA-Z0-9._-]/_}.json"
+}
+
 # --- activación ---------------------------------------------------------------
 
 _gcp_use() {
