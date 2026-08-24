@@ -25,7 +25,7 @@ Cross-platform dotfiles for Jorge Ochoa (kr0nicas) — SRE 2026 setup targeting 
 brew bundle --file=~/dotfiles/Brewfile   # Install/sync base macOS packages (cloud/k8s/gui in Brewfile.{cloud,k8s,gui})
 source ~/.zshrc                          # Reload shell after config changes
 
-zsh config/zsh/gcp.test.zsh              # Test suite del switcher gcx (90 tests, corre sin gcloud instalado)
+zsh config/zsh/gcp.test.zsh              # Test suite del switcher gcx (91 tests, corre sin gcloud instalado)
 zsh config/zsh/ssh.test.zsh              # Test suite de _ssh_target (13 tests, no abre ninguna conexión)
 zsh config/zsh/zshrc.test.zsh            # Test suite del zshrc como archivo (4 tests: colisiones alias/función)
 bash lib/symlinks.test.sh                # Grupos de symlinks y preset --agent (27 tests, no toca el HOME)
@@ -251,7 +251,7 @@ El dispatcher acepta además `project` como sinónimo de `p`, y `--help`/`help` 
 - **ADC por cuenta**: `gcloud config configurations activate` no toca las Application Default Credentials, así que `gcx use` instala la copia guardada en `~/.config/gcloud/adc/<cuenta>.json` (700/600, fuera del repo y de la caché) y parchea `quota_project_id` con `jq` según el proyecto de la config — el quota es de la config, no de la cuenta: itproject y kelova comparten ADC pero no quota. `gcx adc` emite y guarda (interactivo, una vez por cuenta). `gcx who` muestra el quota de la ADC viva y avisa en desajuste. Sin `jq` degradan a no-op el parche del quota y su lectura en `who`; el intercambio de la credencial en sí no depende de `jq`. Spec: `docs/superpowers/specs/2026-08-24-gcx-adc-design.md`.
 - **`_gcp_config_table` es fuente única** de la tabla de configuraciones: la usan el picker y `gcx -h`. No dupliques su bloque `awk`.
 - **Dependencia de `column`**: en Debian/Ubuntu viene en `bsdextrautils`, ya incluido en el bloque apt de `install.sh`. Sin él, los pickers y `gcx -h` fallan en los presets `--vps` y `--container`.
-- **Tests**: `config/zsh/gcp.test.zsh`, 90 tests con arnés propio (`assert_eq`, `assert_contains`). Corren **sin gcloud instalado** — los que necesitan `gcloud` o `fzf` usan stubs eliminados con `unfunction` al cerrar su bloque. Mantén esa propiedad: la suite debe pasar en un contenedor sin SDK.
+- **Tests**: `config/zsh/gcp.test.zsh`, 91 tests con arnés propio (`assert_eq`, `assert_contains`). Corren **sin gcloud instalado** — los que necesitan `gcloud` o `fzf` usan stubs eliminados con `unfunction` al cerrar su bloque. Mantén esa propiedad: la suite debe pasar en un contenedor sin SDK.
 
 ### zshrc load order
 
