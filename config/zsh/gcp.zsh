@@ -169,6 +169,26 @@ _gcp_adc_install() {
     _gcp_adc_set_quota "$live" "$project"
 }
 
+# Emite ADC nuevas para la cuenta activa y las guarda en el almacén. Abre el
+# navegador: es la única forma en que Google emite el refresh token, una vez
+# por cuenta. Única función del bloque ADC sin test: envuelve al login real.
+_gcp_adc_login() {
+    local account project
+    account="$(_gcp_active_account)"
+    if [[ -z "$account" ]]; then
+        print -r -- "  ✗ no hay cuenta activa. prueba: gcloud auth login" >&2
+        return 1
+    fi
+    gcloud auth application-default login || return 1
+    if ! _gcp_adc_save "$account"; then
+        print -r -- "  ✗ el login no dejó ADC que guardar" >&2
+        return 1
+    fi
+    project="$(_gcp_active_project)"
+    _gcp_adc_set_quota "$(_gcp_adc_live_path)" "$project"
+    print -r -- "  ↻ ADC guardadas para $account"
+}
+
 # --- activación ---------------------------------------------------------------
 
 _gcp_use() {
@@ -196,6 +216,7 @@ _gcp_use() {
         print -r -- "    prueba: gcloud auth login" >&2
         return 1
     fi
+    _gcp_adc_install "$(_gcp_active_account)" "$(_gcp_active_project)"
     _gcp_who
 }
 
@@ -322,6 +343,7 @@ _gcp_help() {
     print -r -- "    gcx p -r           Refresca la caché desde la API (~5s) y abre el picker"
     print -r -- "    gcx use <config>   Activa una configuración por nombre, sin picker"
     print -r -- "    gcx who            Config, cuenta y proyecto activos"
+    print -r -- "    gcx adc            Emite y guarda las ADC de la cuenta activa (navegador, 1 vez)"
     print -r -- "    gcx -h             Esta referencia"
     print -r -- ""
     print -r -- "  ALIASES"
@@ -337,6 +359,8 @@ _gcp_help() {
     print -r -- "    · La caché es por cuenta, no por config:"
     print -r -- "        $GCP_CACHE_DIR/projects-<cuenta>.list"
     print -r -- "      Cambiar de config nunca mezcla listas."
+    print -r -- "    · Las ADC (tofu, SDKs, apps) se guardan por cuenta y 'gcx use' las"
+    print -r -- "      cambia contigo. La primera vez por cuenta: 'gcx adc'."
     print -r -- "    · Los proyectos sys-* (autogenerados por Apps Script) se ocultan."
     print -r -- "    · Los mensajes se leen de gcloud, nunca están hardcodeados: no pueden"
     print -r -- "      desincronizarse de la realidad."
@@ -355,6 +379,7 @@ gcx() {
         p|project)      shift; _gcp_pick_project "$@" ;;
         use)            shift; _gcp_use "$@" ;;
         who)            _gcp_who ;;
+        adc)            _gcp_adc_login ;;
         -h|--help|help) _gcp_help ;;
         *)
             print -r -- "  ✗ subcomando desconocido: $1" >&2

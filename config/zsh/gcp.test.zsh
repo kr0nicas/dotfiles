@@ -216,6 +216,7 @@ assert_contains "gcx p"    "$help_out" "documenta el picker de proyectos"
 assert_contains "gcx p -r" "$help_out" "documenta el refresco de caché"
 assert_contains "gcx use"  "$help_out" "documenta gcx use"
 assert_contains "gcx who"  "$help_out" "documenta gcx who"
+assert_contains "gcx adc"  "$help_out" "documenta gcx adc"
 assert_contains "gcpers"   "$help_out" "documenta los aliases"
 assert_contains "gckel"    "$help_out" "documenta el alias nuevo"
 assert_contains "$GCP_CACHE_DIR" "$help_out" "muestra la ruta real de la caché"
@@ -344,6 +345,60 @@ _gcp_adc_install '' 'proyecto-x'
 assert_eq "0" "$?" "cuenta vacía (config rota) es un no-op silencioso"
 rm -f "$adc_live" "$(_gcp_adc_store_path 'cuenta-a@example.com')" \
       "$(_gcp_adc_store_path 'cuenta-b@example.com')"
+
+print "\n_gcp_use (instala la ADC de la cuenta al cambiar de config)"
+gcloud() {
+    case "$*" in
+        "config configurations list --format=value(name)")
+            print -r -- "config-stub" ;;
+        "config configurations activate config-stub")
+            ;;
+        "config configurations list --filter=is_active=true --format=value(name)")
+            print -r -- "config-stub" ;;
+        "config list --format=value(core.account)")
+            print -r -- "cuenta-stub@example.com" ;;
+        "config list --format=value(core.project)")
+            print -r -- "proyecto-stub" ;;
+    esac
+    return 0
+}
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"refresh_token":"de-cuenta-stub"}' >"$adc_live"
+_gcp_adc_save 'cuenta-stub@example.com'
+print -r -- '{"refresh_token":"de-otra-cuenta","quota_project_id":"otro"}' >"$adc_live"
+out="$(_gcp_use 'config-stub' 2>&1)"
+rc=$?
+unfunction gcloud
+assert_eq "0" "$rc" "gcx use con ADC guardada termina bien"
+assert_eq "de-cuenta-stub" "$(jq -r '.refresh_token' "$adc_live")" \
+    "gcx use instala la ADC de la cuenta de la config"
+assert_eq "proyecto-stub" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "gcx use ajusta el quota al proyecto de la config"
+assert_contains "adc       proyecto-stub" "$out" \
+    "el who final refleja la ADC recién instalada, sin aviso"
+rm -f "$adc_live" "$(_gcp_adc_store_path 'cuenta-stub@example.com')"
+
+print "\n_gcp_use (cuenta sin ADC guardada avisa pero no falla)"
+gcloud() {
+    case "$*" in
+        "config configurations list --format=value(name)")
+            print -r -- "config-stub" ;;
+        "config configurations list --filter=is_active=true --format=value(name)")
+            print -r -- "config-stub" ;;
+        "config list --format=value(core.account)")
+            print -r -- "cuenta-nueva@example.com" ;;
+        "config list --format=value(core.project)")
+            print -r -- "proyecto-stub" ;;
+    esac
+    return 0
+}
+out="$(_gcp_use 'config-stub' 2>&1)"
+rc=$?
+unfunction gcloud
+assert_eq "0" "$rc" "el cambio de config no falla por no tener ADC guardadas"
+assert_contains "no hay ADC guardadas para cuenta-nueva@example.com" "$out" \
+    "avisa nombrando la cuenta real"
+assert_contains "gcx adc" "$out" "y apunta a gcx adc"
 
 rm -rf "$GCP_CACHE_DIR" "$CLOUDSDK_CONFIG"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
