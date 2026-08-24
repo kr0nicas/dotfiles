@@ -117,6 +117,35 @@ _gcp_adc_status() {
     return 0
 }
 
+# Parchea quota_project_id en un archivo ADC. El quota project es de la
+# config, no de la cuenta: dos configs de la misma cuenta comparten ADC pero
+# no quota. Temporal con umask 077 + mv en el mismo directorio: la ADC nunca
+# queda a medias ni legible por otros usuarios, ni un instante.
+_gcp_adc_set_quota() {
+    local file="$1" project="$2" tmp
+    [[ -n "$project" && -r "$file" ]] || return 0
+    command -v jq >/dev/null 2>&1 || return 0
+    tmp="${file}.tmp.$$"
+    if ( umask 077; jq --arg p "$project" '.quota_project_id = $p' "$file" >"$tmp" 2>/dev/null ); then
+        mv -f "$tmp" "$file"
+    else
+        rm -f "$tmp"
+        return 1
+    fi
+}
+
+# Guarda la ADC viva como la ADC de <cuenta>. La usa `gcx adc` tras el login.
+_gcp_adc_save() {
+    local account="$1" live store tmp
+    live="$(_gcp_adc_live_path)"
+    [[ -n "$account" && -r "$live" ]] || return 1
+    store="$(_gcp_adc_store_path "$account")"
+    mkdir -p "$(_gcp_adc_dir)"
+    chmod 700 "$(_gcp_adc_dir)"
+    tmp="${store}.tmp.$$"
+    ( umask 077; cp "$live" "$tmp" ) && mv -f "$tmp" "$store"
+}
+
 # --- activación ---------------------------------------------------------------
 
 _gcp_use() {

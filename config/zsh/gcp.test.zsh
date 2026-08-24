@@ -278,6 +278,38 @@ assert_contains "adc       otro-proyecto-999" "$out" "who muestra el quota de la
 assert_contains "⚠ no coincide" "$out" "who avisa cuando ADC y proyecto difieren"
 assert_contains "gcx use config-stub-xyz" "$out" "el remedio de who nombra la config del stub"
 
+print "\n_gcp_adc_set_quota (parche atómico del quota project)"
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"type":"authorized_user","quota_project_id":"viejo"}' >"$adc_live"
+_gcp_adc_set_quota "$adc_live" "nuevo-proyecto"
+assert_eq "nuevo-proyecto" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "reescribe quota_project_id"
+assert_eq "authorized_user" "$(jq -r '.type' "$adc_live")" \
+    "no toca el resto del JSON"
+assert_eq "-rw-------" "$(ls -l "$adc_live" | cut -c1-10)" \
+    "el archivo parcheado queda con permisos 600"
+print -r -- '{"quota_project_id":"intacto"}' >"$adc_live"
+_gcp_adc_set_quota "$adc_live" ""
+assert_eq "intacto" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "sin proyecto es un no-op"
+leftover="$(print -rl -- "${adc_live}".tmp.*(N))"
+assert_eq "" "$leftover" "no deja temporales huérfanos"
+rm -f "$adc_live"
+
+print "\n_gcp_adc_save (copia viva → almacén)"
+print -r -- '{"refresh_token":"secreto"}' >"$adc_live"
+_gcp_adc_save 'test@example.com'
+adc_store="$(_gcp_adc_store_path 'test@example.com')"
+assert_eq "secreto" "$(jq -r '.refresh_token' "$adc_store")" "guarda la ADC viva"
+assert_eq "-rw-------" "$(ls -l "$adc_store" | cut -c1-10)" "ADC guardada con 600"
+assert_eq "drwx------" "$(ls -ld "$(_gcp_adc_dir)" | cut -c1-10)" "almacén con 700"
+rm -f "$adc_live"
+_gcp_adc_save 'test@example.com'
+assert_eq "1" "$?" "sin ADC viva devuelve 1"
+assert_eq "secreto" "$(jq -r '.refresh_token' "$adc_store")" \
+    "y no destruye la copia guardada"
+rm -f "$adc_store"
+
 rm -rf "$GCP_CACHE_DIR" "$CLOUDSDK_CONFIG"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))
