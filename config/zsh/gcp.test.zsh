@@ -245,6 +245,39 @@ print -r -- 'esto no es json' >"$adc_live"
 assert_eq "" "$(_gcp_adc_quota_project)" "ADC corrupta devuelve vacío, no un error"
 rm -f "$adc_live"
 
+print "\n_gcp_adc_status (puro: proyecto activo vs quota de la ADC)"
+assert_eq "  adc       proyecto-a" "$(_gcp_adc_status 'proyecto-a' 'proyecto-a' 'cfg-x')" \
+    "cuando coinciden, línea sin aviso"
+assert_eq "  adc       —" "$(_gcp_adc_status 'proyecto-a' '' 'cfg-x')" \
+    "sin quota en la ADC muestra — y no avisa"
+assert_eq "  adc       proyecto-b" "$(_gcp_adc_status '' 'proyecto-b' 'cfg-x')" \
+    "sin proyecto activo no hay comparación posible: sin aviso"
+out="$(_gcp_adc_status 'proyecto-a' 'proyecto-b' 'cfg-x')"
+assert_contains "proyecto-b  ⚠ no coincide" "$out" "en desajuste marca la línea adc"
+assert_contains "gcx use cfg-x" "$out" "el remedio usa la config activa real"
+assert_contains "gcx adc" "$out" "el remedio menciona gcx adc para cuentas sin ADC guardadas"
+
+print "\n_gcp_who (incluye la línea adc)"
+gcloud() {
+    case "$*" in
+        "config configurations list --filter=is_active=true --format=value(name)")
+            print -r -- "config-stub-xyz" ;;
+        "config list --format=value(core.account)")
+            print -r -- "cuenta-stub@example.com" ;;
+        "config list --format=value(core.project)")
+            print -r -- "proyecto-stub-123" ;;
+    esac
+    return 0
+}
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"quota_project_id":"otro-proyecto-999"}' >"$adc_live"
+out="$(_gcp_who 2>&1)"
+rm -f "$adc_live"
+unfunction gcloud
+assert_contains "adc       otro-proyecto-999" "$out" "who muestra el quota de la ADC real"
+assert_contains "⚠ no coincide" "$out" "who avisa cuando ADC y proyecto difieren"
+assert_contains "gcx use config-stub-xyz" "$out" "el remedio de who nombra la config del stub"
+
 rm -rf "$GCP_CACHE_DIR" "$CLOUDSDK_CONFIG"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))

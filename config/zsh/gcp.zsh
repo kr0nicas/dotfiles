@@ -68,6 +68,7 @@ _gcp_who() {
     print -r -- "  config    ${cfg:-—}"
     print -r -- "  cuenta    ${acct:-—}"
     print -r -- "  proyecto  ${proj:-—}"
+    _gcp_adc_status "$proj" "$(_gcp_adc_quota_project)" "$cfg"
 }
 
 # --- ADC por cuenta -----------------------------------------------------------
@@ -99,6 +100,20 @@ _gcp_adc_quota_project() {
     [[ -r "$live" ]] || return 0
     command -v jq >/dev/null 2>&1 || return 0
     jq -r '.quota_project_id // empty' "$live" 2>/dev/null
+    return 0
+}
+
+# Línea de estado `adc …` para _gcp_who. Función pura (dos strings y el nombre
+# de la config para el remedio): avisa solo si proyecto y quota existen ambos
+# y difieren — con cualquiera de los dos vacío no hay comparación posible.
+_gcp_adc_status() {
+    local proj="$1" quota="$2" cfg="$3"
+    if [[ -n "$proj" && -n "$quota" && "$proj" != "$quota" ]]; then
+        print -r -- "  adc       $quota  ⚠ no coincide"
+        print -r -- "    remedio: gcx use ${cfg:-<config>}   (o gcx adc si esta cuenta no tiene ADC guardadas)"
+    else
+        print -r -- "  adc       ${quota:-—}"
+    fi
     return 0
 }
 
