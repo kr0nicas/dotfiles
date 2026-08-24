@@ -232,6 +232,19 @@ assert_eq "$CLOUDSDK_CONFIG/adc/jorge.ochoa_itproject41.com.json" \
 assert_eq "$CLOUDSDK_CONFIG/adc/raro__.json" \
     "$(_gcp_adc_store_path 'raro/ ')" "sanitiza caracteres de ruta"
 
+print "\n_gcp_adc_quota_project"
+adc_live="$(_gcp_adc_live_path)"
+rm -f "$adc_live"
+assert_eq "" "$(_gcp_adc_quota_project)" "sin archivo ADC devuelve vacío"
+print -r -- '{"type":"authorized_user","quota_project_id":"proyecto-quota-x"}' >"$adc_live"
+assert_eq "proyecto-quota-x" "$(_gcp_adc_quota_project)" \
+    "lee quota_project_id de la ADC viva"
+print -r -- '{"type":"authorized_user"}' >"$adc_live"
+assert_eq "" "$(_gcp_adc_quota_project)" "ADC sin la clave devuelve vacío"
+print -r -- 'esto no es json' >"$adc_live"
+assert_eq "" "$(_gcp_adc_quota_project)" "ADC corrupta devuelve vacío, no un error"
+rm -f "$adc_live"
+
 rm -rf "$GCP_CACHE_DIR" "$CLOUDSDK_CONFIG"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))

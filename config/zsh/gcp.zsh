@@ -91,6 +91,17 @@ _gcp_adc_store_path() {
     print -r -- "$(_gcp_adc_dir)/${account//[^a-zA-Z0-9._-]/_}.json"
 }
 
+# quota_project_id de la ADC viva; vacío si falta el archivo, la clave o jq.
+# Nunca falla: es lectura de estado para `gcx who`, no una operación.
+_gcp_adc_quota_project() {
+    local live
+    live="$(_gcp_adc_live_path)"
+    [[ -r "$live" ]] || return 0
+    command -v jq >/dev/null 2>&1 || return 0
+    jq -r '.quota_project_id // empty' "$live" 2>/dev/null
+    return 0
+}
+
 # --- activación ---------------------------------------------------------------
 
 _gcp_use() {
