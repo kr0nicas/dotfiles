@@ -25,7 +25,7 @@ Cross-platform dotfiles for Jorge Ochoa (kr0nicas) — SRE 2026 setup targeting 
 brew bundle --file=~/dotfiles/Brewfile   # Install/sync base macOS packages (cloud/k8s/gui in Brewfile.{cloud,k8s,gui})
 source ~/.zshrc                          # Reload shell after config changes
 
-zsh config/zsh/gcp.test.zsh              # Test suite del switcher gcx (45 tests, corre sin gcloud instalado)
+zsh config/zsh/gcp.test.zsh              # Test suite del switcher gcx (90 tests, corre sin gcloud instalado)
 zsh config/zsh/ssh.test.zsh              # Test suite de _ssh_target (13 tests, no abre ninguna conexión)
 zsh config/zsh/zshrc.test.zsh            # Test suite del zshrc como archivo (4 tests: colisiones alias/función)
 bash lib/symlinks.test.sh                # Grupos de symlinks y preset --agent (27 tests, no toca el HOME)
@@ -238,6 +238,7 @@ gcx                Picker de configuraciones (cuenta + proyecto)
 gcx p [-r]         Picker de proyectos de la cuenta activa (caché; -r refresca desde la API)
 gcx use <config>   Activa una configuración por nombre
 gcx who            Config, cuenta y proyecto activos
+gcx adc            Emite y guarda las ADC de la cuenta activa (interactivo, 1 vez por cuenta)
 gcx -h             Hoja de referencia completa, con las configs listadas en vivo
 ```
 
@@ -247,9 +248,10 @@ El dispatcher acepta además `project` como sinónimo de `p`, y `--help`/`help` 
 - **Se llama `gcx`, no `gcp`**: `gcp` es el `cp` de GNU que instala Homebrew coreutils (`/usr/local/bin/gcp`). El archivo `gcp.zsh`, los helpers `_gcp_*`, la variable `GCP_CACHE_DIR` y la caché `~/.cache/gcp` sí conservan el prefijo `gcp` a propósito: nombran el dominio (Google Cloud Platform), no el comando. No los "unifiques".
 - **Trampa de `gcloud config configurations list`**: hay que usar `properties.core.account` y `properties.core.project`. Las formas cortas `account`/`project` devuelven **cadena vacía sin dar error** — el picker sale con columnas en blanco y ningún test unitario lo detecta.
 - **Caché por cuenta, no por config**: `~/.cache/gcp/projects-<cuenta-sanitizada>.list`. Dos configs de la misma cuenta comparten archivo. Filtra los proyectos `^sys-` (autogenerados por Apps Script). Escritura atómica vía temporal + `mv`; si la API falla y hay caché previa, se conserva y se avisa.
+- **ADC por cuenta**: `gcloud config configurations activate` no toca las Application Default Credentials, así que `gcx use` instala la copia guardada en `~/.config/gcloud/adc/<cuenta>.json` (700/600, fuera del repo y de la caché) y parchea `quota_project_id` con `jq` según el proyecto de la config — el quota es de la config, no de la cuenta: itproject y kelova comparten ADC pero no quota. `gcx adc` emite y guarda (interactivo, una vez por cuenta). `gcx who` muestra el quota de la ADC viva y avisa en desajuste. Sin `jq` degradan a no-op el parche del quota y su lectura en `who`; el intercambio de la credencial en sí no depende de `jq`. Spec: `docs/superpowers/specs/2026-08-24-gcx-adc-design.md`.
 - **`_gcp_config_table` es fuente única** de la tabla de configuraciones: la usan el picker y `gcx -h`. No dupliques su bloque `awk`.
 - **Dependencia de `column`**: en Debian/Ubuntu viene en `bsdextrautils`, ya incluido en el bloque apt de `install.sh`. Sin él, los pickers y `gcx -h` fallan en los presets `--vps` y `--container`.
-- **Tests**: `config/zsh/gcp.test.zsh`, 45 tests con arnés propio (`assert_eq`, `assert_contains`). Corren **sin gcloud instalado** — los que necesitan `gcloud` o `fzf` usan stubs eliminados con `unfunction` al cerrar su bloque. Mantén esa propiedad: la suite debe pasar en un contenedor sin SDK.
+- **Tests**: `config/zsh/gcp.test.zsh`, 90 tests con arnés propio (`assert_eq`, `assert_contains`). Corren **sin gcloud instalado** — los que necesitan `gcloud` o `fzf` usan stubs eliminados con `unfunction` al cerrar su bloque. Mantén esa propiedad: la suite debe pasar en un contenedor sin SDK.
 
 ### zshrc load order
 
