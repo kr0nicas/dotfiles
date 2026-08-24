@@ -52,6 +52,10 @@ Tras activar la config, con la cuenta y el proyecto ya leídos de gcloud:
 - El parcheo con `jq` es local e instantáneo; no se usa
   `gcloud auth application-default set-quota-project`, que hace una llamada
   de red y valida permisos en cada cambio.
+- `gcx p` también parchea el quota de la ADC viva al saltar de proyecto:
+  tras el `gcloud config set project` que hace el picker, ajusta
+  `quota_project_id` al proyecto recién elegido, igual que `gcx use` lo
+  ajusta al proyecto de la config.
 
 ### `gcx who` (ampliación)
 
@@ -89,8 +93,10 @@ El remedio se construye con la config activa real — nada hardcodeado.
   comparación posible y la carencia ya se ve en `proyecto —`).
 - Cuenta activa vacía (config rota) → `gcx use` no instala nada y no avisa
   de ADC (el fallo visible es de la config, no de las ADC).
-- `jq` ausente → todo degrada a no-op silencioso salvo el aviso de
-  «no hay ADC guardadas», que no depende de jq.
+- `jq` ausente → degradan a no-op silencioso el parche del quota y su
+  lectura en `who`; el intercambio de la credencial en sí (las copias
+  `cp`/`mv` de `gcx adc`, `gcx use` y `gcx p`) no depende de `jq`, igual que
+  el aviso de «no hay ADC guardadas».
 - Dos configs de la misma cuenta (itproject/kelova): comparten ADC guardada;
   solo cambia el parche de `quota_project_id`.
 
