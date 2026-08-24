@@ -31,6 +31,12 @@ assert_contains() {
 
 # Caché aislada para los tests
 export GCP_CACHE_DIR="${TMPDIR:-/tmp}/gcp-test-cache-$$"
+
+# Config de gcloud aislada: las funciones ADC leen CLOUDSDK_CONFIG en cada
+# llamada, así que apuntarla a un temporal basta para no tocar el HOME real.
+export CLOUDSDK_CONFIG="${TMPDIR:-/tmp}/gcp-test-gcloud-$$"
+mkdir -p "$CLOUDSDK_CONFIG"
+
 source "${0:A:h}/gcp.zsh"
 
 print "\n_gcp_cache_path"
@@ -210,11 +216,206 @@ assert_contains "gcx p"    "$help_out" "documenta el picker de proyectos"
 assert_contains "gcx p -r" "$help_out" "documenta el refresco de caché"
 assert_contains "gcx use"  "$help_out" "documenta gcx use"
 assert_contains "gcx who"  "$help_out" "documenta gcx who"
+assert_contains "gcx adc"  "$help_out" "documenta gcx adc"
 assert_contains "gcpers"   "$help_out" "documenta los aliases"
 assert_contains "gckel"    "$help_out" "documenta el alias nuevo"
 assert_contains "$GCP_CACHE_DIR" "$help_out" "muestra la ruta real de la caché"
 assert_contains "sys-"     "$help_out" "explica el filtrado de sys-*"
 
-rm -rf "$GCP_CACHE_DIR"
+print "\n_gcp_adc_*_path (rutas del almacén ADC)"
+assert_eq "$CLOUDSDK_CONFIG/adc" "$(_gcp_adc_dir)" \
+    "el almacén cuelga de CLOUDSDK_CONFIG"
+assert_eq "$CLOUDSDK_CONFIG/application_default_credentials.json" \
+    "$(_gcp_adc_live_path)" "la ADC viva cuelga de CLOUDSDK_CONFIG"
+assert_eq "$CLOUDSDK_CONFIG/adc/jorge.ochoa_itproject41.com.json" \
+    "$(_gcp_adc_store_path 'jorge.ochoa@itproject41.com')" \
+    "sanitiza la @ del email igual que _gcp_cache_path"
+assert_eq "$CLOUDSDK_CONFIG/adc/raro__.json" \
+    "$(_gcp_adc_store_path 'raro/ ')" "sanitiza caracteres de ruta"
+
+print "\n_gcp_adc_quota_project"
+adc_live="$(_gcp_adc_live_path)"
+rm -f "$adc_live"
+assert_eq "" "$(_gcp_adc_quota_project)" "sin archivo ADC devuelve vacío"
+print -r -- '{"type":"authorized_user","quota_project_id":"proyecto-quota-x"}' >"$adc_live"
+assert_eq "proyecto-quota-x" "$(_gcp_adc_quota_project)" \
+    "lee quota_project_id de la ADC viva"
+print -r -- '{"type":"authorized_user"}' >"$adc_live"
+assert_eq "" "$(_gcp_adc_quota_project)" "ADC sin la clave devuelve vacío"
+print -r -- 'esto no es json' >"$adc_live"
+assert_eq "" "$(_gcp_adc_quota_project)" "ADC corrupta devuelve vacío, no un error"
+rm -f "$adc_live"
+
+print "\n_gcp_adc_status (puro: proyecto activo vs quota de la ADC)"
+assert_eq "  adc       proyecto-a" "$(_gcp_adc_status 'proyecto-a' 'proyecto-a' 'cfg-x')" \
+    "cuando coinciden, línea sin aviso"
+assert_eq "  adc       —" "$(_gcp_adc_status 'proyecto-a' '' 'cfg-x')" \
+    "sin quota en la ADC muestra — y no avisa"
+assert_eq "  adc       proyecto-b" "$(_gcp_adc_status '' 'proyecto-b' 'cfg-x')" \
+    "sin proyecto activo no hay comparación posible: sin aviso"
+out="$(_gcp_adc_status 'proyecto-a' 'proyecto-b' 'cfg-x')"
+assert_contains "proyecto-b  ⚠ no coincide" "$out" "en desajuste marca la línea adc"
+assert_contains "gcx use cfg-x" "$out" "el remedio usa la config activa real"
+assert_contains "gcx adc" "$out" "el remedio menciona gcx adc para cuentas sin ADC guardadas"
+
+print "\n_gcp_who (incluye la línea adc)"
+gcloud() {
+    case "$*" in
+        "config configurations list --filter=is_active=true --format=value(name)")
+            print -r -- "config-stub-xyz" ;;
+        "config list --format=value(core.account)")
+            print -r -- "cuenta-stub@example.com" ;;
+        "config list --format=value(core.project)")
+            print -r -- "proyecto-stub-123" ;;
+    esac
+    return 0
+}
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"quota_project_id":"otro-proyecto-999"}' >"$adc_live"
+out="$(_gcp_who 2>&1)"
+rm -f "$adc_live"
+unfunction gcloud
+assert_contains "adc       otro-proyecto-999" "$out" "who muestra el quota de la ADC real"
+assert_contains "⚠ no coincide" "$out" "who avisa cuando ADC y proyecto difieren"
+assert_contains "gcx use config-stub-xyz" "$out" "el remedio de who nombra la config del stub"
+
+print "\n_gcp_adc_set_quota (parche atómico del quota project)"
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"type":"authorized_user","quota_project_id":"viejo"}' >"$adc_live"
+_gcp_adc_set_quota "$adc_live" "nuevo-proyecto"
+assert_eq "nuevo-proyecto" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "reescribe quota_project_id"
+assert_eq "authorized_user" "$(jq -r '.type' "$adc_live")" \
+    "no toca el resto del JSON"
+assert_eq "-rw-------" "$(ls -l "$adc_live" | cut -c1-10)" \
+    "el archivo parcheado queda con permisos 600"
+print -r -- '{"quota_project_id":"intacto"}' >"$adc_live"
+_gcp_adc_set_quota "$adc_live" ""
+assert_eq "intacto" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "sin proyecto es un no-op"
+leftover="$(print -rl -- "${adc_live}".tmp.*(N))"
+assert_eq "" "$leftover" "no deja temporales huérfanos"
+rm -f "$adc_live"
+
+print "\n_gcp_adc_save (copia viva → almacén)"
+print -r -- '{"refresh_token":"secreto"}' >"$adc_live"
+_gcp_adc_save 'test@example.com'
+adc_store="$(_gcp_adc_store_path 'test@example.com')"
+assert_eq "secreto" "$(jq -r '.refresh_token' "$adc_store")" "guarda la ADC viva"
+assert_eq "-rw-------" "$(ls -l "$adc_store" | cut -c1-10)" "ADC guardada con 600"
+assert_eq "drwx------" "$(ls -ld "$(_gcp_adc_dir)" | cut -c1-10)" "almacén con 700"
+rm -f "$adc_live"
+_gcp_adc_save 'test@example.com'
+assert_eq "1" "$?" "sin ADC viva devuelve 1"
+assert_eq "secreto" "$(jq -r '.refresh_token' "$adc_store")" \
+    "y no destruye la copia guardada"
+rm -f "$adc_store"
+
+print "\n_gcp_adc_install (almacén → ADC viva)"
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"refresh_token":"de-la-cuenta-b"}' >"$(_gcp_adc_live_path)"
+_gcp_adc_save 'cuenta-b@example.com'
+print -r -- '{"refresh_token":"de-la-cuenta-a","quota_project_id":"viejo"}' >"$adc_live"
+_gcp_adc_save 'cuenta-a@example.com'
+print -r -- '{"refresh_token":"de-la-cuenta-b"}' >"$adc_live"
+
+_gcp_adc_install 'cuenta-a@example.com' 'proyecto-de-la-config'
+assert_eq "de-la-cuenta-a" "$(jq -r '.refresh_token' "$adc_live")" \
+    "instala la ADC guardada de la cuenta pedida"
+assert_eq "proyecto-de-la-config" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "ajusta el quota project al proyecto de la config"
+assert_eq "-rw-------" "$(ls -l "$adc_live" | cut -c1-10)" "la ADC viva queda con 600"
+assert_eq "viejo" "$(jq -r '.quota_project_id' "$(_gcp_adc_store_path 'cuenta-a@example.com')")" \
+    "la copia guardada no se toca (el quota es de la config, no de la cuenta)"
+
+_gcp_adc_install 'cuenta-b@example.com' ''
+assert_eq "de-la-cuenta-b" "$(jq -r '.refresh_token' "$adc_live")" \
+    "cambia de cuenta también sin proyecto"
+assert_eq "null" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "sin proyecto no inventa quota project"
+
+out="$(_gcp_adc_install 'sin-adc@example.com' 'proyecto-x' 2>&1)"
+rc=$?
+assert_eq "1" "$rc" "cuenta sin ADC guardada devuelve 1"
+assert_contains "gcx adc" "$out" "y el aviso apunta a gcx adc"
+assert_eq "de-la-cuenta-b" "$(jq -r '.refresh_token' "$adc_live")" \
+    "y no toca la ADC viva"
+
+_gcp_adc_install '' 'proyecto-x'
+assert_eq "0" "$?" "cuenta vacía (config rota) es un no-op silencioso"
+rm -f "$adc_live" "$(_gcp_adc_store_path 'cuenta-a@example.com')" \
+      "$(_gcp_adc_store_path 'cuenta-b@example.com')"
+
+print "\n_gcp_use (instala la ADC de la cuenta al cambiar de config)"
+gcloud() {
+    case "$*" in
+        "config configurations list --format=value(name)")
+            print -r -- "config-stub" ;;
+        "config configurations activate config-stub")
+            ;;
+        "config configurations list --filter=is_active=true --format=value(name)")
+            print -r -- "config-stub" ;;
+        "config list --format=value(core.account)")
+            print -r -- "cuenta-stub@example.com" ;;
+        "config list --format=value(core.project)")
+            print -r -- "proyecto-stub" ;;
+    esac
+    return 0
+}
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"refresh_token":"de-cuenta-stub"}' >"$adc_live"
+_gcp_adc_save 'cuenta-stub@example.com'
+print -r -- '{"refresh_token":"de-otra-cuenta","quota_project_id":"otro"}' >"$adc_live"
+out="$(_gcp_use 'config-stub' 2>&1)"
+rc=$?
+unfunction gcloud
+assert_eq "0" "$rc" "gcx use con ADC guardada termina bien"
+assert_eq "de-cuenta-stub" "$(jq -r '.refresh_token' "$adc_live")" \
+    "gcx use instala la ADC de la cuenta de la config"
+assert_eq "proyecto-stub" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "gcx use ajusta el quota al proyecto de la config"
+assert_contains "adc       proyecto-stub" "$out" \
+    "el who final refleja la ADC recién instalada, sin aviso"
+rm -f "$adc_live" "$(_gcp_adc_store_path 'cuenta-stub@example.com')"
+
+print "\n_gcp_use (cuenta sin ADC guardada avisa pero no falla)"
+gcloud() {
+    case "$*" in
+        "config configurations list --format=value(name)")
+            print -r -- "config-stub" ;;
+        "config configurations list --filter=is_active=true --format=value(name)")
+            print -r -- "config-stub" ;;
+        "config list --format=value(core.account)")
+            print -r -- "cuenta-nueva@example.com" ;;
+        "config list --format=value(core.project)")
+            print -r -- "proyecto-stub" ;;
+    esac
+    return 0
+}
+out="$(_gcp_use 'config-stub' 2>&1)"
+rc=$?
+unfunction gcloud
+assert_eq "0" "$rc" "el cambio de config no falla por no tener ADC guardadas"
+assert_contains "no hay ADC guardadas para cuenta-nueva@example.com" "$out" \
+    "avisa nombrando la cuenta real"
+assert_contains "gcx adc" "$out" "y apunta a gcx adc"
+
+print "\n_gcp_pick_project (parchea el quota de la ADC al saltar de proyecto)"
+gcloud() { return 0 }
+fzf() { print -r -- "proyecto-elegido  nombre"; return 0 }
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"quota_project_id":"proyecto-viejo"}' >"$adc_live"
+cache_file="$(_gcp_cache_path 'picker@example.com')"
+mkdir -p "$GCP_CACHE_DIR"
+print -r -- $'proyecto-elegido\tnombre' >"$cache_file"
+_gcp_active_account() { print -r -- 'picker@example.com' }
+out="$(_gcp_pick_project 2>&1)"
+unfunction gcloud fzf _gcp_active_account
+source "${0:A:h}/gcp.zsh"
+assert_eq "proyecto-elegido" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "gcx p ajusta el quota de la ADC viva al proyecto elegido"
+rm -f "$adc_live" "$cache_file"
+
+rm -rf "$GCP_CACHE_DIR" "$CLOUDSDK_CONFIG"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))
