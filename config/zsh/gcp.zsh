@@ -285,6 +285,7 @@ _gcp_pick_project() {
     gcloud config set project "$proj" >/dev/null 2>&1 || {
         print -r -- "  ✗ no se pudo fijar el proyecto $proj" >&2; return 1
     }
+    _gcp_adc_set_quota "$(_gcp_adc_live_path)" "$proj"
     _gcp_who
 }
 

@@ -400,6 +400,22 @@ assert_contains "no hay ADC guardadas para cuenta-nueva@example.com" "$out" \
     "avisa nombrando la cuenta real"
 assert_contains "gcx adc" "$out" "y apunta a gcx adc"
 
+print "\n_gcp_pick_project (parchea el quota de la ADC al saltar de proyecto)"
+gcloud() { return 0 }
+fzf() { print -r -- "proyecto-elegido  nombre"; return 0 }
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"quota_project_id":"proyecto-viejo"}' >"$adc_live"
+cache_file="$(_gcp_cache_path 'picker@example.com')"
+mkdir -p "$GCP_CACHE_DIR"
+print -r -- $'proyecto-elegido\tnombre' >"$cache_file"
+_gcp_active_account() { print -r -- 'picker@example.com' }
+out="$(_gcp_pick_project 2>&1)"
+unfunction gcloud fzf _gcp_active_account
+source "${0:A:h}/gcp.zsh"
+assert_eq "proyecto-elegido" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "gcx p ajusta el quota de la ADC viva al proyecto elegido"
+rm -f "$adc_live" "$cache_file"
+
 rm -rf "$GCP_CACHE_DIR" "$CLOUDSDK_CONFIG"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))
