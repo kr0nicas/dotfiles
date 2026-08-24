@@ -310,6 +310,41 @@ assert_eq "secreto" "$(jq -r '.refresh_token' "$adc_store")" \
     "y no destruye la copia guardada"
 rm -f "$adc_store"
 
+print "\n_gcp_adc_install (almacén → ADC viva)"
+adc_live="$(_gcp_adc_live_path)"
+print -r -- '{"refresh_token":"de-la-cuenta-b"}' >"$(_gcp_adc_live_path)"
+_gcp_adc_save 'cuenta-b@example.com'
+print -r -- '{"refresh_token":"de-la-cuenta-a","quota_project_id":"viejo"}' >"$adc_live"
+_gcp_adc_save 'cuenta-a@example.com'
+print -r -- '{"refresh_token":"de-la-cuenta-b"}' >"$adc_live"
+
+_gcp_adc_install 'cuenta-a@example.com' 'proyecto-de-la-config'
+assert_eq "de-la-cuenta-a" "$(jq -r '.refresh_token' "$adc_live")" \
+    "instala la ADC guardada de la cuenta pedida"
+assert_eq "proyecto-de-la-config" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "ajusta el quota project al proyecto de la config"
+assert_eq "-rw-------" "$(ls -l "$adc_live" | cut -c1-10)" "la ADC viva queda con 600"
+assert_eq "viejo" "$(jq -r '.quota_project_id' "$(_gcp_adc_store_path 'cuenta-a@example.com')")" \
+    "la copia guardada no se toca (el quota es de la config, no de la cuenta)"
+
+_gcp_adc_install 'cuenta-b@example.com' ''
+assert_eq "de-la-cuenta-b" "$(jq -r '.refresh_token' "$adc_live")" \
+    "cambia de cuenta también sin proyecto"
+assert_eq "null" "$(jq -r '.quota_project_id' "$adc_live")" \
+    "sin proyecto no inventa quota project"
+
+out="$(_gcp_adc_install 'sin-adc@example.com' 'proyecto-x' 2>&1)"
+rc=$?
+assert_eq "1" "$rc" "cuenta sin ADC guardada devuelve 1"
+assert_contains "gcx adc" "$out" "y el aviso apunta a gcx adc"
+assert_eq "de-la-cuenta-b" "$(jq -r '.refresh_token' "$adc_live")" \
+    "y no toca la ADC viva"
+
+_gcp_adc_install '' 'proyecto-x'
+assert_eq "0" "$?" "cuenta vacía (config rota) es un no-op silencioso"
+rm -f "$adc_live" "$(_gcp_adc_store_path 'cuenta-a@example.com')" \
+      "$(_gcp_adc_store_path 'cuenta-b@example.com')"
+
 rm -rf "$GCP_CACHE_DIR" "$CLOUDSDK_CONFIG"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"
 (( TESTS_FAILED == 0 ))

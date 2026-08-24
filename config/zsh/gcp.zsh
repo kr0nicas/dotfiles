@@ -146,6 +146,29 @@ _gcp_adc_save() {
     ( umask 077; cp "$live" "$tmp" ) && mv -f "$tmp" "$store"
 }
 
+# Instala la ADC guardada de <cuenta> como ADC viva y ajusta su quota project
+# al proyecto de la config. Con cuenta vacía calla (el fallo visible es de la
+# config); sin ADC guardada avisa y no toca nada.
+_gcp_adc_install() {
+    local account="$1" project="$2" store live tmp
+    [[ -n "$account" ]] || return 0
+    store="$(_gcp_adc_store_path "$account")"
+    live="$(_gcp_adc_live_path)"
+    if [[ ! -r "$store" ]]; then
+        print -r -- "  ⚠ no hay ADC guardadas para $account" >&2
+        print -r -- "    emítelas una vez con: gcx adc" >&2
+        return 1
+    fi
+    mkdir -p "${live:h}"
+    tmp="${live}.tmp.$$"
+    { ( umask 077; cp "$store" "$tmp" ) && mv -f "$tmp" "$live"; } || {
+        rm -f "$tmp"
+        print -r -- "  ✗ no se pudo instalar la ADC de $account" >&2
+        return 1
+    }
+    _gcp_adc_set_quota "$live" "$project"
+}
+
 # --- activación ---------------------------------------------------------------
 
 _gcp_use() {
