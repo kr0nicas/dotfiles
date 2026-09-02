@@ -68,6 +68,125 @@ _gcp_who() {
     print -r -- "  config    ${cfg:-—}"
     print -r -- "  cuenta    ${acct:-—}"
     print -r -- "  proyecto  ${proj:-—}"
+    _gcp_adc_status "$proj" "$(_gcp_adc_quota_project)" "$cfg"
+}
+
+# --- ADC por cuenta -----------------------------------------------------------
+# Las Application Default Credentials (tofu, SDKs, apps) viven en un archivo
+# aparte que `gcloud config configurations activate` no toca: cambiar de config
+# sin cambiarlas deja a las herramientas atacando la cuenta anterior. Guardamos
+# una copia por cuenta y `gcx use` la instala al cambiar. No va en
+# GCP_CACHE_DIR: son credenciales, no caché regenerable, y ~/.cache es
+# candidato a limpieza.
+
+_gcp_adc_dir() {
+    print -r -- "${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}/adc"
+}
+
+_gcp_adc_live_path() {
+    print -r -- "${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}/application_default_credentials.json"
+}
+
+_gcp_adc_store_path() {
+    local account="$1"
+    print -r -- "$(_gcp_adc_dir)/${account//[^a-zA-Z0-9._-]/_}.json"
+}
+
+# quota_project_id de la ADC viva; vacío si falta el archivo, la clave o jq.
+# Nunca falla: es lectura de estado para `gcx who`, no una operación.
+_gcp_adc_quota_project() {
+    local live
+    live="$(_gcp_adc_live_path)"
+    [[ -r "$live" ]] || return 0
+    command -v jq >/dev/null 2>&1 || return 0
+    jq -r '.quota_project_id // empty' "$live" 2>/dev/null
+    return 0
+}
+
+# Línea de estado `adc …` para _gcp_who. Función pura (dos strings y el nombre
+# de la config para el remedio): avisa solo si proyecto y quota existen ambos
+# y difieren — con cualquiera de los dos vacío no hay comparación posible.
+_gcp_adc_status() {
+    local proj="$1" quota="$2" cfg="$3"
+    if [[ -n "$proj" && -n "$quota" && "$proj" != "$quota" ]]; then
+        print -r -- "  adc       $quota  ⚠ no coincide"
+        print -r -- "    remedio: gcx use ${cfg:-<config>}   (o gcx adc si esta cuenta no tiene ADC guardadas)"
+    else
+        print -r -- "  adc       ${quota:-—}"
+    fi
+    return 0
+}
+
+# Parchea quota_project_id en un archivo ADC. El quota project es de la
+# config, no de la cuenta: dos configs de la misma cuenta comparten ADC pero
+# no quota. Temporal con umask 077 + mv en el mismo directorio: la ADC nunca
+# queda a medias ni legible por otros usuarios, ni un instante.
+_gcp_adc_set_quota() {
+    local file="$1" project="$2" tmp
+    [[ -n "$project" && -r "$file" ]] || return 0
+    command -v jq >/dev/null 2>&1 || return 0
+    tmp="${file}.tmp.$$"
+    if ( umask 077; jq --arg p "$project" '.quota_project_id = $p' "$file" >"$tmp" 2>/dev/null ); then
+        mv -f "$tmp" "$file"
+    else
+        rm -f "$tmp"
+        return 1
+    fi
+}
+
+# Guarda la ADC viva como la ADC de <cuenta>. La usa `gcx adc` tras el login.
+_gcp_adc_save() {
+    local account="$1" live store tmp
+    live="$(_gcp_adc_live_path)"
+    [[ -n "$account" && -r "$live" ]] || return 1
+    store="$(_gcp_adc_store_path "$account")"
+    mkdir -p "$(_gcp_adc_dir)"
+    chmod 700 "$(_gcp_adc_dir)"
+    tmp="${store}.tmp.$$"
+    ( umask 077; cp "$live" "$tmp" ) && mv -f "$tmp" "$store"
+}
+
+# Instala la ADC guardada de <cuenta> como ADC viva y ajusta su quota project
+# al proyecto de la config. Con cuenta vacía calla (el fallo visible es de la
+# config); sin ADC guardada avisa y no toca nada.
+_gcp_adc_install() {
+    local account="$1" project="$2" store live tmp
+    [[ -n "$account" ]] || return 0
+    store="$(_gcp_adc_store_path "$account")"
+    live="$(_gcp_adc_live_path)"
+    if [[ ! -r "$store" ]]; then
+        print -r -- "  ⚠ no hay ADC guardadas para $account" >&2
+        print -r -- "    emítelas una vez con: gcx adc" >&2
+        return 1
+    fi
+    mkdir -p "${live:h}"
+    tmp="${live}.tmp.$$"
+    { ( umask 077; cp "$store" "$tmp" ) && mv -f "$tmp" "$live"; } || {
+        rm -f "$tmp"
+        print -r -- "  ✗ no se pudo instalar la ADC de $account" >&2
+        return 1
+    }
+    _gcp_adc_set_quota "$live" "$project"
+}
+
+# Emite ADC nuevas para la cuenta activa y las guarda en el almacén. Abre el
+# navegador: es la única forma en que Google emite el refresh token, una vez
+# por cuenta. Única función del bloque ADC sin test: envuelve al login real.
+_gcp_adc_login() {
+    local account project
+    account="$(_gcp_active_account)"
+    if [[ -z "$account" ]]; then
+        print -r -- "  ✗ no hay cuenta activa. prueba: gcloud auth login" >&2
+        return 1
+    fi
+    gcloud auth application-default login || return 1
+    if ! _gcp_adc_save "$account"; then
+        print -r -- "  ✗ el login no dejó ADC que guardar" >&2
+        return 1
+    fi
+    project="$(_gcp_active_project)"
+    _gcp_adc_set_quota "$(_gcp_adc_live_path)" "$project"
+    print -r -- "  ↻ ADC guardadas para $account"
 }
 
 # --- activación ---------------------------------------------------------------
@@ -97,6 +216,7 @@ _gcp_use() {
         print -r -- "    prueba: gcloud auth login" >&2
         return 1
     fi
+    _gcp_adc_install "$(_gcp_active_account)" "$(_gcp_active_project)"
     _gcp_who
 }
 
@@ -165,6 +285,7 @@ _gcp_pick_project() {
     gcloud config set project "$proj" >/dev/null 2>&1 || {
         print -r -- "  ✗ no se pudo fijar el proyecto $proj" >&2; return 1
     }
+    _gcp_adc_set_quota "$(_gcp_adc_live_path)" "$proj"
     _gcp_who
 }
 
@@ -211,6 +332,34 @@ _gcp_pick_config() {
     _gcp_use "$(print -r -- "$sel" | awk '{print $2}')"
 }
 
+# --- doctor -------------------------------------------------------------------
+# La política de sesión de Workspace (RAPT) caduca el token cada pocas horas y
+# gcloud responde con un error críptico que además es fatal en contextos no
+# interactivos (scripts, cron, agentes): ahí nadie puede responder al prompt de
+# reautenticación. Esto lo traduce a un diagnóstico accionable.
+# Preflight para scripts: gcx doctor >/dev/null 2>&1 || { echo "gcloud auth login"; exit 1; }
+
+_gcp_doctor() {
+    local account err
+    account="$(_gcp_active_account)"
+    if [[ -z "$account" ]]; then
+        print -r -- "  ✗ no hay cuenta activa. prueba: gcloud auth login" >&2
+        return 1
+    fi
+    if err="$(gcloud auth print-access-token 2>&1 >/dev/null)"; then
+        print -r -- "  ✓ sesión válida para $account"
+        return 0
+    fi
+    if [[ "$err" == *eauth* ]]; then
+        print -r -- "  ✗ la sesión de Google caducó (política de reautenticación de la org)" >&2
+        print -r -- "    remedio: gcloud auth login   — en una terminal interactiva" >&2
+    else
+        print -r -- "  ✗ no se pudo obtener token para $account:" >&2
+        print -r -- "${err}" | head -3 | sed 's/^/    /' >&2
+    fi
+    return 1
+}
+
 # --- ayuda --------------------------------------------------------------------
 
 _gcp_help() {
@@ -223,6 +372,8 @@ _gcp_help() {
     print -r -- "    gcx p -r           Refresca la caché desde la API (~5s) y abre el picker"
     print -r -- "    gcx use <config>   Activa una configuración por nombre, sin picker"
     print -r -- "    gcx who            Config, cuenta y proyecto activos"
+    print -r -- "    gcx adc            Emite y guarda las ADC de la cuenta activa (navegador, 1 vez)"
+    print -r -- "    gcx doctor         Diagnostica la sesión (token/RAPT); preflight para scripts"
     print -r -- "    gcx -h             Esta referencia"
     print -r -- ""
     print -r -- "  ALIASES"
@@ -238,6 +389,8 @@ _gcp_help() {
     print -r -- "    · La caché es por cuenta, no por config:"
     print -r -- "        $GCP_CACHE_DIR/projects-<cuenta>.list"
     print -r -- "      Cambiar de config nunca mezcla listas."
+    print -r -- "    · Las ADC (tofu, SDKs, apps) se guardan por cuenta y 'gcx use' las"
+    print -r -- "      cambia contigo. La primera vez por cuenta: 'gcx adc'."
     print -r -- "    · Los proyectos sys-* (autogenerados por Apps Script) se ocultan."
     print -r -- "    · Los mensajes se leen de gcloud, nunca están hardcodeados: no pueden"
     print -r -- "      desincronizarse de la realidad."
@@ -256,6 +409,8 @@ gcx() {
         p|project)      shift; _gcp_pick_project "$@" ;;
         use)            shift; _gcp_use "$@" ;;
         who)            _gcp_who ;;
+        adc)            _gcp_adc_login ;;
+        doctor)         _gcp_doctor ;;
         -h|--help|help) _gcp_help ;;
         *)
             print -r -- "  ✗ subcomando desconocido: $1" >&2
