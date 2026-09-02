@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-02 · dependabot/github_actions/actions/deploy-pages-5
+
+### Mantenimiento
+
+- **deps**: bump actions/deploy-pages from 4 to 5 (`c36a286`)
+
 ## 2026-09-02 · chore/config-git-claude
 
 ### Mantenimiento
