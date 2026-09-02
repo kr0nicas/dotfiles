@@ -3,6 +3,13 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-02 · chore/claude-canal-latest
+
+### Mantenimiento
+
+- **claude**: usar el modelo por defecto en vez de fable-5 (`a35feb0`)
+- **claude**: cambiar autoUpdatesChannel a latest (`a064ca9`)
+
 ## 2026-09-02 · chore/nvim-lockfile
 
 ### Mantenimiento
