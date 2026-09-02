@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-02 · dependabot/github_actions/actions/upload-pages-artifact-5
+
+### Mantenimiento
+
+- **deps**: bump actions/upload-pages-artifact from 3 to 5 (`cc56a2e`)
+
 ## 2026-09-02 · dependabot/github_actions/actions/deploy-pages-5
 
 ### Mantenimiento
