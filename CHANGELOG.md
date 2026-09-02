@@ -3,6 +3,45 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-02 · dependabot/github_actions/actions/deploy-pages-5
+
+### Mantenimiento
+
+- **deps**: bump actions/deploy-pages from 4 to 5 (`c36a286`)
+
+## 2026-09-02 · chore/config-git-claude
+
+### Mantenimiento
+
+- **git**: delegar credenciales de github en gh (`c602c7c`)
+- **claude**: fijar fable 5 y activar notificaciones push (`6ca19e5`)
+
+## 2026-09-02 · fix/zsh-gcloud-sesion-y-lazy-load
+
+### Fixes
+
+- **zsh**: gcloud auto-contenido, guard en tests y gcx doctor (`1f0d2c5`)
+
+## 2026-08-24 · feat/gcp-adc-switch
+
+### Features
+
+- **gcp**: añadir rutas del almacén de adc por cuenta (`dc123eb`)
+- **gcp**: leer el quota project de la adc viva (`9496e8a`)
+- **gcp**: avisar en gcx who cuando la adc no cuadra (`672b6ff`)
+- **gcp**: escribir el almacén de adc con parche de quota (`0106db6`)
+- **gcp**: instalar la adc guardada de la cuenta activa (`4c1fc7c`)
+- **gcp**: cambiar las adc al cambiar de config con gcx use (`ff9eb07`)
+- **gcp**: parchear el quota de la adc al saltar con gcx p (`af1fc20`)
+
+### Documentación
+
+- **gcp**: diseñar cambio de adc por cuenta en gcx (`01104b4`)
+- **gcp**: planificar el cambio de adc por cuenta en gcx (`a66f904`)
+- **gcp**: documentar el cambio de adc por cuenta en gcx (`6952b18`)
+- **gcp**: precisar la degradación sin jq y el quota en gcx p (`c8f4046`)
+- **gcp**: actualizar el recuento de tests a 91 (`49fa12b`)
+
 ## 2026-08-10 · fix/changelog-base-ref
 
 ### Fixes

@@ -2,6 +2,7 @@
   "env": {
     "CLAUDE_CODE_AUTOCOMPACT_PCT_OVERRIDE": "80"
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -37,5 +38,6 @@
   },
   "autoUpdatesChannel": "stable",
   "skipWorkflowUsageWarning": true,
-  "theme": "dark"
+  "theme": "dark",
+  "agentPushNotifEnabled": true
 }
