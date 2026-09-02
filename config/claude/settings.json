@@ -35,7 +35,7 @@
       }
     }
   },
-  "autoUpdatesChannel": "stable",
+  "autoUpdatesChannel": "latest",
   "skipWorkflowUsageWarning": true,
   "theme": "dark",
   "agentPushNotifEnabled": true
