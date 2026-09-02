@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-02 · dependabot/github_actions/actions/setup-node-7
+
+### Mantenimiento
+
+- **deps**: bump actions/setup-node from 4 to 7 (`619fbab`)
+
 ## 2026-09-02 · dependabot/github_actions/actions/upload-pages-artifact-5
 
 ### Mantenimiento
