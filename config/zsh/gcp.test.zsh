@@ -2,6 +2,15 @@
 # Tests de config/zsh/gcp.zsh — solo helpers puros (sin red, sin gcloud).
 # Ejecutar: zsh config/zsh/gcp.test.zsh
 
+# Este archivo EXPORTA CLOUDSDK_CONFIG a un temporal. Sourcearlo en una shell
+# viva secuestra todos los logins de gcloud de esa sesión (van a parar al
+# temporal y "desaparecen"). Solo se ejecuta como programa.
+if [[ "$ZSH_EVAL_CONTEXT" == *:file* ]]; then
+    print -u2 -- "  ✗ gcp.test.zsh no se sourcea (exporta CLOUDSDK_CONFIG a un temporal)"
+    print -u2 -- "    ejecutar como: zsh ${(%):-%x}"
+    return 1
+fi
+
 typeset -g TESTS_RUN=0 TESTS_FAILED=0
 
 assert_eq() {
@@ -415,6 +424,41 @@ source "${0:A:h}/gcp.zsh"
 assert_eq "proyecto-elegido" "$(jq -r '.quota_project_id' "$adc_live")" \
     "gcx p ajusta el quota de la ADC viva al proyecto elegido"
 rm -f "$adc_live" "$cache_file"
+
+print "\n_gcp_doctor (sesión válida)"
+gcloud() {
+    [[ "$1 $2" == "auth print-access-token" ]] && return 0
+    print -r -- "cuenta-sana@example.com"
+}
+out="$(_gcp_doctor 2>&1)"
+rc=$?
+unfunction gcloud
+assert_eq "0" "$rc" "con token devuelve 0"
+assert_contains "✓ sesión válida para cuenta-sana@example.com" "$out" \
+    "confirma nombrando la cuenta real"
+
+print "\n_gcp_doctor (RAPT caducado: el error críptico se traduce)"
+gcloud() {
+    if [[ "$1 $2" == "auth print-access-token" ]]; then
+        print -u2 -- "ERROR: There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution."
+        return 1
+    fi
+    print -r -- "cuenta-caduca@example.com"
+}
+out="$(_gcp_doctor 2>&1)"
+rc=$?
+unfunction gcloud
+assert_eq "1" "$rc" "con RAPT caducado devuelve 1"
+assert_contains "la sesión de Google caducó" "$out" "diagnostica la causa en cristiano"
+assert_contains "gcloud auth login" "$out" "y da el remedio"
+
+print "\n_gcp_doctor (sin cuenta activa)"
+gcloud() { return 1 }
+out="$(_gcp_doctor 2>&1)"
+rc=$?
+unfunction gcloud
+assert_eq "1" "$rc" "sin cuenta devuelve 1"
+assert_contains "no hay cuenta activa" "$out" "lo dice sin inventar diagnóstico"
 
 rm -rf "$GCP_CACHE_DIR" "$CLOUDSDK_CONFIG"
 print "\n$((TESTS_RUN - TESTS_FAILED))/$TESTS_RUN tests pasaron"

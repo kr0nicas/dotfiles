@@ -83,20 +83,33 @@ fi
 # ------------------------------------------------------------------------------
 # 4. CARGA DIFERIDA (LAZY LOADING)
 # ------------------------------------------------------------------------------
-# gcloud/gsutil/bq: el SDK tarda en cargar, así que diferimos path y completions
-# hasta la primera invocación. El helper NO recibe los argumentos del comando:
-# pasárselos hacía que `gsutil ls ...` ejecutase antes `gcloud ls ...` y
-# escupiera un error en cada primer uso.
-_gcloud_lazy_load() {
-    unset -f gcloud gsutil bq
-    local GCLOUD_PATH="$HOME/google-cloud-sdk"
-    [ -f "$GCLOUD_PATH/path.zsh.inc" ] && . "$GCLOUD_PATH/path.zsh.inc"
-    [ -f "$GCLOUD_PATH/completion.zsh.inc" ] && . "$GCLOUD_PATH/completion.zsh.inc"
-    return 0   # el último [ -f ] puede ser falso; no propagar ese estado
+# gcloud/gsutil/bq: el binario viene de Homebrew y ya está en el PATH; lo único
+# que se difiere son las completions, que tardan en cargar. La ruta del SDK se
+# resuelve siguiendo el symlink del binario (:A), así sobrevive a los upgrades
+# del cask sin hardcodear versión.
+#
+# Cada wrapper es auto-contenido —resuelve la ruta y se borra a sí mismo— a
+# propósito: un helper compartido no sobrevive a los snapshots de shell
+# (Claude Code captura el wrapper pero no el helper, y entonces TODA invocación
+# de gcloud muere con "command not found: _gcloud_lazy_load").
+gcloud() {
+    unset -f gcloud gsutil bq 2>/dev/null
+    local inc="${$(command -v gcloud):A:h:h}/completion.zsh.inc"
+    [ -f "$inc" ] && . "$inc"
+    command gcloud "$@"
 }
-gcloud() { _gcloud_lazy_load; gcloud "$@" }
-gsutil() { _gcloud_lazy_load; gsutil "$@" }
-bq()     { _gcloud_lazy_load; bq "$@" }
+gsutil() {
+    unset -f gcloud gsutil bq 2>/dev/null
+    local inc="${$(command -v gcloud):A:h:h}/completion.zsh.inc"
+    [ -f "$inc" ] && . "$inc"
+    command gsutil "$@"
+}
+bq() {
+    unset -f gcloud gsutil bq 2>/dev/null
+    local inc="${$(command -v gcloud):A:h:h}/completion.zsh.inc"
+    [ -f "$inc" ] && . "$inc"
+    command bq "$@"
+}
 
 # GCP: switcher de cuentas y proyectos (comando `gcx`, ver `gcx -h`)
 [ -f "$HOME/dotfiles/config/zsh/gcp.zsh" ] && source "$HOME/dotfiles/config/zsh/gcp.zsh"

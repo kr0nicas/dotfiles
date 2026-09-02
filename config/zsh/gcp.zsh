@@ -332,6 +332,34 @@ _gcp_pick_config() {
     _gcp_use "$(print -r -- "$sel" | awk '{print $2}')"
 }
 
+# --- doctor -------------------------------------------------------------------
+# La política de sesión de Workspace (RAPT) caduca el token cada pocas horas y
+# gcloud responde con un error críptico que además es fatal en contextos no
+# interactivos (scripts, cron, agentes): ahí nadie puede responder al prompt de
+# reautenticación. Esto lo traduce a un diagnóstico accionable.
+# Preflight para scripts: gcx doctor >/dev/null 2>&1 || { echo "gcloud auth login"; exit 1; }
+
+_gcp_doctor() {
+    local account err
+    account="$(_gcp_active_account)"
+    if [[ -z "$account" ]]; then
+        print -r -- "  ✗ no hay cuenta activa. prueba: gcloud auth login" >&2
+        return 1
+    fi
+    if err="$(gcloud auth print-access-token 2>&1 >/dev/null)"; then
+        print -r -- "  ✓ sesión válida para $account"
+        return 0
+    fi
+    if [[ "$err" == *eauth* ]]; then
+        print -r -- "  ✗ la sesión de Google caducó (política de reautenticación de la org)" >&2
+        print -r -- "    remedio: gcloud auth login   — en una terminal interactiva" >&2
+    else
+        print -r -- "  ✗ no se pudo obtener token para $account:" >&2
+        print -r -- "${err}" | head -3 | sed 's/^/    /' >&2
+    fi
+    return 1
+}
+
 # --- ayuda --------------------------------------------------------------------
 
 _gcp_help() {
@@ -345,6 +373,7 @@ _gcp_help() {
     print -r -- "    gcx use <config>   Activa una configuración por nombre, sin picker"
     print -r -- "    gcx who            Config, cuenta y proyecto activos"
     print -r -- "    gcx adc            Emite y guarda las ADC de la cuenta activa (navegador, 1 vez)"
+    print -r -- "    gcx doctor         Diagnostica la sesión (token/RAPT); preflight para scripts"
     print -r -- "    gcx -h             Esta referencia"
     print -r -- ""
     print -r -- "  ALIASES"
@@ -381,6 +410,7 @@ gcx() {
         use)            shift; _gcp_use "$@" ;;
         who)            _gcp_who ;;
         adc)            _gcp_adc_login ;;
+        doctor)         _gcp_doctor ;;
         -h|--help|help) _gcp_help ;;
         *)
             print -r -- "  ✗ subcomando desconocido: $1" >&2
