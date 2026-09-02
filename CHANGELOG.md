@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-02 · chore/nvim-lockfile
+
+### Mantenimiento
+
+- **nvim**: actualizar lockfile de plugins (`e51221c`)
+
 ## 2026-09-02 · dependabot/github_actions/actions/setup-node-7
 
 ### Mantenimiento
