@@ -3,6 +3,13 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-02 · chore/config-git-claude
+
+### Mantenimiento
+
+- **git**: delegar credenciales de github en gh (`c602c7c`)
+- **claude**: fijar fable 5 y activar notificaciones push (`6ca19e5`)
+
 ## 2026-09-02 · fix/zsh-gcloud-sesion-y-lazy-load
 
 ### Fixes

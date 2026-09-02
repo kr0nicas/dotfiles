@@ -29,3 +29,9 @@
     path = ~/.gitconfig.macos
 [includeIf "gitdir:~/Documents/Development/ITProject41/"]
 	path = ~/.gitconfig-itproject41
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/local/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/local/bin/gh auth git-credential
