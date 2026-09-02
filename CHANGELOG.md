@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-02 · fix/zsh-gcloud-sesion-y-lazy-load
+
+### Fixes
+
+- **zsh**: gcloud auto-contenido, guard en tests y gcx doctor (`1f0d2c5`)
+
 ## 2026-08-24 · feat/gcp-adc-switch
 
 ### Features
