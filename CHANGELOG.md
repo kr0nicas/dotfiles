@@ -3,6 +3,20 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-23 · ci/hardening
+
+### Fixes
+
+- **repo**: alinear los hooks con el ci y cerrar el bypass de revert (`e5f5711`)
+
+### CI
+
+- **ci**: fijar actions por sha y probar todos los presets en dry-run (`47d648b`)
+
+### Mantenimiento
+
+- **deps**: vigilar web/ con dependabot y parchear next y postcss (`0719a83`)
+
 ## 2026-09-23 · fix/zshrc-tmux
 
 ### Fixes
