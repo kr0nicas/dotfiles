@@ -51,6 +51,21 @@ test('respeta el gating de cloud y descarta el ruido de la línea', () => {
   assert.equal(porNombre['-y'], undefined)
 })
 
+test('reconoce el helper apt_install y no su definición', () => {
+  const guion = [
+    'apt_install() {',
+    '    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$@" >/dev/null 2>&1 && return 0',
+    '}',
+    'phase_packages() {',
+    '            apt_install zsh tmux \\',
+    '                gcc make',
+    '            apt_install faketime',
+    '}',
+  ].join('\n')
+  const nombres = extraerApt(repoFalso(guion)).map((e) => e.nombre).sort()
+  assert.deepEqual(nombres, ['faketime', 'gcc', 'make', 'tmux', 'zsh'])
+})
+
 test('ignora apt update, que no instala nada', () => {
   const nombres = extraerApt(repoFalso('sudo apt update\n')).map((e) => e.nombre)
   assert.deepEqual(nombres, [])

@@ -2,6 +2,46 @@
 # Fase: paquetes base (brew bundle en macOS, apt en Debian/Ubuntu).
 # Cargado por install.sh. No ejecutar suelto.
 
+# ¿La versión $1 (X.Y[.Z]) es anterior a $2 (0.11 por defecto)?
+#
+# Compara mayor y menor como enteros. Antes lo hacía `bc` tratándolas como
+# decimales, y para bc 0.9 > 0.10: un nvim 0.7–0.9 de apt nunca se actualizaba.
+# bc tampoco está en la lista de apt, así que en una imagen mínima la
+# comprobación ni se ejecutaba. El mínimo es 0.11 porque
+# config/nvim/lua/plugins/lsp.lua usa vim.lsp.enable(), que no existe antes.
+#
+# A nivel de archivo, como brew_untrusted_taps, para que lib/packages.test.sh
+# la pruebe sin un nvim delante.
+nvim_too_old() {
+    local have=$1 min=${2:-0.11} h_major h_minor m_major m_minor
+    IFS=. read -r h_major h_minor _ <<<"$have"
+    IFS=. read -r m_major m_minor _ <<<"$min"
+    [[ "$h_major" =~ ^[0-9]+$ && "$h_minor" =~ ^[0-9]+$ ]] || return 1
+    (( h_major < m_major || (h_major == m_major && h_minor < m_minor) ))
+}
+
+# Instala paquetes de apt de forma que un paquete que falta no se lleve al
+# resto por delante.
+#
+# Instalar varios paquetes en una sola llamada a apt es todo o nada: si uno no
+# existe en esa release (btop no está en bullseye ni en focal; bsdextrautils
+# tampoco en focal), no instala ninguno. Con el `2>/dev/null || true` de antes eso pasaba en silencio y luego
+# faltaban unzip, jq o rg sin que nada lo dijera. Primero se intenta el lote
+# —lo normal es que funcione y es mucho más rápido— y solo si falla se repite
+# paquete a paquete, avisando de los que no se pudieron instalar.
+apt_install() {
+    local missing=() p
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$@" >/dev/null 2>&1 && return 0
+    for p in "$@"; do
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$p" >/dev/null 2>&1 \
+            || missing+=("$p")
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        warn "apt no pudo instalar: ${missing[*]} (el resto sí se instaló)"
+    fi
+    return 0
+}
+
 # Extrae los taps que Homebrew rechazó por no estar en su lista de confianza,
 # leyendo una salida de `brew bundle` ya guardada en un archivo.
 #
@@ -143,8 +183,14 @@ phase_packages() {
             # gnupg: lo necesita el bloque de eza de más abajo para el keyring.
             # Ninguno estaba en la lista y ambos se daban por presentes; en una
             # imagen mínima de Debian no están.
-            sudo apt install -y zsh tmux git curl jq yq ripgrep fd-find direnv age btop zstd unzip gnupg \
-                zsh-autosuggestions zsh-syntax-highlighting bsdextrautils 2>/dev/null || true
+            #
+            # gcc y make: nvim los necesita en Linux. nvim-treesitter compila
+            # cada parser con un compilador de C, y telescope-fzf-native se
+            # construye con `make`. En macOS los pone Xcode CLT; aquí no había
+            # nada, así que los parsers no se instalaban y Telescope daba error
+            # al cargar la extensión fzf.
+            apt_install zsh tmux git curl jq yq ripgrep fd-find direnv age btop zstd unzip gnupg \
+                zsh-autosuggestions zsh-syntax-highlighting bsdextrautils gcc make
 
             # Red y diagnóstico. Estos cuatro son C compilado contra las libs del
             # sistema y no publican binarios estáticos en GitHub, así que van por
@@ -158,21 +204,20 @@ phase_packages() {
             # postinst abre un diálogo debconf preguntando si los no-root pueden
             # capturar paquetes, y sin esto la instalación se queda colgada
             # esperando una respuesta que en CI no va a llegar nunca. La respuesta
-            # por defecto (no) es la que queremos.
-            sudo DEBIAN_FRONTEND=noninteractive apt install -y \
-                mtr-tiny nmap socat iperf3 tshark 2>/dev/null || true
+            # por defecto (no) es la que queremos. Ya lo exporta el helper apt_install.
+            apt_install mtr-tiny nmap socat iperf3 tshark
 
             # faketime = libfaketime del Brewfile. Es una .so que se precarga
             # con LD_PRELOAD, no un binario estático, así que va por apt igual
             # que las de red y no por phase_binaries.
-            sudo apt install -y faketime 2>/dev/null || true
+            apt_install faketime
 
             # postgresql-client = libpq del Brewfile: da psql, pg_dump y
             # pg_isready sin instalar el servidor. Gateado como su Brewfile —
             # libpq vive en Brewfile.cloud, así que los presets --minimal y
             # --container no deben traerlo tampoco en Linux.
             if [[ $INSTALL_CLOUD -eq 1 ]]; then
-                sudo apt install -y postgresql-client 2>/dev/null || true
+                apt_install postgresql-client
             else
                 warn "Skipping postgresql-client (--no-cloud)"
             fi
@@ -188,45 +233,51 @@ phase_packages() {
                 sudo apt update -qq && sudo apt install -y gh 2>/dev/null || warn "gh no pudo instalarse"
             fi
 
-            # Neovim — el de apt suele ser muy viejo, usamos appimage como fallback
-            NVIM_URL="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCH_TYPE}.appimage"
+            # Neovim — el de apt suele ser muy viejo, usamos appimage como fallback.
+            #
+            # ARCH y no ARCH_TYPE: neovim publica nvim-linux-x86_64 y
+            # nvim-linux-arm64, que no es ninguna de las dos convenciones enteras.
+            # En x86_64 coinciden; en aarch64 ARCH_TYPE pedía un asset que no
+            # existe y nvim no se instalaba nunca en Linux ARM.
+            case "$ARCH_TYPE" in
+                aarch64|arm64) NVIM_ARCH="arm64" ;;
+                *)             NVIM_ARCH="$ARCH_TYPE" ;;
+            esac
+            NVIM_URL="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${NVIM_ARCH}.appimage"
+
+            # Descarga el appimage y, si no arranca por falta de FUSE, lo extrae.
+            install_nvim_appimage() {
+                if ! curl -fsI "$NVIM_URL" >/dev/null 2>&1; then
+                    warn "Neovim appimage no disponible para arch=$NVIM_ARCH ($NVIM_URL). Instala manualmente o usa el paquete del SO."
+                    return 0
+                fi
+                rm -f "$LOCAL_BIN/nvim"
+                curl -fsSL -o "$LOCAL_BIN/nvim" "$NVIM_URL"
+                chmod +x "$LOCAL_BIN/nvim"
+                if ! "$LOCAL_BIN/nvim" --version >/dev/null 2>&1; then
+                    log "AppImage sin FUSE, extrayendo..."
+                    # Subshell: --appimage-extract escribe en el cwd, y así el
+                    # directorio nunca se filtra a las fases siguientes.
+                    ( cd /tmp && rm -rf squashfs-root && "$LOCAL_BIN/nvim" --appimage-extract >/dev/null 2>&1 )
+                    rm -f "$LOCAL_BIN/nvim"
+                    # El rm -rf es lo que hace funcionar la actualización: si el
+                    # destino ya existe, mv mete el nuevo DENTRO de él como
+                    # subdirectorio y el symlink sigue apuntando al nvim viejo.
+                    rm -rf "$HOME/.local/nvim-squashfs"
+                    mv /tmp/squashfs-root "$HOME/.local/nvim-squashfs"
+                    ln -sf "$HOME/.local/nvim-squashfs/usr/bin/nvim" "$LOCAL_BIN/nvim"
+                fi
+                ok "Neovim: $("$LOCAL_BIN/nvim" --version | head -1)"
+            }
+
             if ! command -v nvim >/dev/null 2>&1; then
                 log "Instalando Neovim via appimage..."
-                if ! curl -fsI "$NVIM_URL" >/dev/null 2>&1; then
-                    warn "Neovim appimage no disponible para arch=$ARCH_TYPE ($NVIM_URL). Instala manualmente o usa el paquete del SO."
-                else
-                    curl -fsSL -o "$LOCAL_BIN/nvim" "$NVIM_URL"
-                    chmod +x "$LOCAL_BIN/nvim"
-                    # Si appimage no funciona (FUSE no disponible), extraer
-                    if ! "$LOCAL_BIN/nvim" --version >/dev/null 2>&1; then
-                        log "AppImage sin FUSE, extrayendo..."
-                        # Subshell: --appimage-extract escribe en el cwd, y así el
-                        # directorio nunca se filtra a las fases siguientes.
-                        ( cd /tmp && "$LOCAL_BIN/nvim" --appimage-extract >/dev/null 2>&1 )
-                        rm -f "$LOCAL_BIN/nvim"
-                        mv /tmp/squashfs-root "$HOME/.local/nvim-squashfs"
-                        ln -sf "$HOME/.local/nvim-squashfs/usr/bin/nvim" "$LOCAL_BIN/nvim"
-                    fi
-                    ok "Neovim instalado: $($LOCAL_BIN/nvim --version | head -1)"
-                fi
+                install_nvim_appimage
             else
-                NVIM_VER=$(nvim --version | head -1 | grep -oP '\d+\.\d+')
-                if (( $(echo "$NVIM_VER < 0.10" | bc -l) )); then
-                    warn "Neovim $NVIM_VER es muy viejo (se necesita >=0.10). Actualizando..."
-                    if ! curl -fsI "$NVIM_URL" >/dev/null 2>&1; then
-                        warn "Neovim appimage no disponible para arch=$ARCH_TYPE — actualiza manualmente."
-                    else
-                        curl -fsSL -o "$LOCAL_BIN/nvim" "$NVIM_URL"
-                        chmod +x "$LOCAL_BIN/nvim"
-                        if ! "$LOCAL_BIN/nvim" --version >/dev/null 2>&1; then
-                            # Subshell: el cwd nunca se filtra a las fases siguientes.
-                            ( cd /tmp && "$LOCAL_BIN/nvim" --appimage-extract >/dev/null 2>&1 )
-                            rm -f "$LOCAL_BIN/nvim"
-                            mv /tmp/squashfs-root "$HOME/.local/nvim-squashfs"
-                            ln -sf "$HOME/.local/nvim-squashfs/usr/bin/nvim" "$LOCAL_BIN/nvim"
-                        fi
-                        ok "Neovim actualizado: $($LOCAL_BIN/nvim --version | head -1)"
-                    fi
+                NVIM_VER=$(nvim --version | head -1 | sed -E 's/^NVIM v([0-9]+\.[0-9]+).*/\1/')
+                if nvim_too_old "$NVIM_VER"; then
+                    warn "Neovim $NVIM_VER es muy viejo (se necesita >=0.11). Actualizando..."
+                    install_nvim_appimage
                 fi
             fi
 
@@ -248,7 +299,7 @@ phase_packages() {
                 log "Instalando eza..."
                 sudo mkdir -p /etc/apt/keyrings
                 curl -fsSL https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
-                    | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+                    | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/gierens.gpg
                 echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] https://deb.gierens.de stable main" \
                     | sudo tee /etc/apt/sources.list.d/gierens.list
                 sudo apt update -qq && sudo apt install -y eza 2>/dev/null || warn "eza no pudo instalarse"
@@ -256,7 +307,7 @@ phase_packages() {
 
             # bat → symlink batcat si hace falta
             if ! command -v bat >/dev/null 2>&1; then
-                sudo apt install -y bat 2>/dev/null || true
+                apt_install bat
                 if command -v batcat >/dev/null 2>&1 && [[ ! -f "$LOCAL_BIN/bat" ]]; then
                     ln -sf /usr/bin/batcat "$LOCAL_BIN/bat"
                     ok "Symlink bat → batcat creado"
