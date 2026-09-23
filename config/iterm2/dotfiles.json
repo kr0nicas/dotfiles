@@ -3,6 +3,7 @@
     {
       "Name": "SRE 2026",
       "Guid": "kr0nicas-dotfiles-sre-2026",
+      "Rewritable": false,
       "Normal Font": "HackNFM-Regular 14",
       "Non Ascii Font": "HackNFM-Regular 14",
       "Use Non-ASCII Font": false,
