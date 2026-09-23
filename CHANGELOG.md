@@ -3,7 +3,7 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
-## 2026-09-23 · ci/hardening
+## 2026-09-23 · docs/audit-recuentos
 
 ### Fixes
 
@@ -11,6 +11,10 @@ No lo edites a mano: el CI regenera y compara.
 - **lib**: verificar checksums y no abortar el instalador por la red (`8b1637b`)
 - **lib**: no marcar como fallo lo que el preset no instala (`d934776`)
 - **repo**: alinear los hooks con el ci y cerrar el bypass de revert (`e5f5711`)
+
+### Documentación
+
+- **repo**: quitar recuentos que se desfasan e indexar gcx adc (`95176c4`)
 
 ### CI
 
