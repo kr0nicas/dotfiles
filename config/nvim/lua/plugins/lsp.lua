@@ -68,8 +68,8 @@ return {
           map("K", vim.lsp.buf.hover, "Hover")
           map("<Leader>ca", vim.lsp.buf.code_action, "Code action")
           map("<Leader>rn", vim.lsp.buf.rename, "Rename")
-          map("[d", vim.diagnostic.goto_prev, "Prev diagnostic")
-          map("]d", vim.diagnostic.goto_next, "Next diagnostic")
+          -- [d / ]d no se declaran: nvim 0.11+ los trae por defecto, y
+          -- goto_prev/goto_next, que eran los de aquí, están deprecados.
         end,
       })
     end,
@@ -137,7 +137,7 @@ return {
         terraform = { "tofu_fmt" },
         lua = { "stylua" },
       },
-      format_on_save = { timeout_ms = 3000, lsp_fallback = true },
+      format_on_save = { timeout_ms = 3000, lsp_format = "fallback" },
     },
   },
 
