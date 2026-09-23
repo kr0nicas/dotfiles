@@ -4,7 +4,11 @@ import { crearGating } from './gating.mjs'
 
 const FUENTE = 'lib/packages.sh'
 
-const APT_INSTALL = /\bapt(?:-get)?\s+install\s+(.*)$/
+// `apt_install` es el helper de lib/packages.sh que degrada a paquete a paquete
+// cuando el lote falla. Si el regex no lo casa, el catálogo pierde en silencio
+// todos los paquetes de Linux: no falla, publica una lista vacía. Su propia
+// definición (`apt_install() {`) no casa porque detrás no va un espacio.
+const APT_INSTALL = /\b(?:apt(?:-get)?\s+install|apt_install)\s+(.*)$/
 // Un paquete de Debian: letras, dígitos y `+ - . :`. Todo lo demás de la línea
 // (flags, redirecciones, `||`, `true`) se descarta.
 const PAQUETE = /^[a-z0-9][a-z0-9+.:-]*$/
