@@ -130,7 +130,7 @@ jobs:
   # El resto de jobs solo mira el código sin ejecutarlo: bash -n, shellcheck y
   # tests unitarios con stubs. Nada de eso ejecuta install.sh, así que un fallo
   # de integración pasa en verde — ocurrió con gh_latest_url, que descargaba el
-  # asset equivocado en silencio y superó las tres comprobaciones y los 114
+  # asset equivocado en silencio y superó las tres comprobaciones y todos los
   # tests. Este job cierra ese hueco: instala de verdad y comprueba el
   # resultado.
   install-smoke:
