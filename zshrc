@@ -185,10 +185,16 @@ alias ga="git add -A"
 alias gp="git push"
 alias gpl="git pull"
 alias gl="git log --oneline --graph --all"
-alias gcb='git branch -a | fzf | xargs git checkout'
+# for-each-ref y no `git branch -a`: este marca la rama actual con `* `, que
+# acababa pasado a checkout como argumento, y elegir `remotes/origin/x` dejaba
+# un HEAD detached. Sin el prefijo origin/, `git switch` crea la rama local
+# con seguimiento. -r: con fzf cancelado no ejecuta nada.
+alias gcb="git for-each-ref --format='%(refname:short)' refs/heads refs/remotes | grep -v '^origin\$' | sed 's#^origin/##' | sort -u | fzf | xargs -r git switch"
 alias py='python3'
-alias venv='python3 -m venv venv'
-alias va='source venv/bin/activate'
+# uv, como manda la convención del repo, y .venv que es donde uv, ruff y
+# pyright lo buscan por defecto.
+alias venv='uv venv'
+alias va='source .venv/bin/activate'
 # dots — guardar cambios de los dotfiles bajo el flujo de rama + PR.
 # Antes era un alias que hacía `git add . && commit "Update dots: $(date)" && push`
 # sobre main: bajo las reglas del repo falla en tres sitios a la vez (rama
@@ -371,12 +377,15 @@ alias ke='kubectl exec -it'
 alias kns='kubens'
 alias kctx='kubectx'
 
-# Terraform
-alias tf='terraform'
-alias tfi='terraform init'
-alias tfp='terraform plan'
-alias tfa='terraform apply'
-alias tfs='terraform state list'
+# OpenTofu. Los alias conservan el nombre `tf` por memoria muscular, pero
+# llaman a `tofu`: es el motor que declaran los dos instaladores. Con
+# `terraform` daban command not found en Linux y en cualquier Mac nuevo, y en
+# un Mac viejo ejecutaban un terraform residual distinto del resto del repo.
+alias tf='tofu'
+alias tfi='tofu init'
+alias tfp='tofu plan'
+alias tfa='tofu apply'
+alias tfs='tofu state list'
 
 # Docker Compose
 alias dc='docker compose'
@@ -453,8 +462,8 @@ SAVEHIST=10000
 export TMOUT=0              
 setopt AUTO_CD              
 setopt NO_HUP               
-setopt INC_APPEND_HISTORY   
-setopt SHARE_HISTORY 
+setopt SHARE_HISTORY        # ya implica escribir al momento: INC_APPEND_HISTORY sobra
+setopt HIST_IGNORE_DUPS
 
 [[ -s "$HOME/.autoenv/activate.sh" ]] && source "$HOME/.autoenv/activate.sh"
 

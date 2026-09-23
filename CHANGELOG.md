@@ -3,6 +3,16 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-23 · fix/zshrc-tmux
+
+### Fixes
+
+- **zshrc**: apuntar tf a tofu y arreglar gcb, venv y el historial (`1717711`)
+- **tmux**: hacer que y copie al portapapeles sin depender de tmux-yank (`bfb82d0`)
+- **git**: resolver gh por PATH en el credential helper (`7346191`)
+- **nvim**: quitar las apis deprecadas de diagnostic y conform (`4622f36`)
+- **iterm2**: declarar el perfil dinámico como no reescribible (`52233dc`)
+
 ## 2026-09-23 · fix/install-linux
 
 ### Fixes

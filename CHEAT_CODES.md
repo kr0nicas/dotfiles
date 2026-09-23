@@ -34,7 +34,7 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 | `gp` | `git push` |
 | `gpl` | `git pull` |
 | `gl` | `git log --oneline --graph --all` |
-| `gcb` | Checkout de branch con fzf |
+| `gcb` | `git switch` a una rama local o remota con fzf |
 | `dots` | Commit + push de ~/dotfiles |
 
 ### Node.js (fnm)
@@ -51,8 +51,8 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 | Comando | Accion |
 |---|---|
 | `py` | `python3` |
-| `venv` | Crea virtualenv en ./venv |
-| `va` | Activa el virtualenv |
+| `venv` | `uv venv` (crea `./.venv`) |
+| `va` | Activa `./.venv` |
 | `uv pip install` | Install rapido con uv |
 | `uv run script.py` | Ejecuta con dependencias auto-resueltas |
 
@@ -74,11 +74,11 @@ Referencia rapida de todo lo que tienes disponible. Abre con `bat ~/dotfiles/CHE
 
 | Comando | Accion |
 |---|---|
-| `tf` | `terraform` |
-| `tfi` | `terraform init` |
-| `tfp` | `terraform plan` |
-| `tfa` | `terraform apply` |
-| `tfs` | `terraform state list` |
+| `tf` | `tofu` |
+| `tfi` | `tofu init` |
+| `tfp` | `tofu plan` |
+| `tfa` | `tofu apply` |
+| `tfs` | `tofu state list` |
 
 ### Docker Compose (aliases)
 
