@@ -317,7 +317,15 @@
     "categoria": "Editor",
     "descripcion": "Compila las gramáticas que Neovim usa para resaltar y plegar código entendiendo su estructura.",
     "url": "https://tree-sitter.github.io",
-    "declarado": ["brew:tree-sitter-cli"]
+    "declarado": ["brew:tree-sitter-cli", "github:tree-sitter"]
+  },
+  {
+    "id": "gcc-make",
+    "nombre": "gcc + make",
+    "categoria": "Editor",
+    "descripcion": "Compilador de C y make para Linux: nvim-treesitter compila con ellos cada parser y telescope-fzf-native se construye con make. En macOS los trae Xcode CLT.",
+    "url": "https://gcc.gnu.org",
+    "declarado": ["apt:gcc", "apt:make"]
   },
   {
     "id": "stylua",
@@ -325,7 +333,7 @@
     "categoria": "Editor",
     "descripcion": "Formatea el Lua de la propia configuración de Neovim al guardar, vía conform.nvim.",
     "url": "https://github.com/JohnnyMorganz/StyLua",
-    "declarado": ["brew:stylua"]
+    "declarado": ["brew:stylua", "github:stylua"]
   },
   {
     "id": "tmux",

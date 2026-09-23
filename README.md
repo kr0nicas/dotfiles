@@ -202,7 +202,7 @@ Detalles que importan:
   que autogenera Apps Script.
 - **Se llama `gcx` y no `gcp`** porque `gcp` es el `cp` de GNU que instala
   coreutils.
-- Suite propia: `zsh config/zsh/gcp.test.zsh` (45 tests, corren sin gcloud).
+- Suite propia: `zsh config/zsh/gcp.test.zsh` (corre sin gcloud).
 
 ---
 
@@ -364,8 +364,9 @@ Config en `.gitconfig` con:
 │   ├── binaries.sh              # GitHub Releases + checksums (solo Linux)
 │   ├── editors.sh               # tmux/TPM, Neovim/lazy.nvim, Claude Code
 │   ├── symlinks.sh              # Symlinks, un grupo por destino (--agent pide solo ~/.claude)
-│   ├── symlinks.test.sh         # Suite de los grupos de symlinks (27 tests, sin tocar el HOME)
-│   ├── packages.test.sh         # Suite de packages.sh (15 tests, sin brew ni apt)
+│   ├── symlinks.test.sh         # Suite de los grupos de symlinks (sin tocar el HOME)
+│   ├── packages.test.sh         # Suite de packages.sh (sin brew ni apt)
+│   ├── verify.test.sh           # Suite del resumen final por preset y plataforma
 │   ├── repo.sh                  # Hooks de git (core.hooksPath -> .githooks)
 │   └── verify.sh                # Limpieza de cache zsh + resumen final
 ├── .githooks/                   # commit-msg, pre-commit, pre-push + suite propia
@@ -405,8 +406,9 @@ Config en `.gitconfig` con:
     │   └── colors.conf          # Color de fondo por entorno SSH
     └── zsh/
         ├── gcp.zsh              # Comando gcx: switcher de cuentas/proyectos GCP
-        ├── gcp.test.zsh         # Suite de gcx (45 tests, corre sin gcloud)
-        └── ssh.test.zsh         # Suite de _ssh_target (13 tests, sin conexiones)
+        ├── gcp.test.zsh         # Suite de gcx (corre sin gcloud)
+        ├── ssh.test.zsh         # Suite de _ssh_target (sin conexiones)
+        └── zshrc.test.zsh       # Suite del zshrc: colisiones alias/función
 ```
 
 ---

@@ -1,7 +1,8 @@
 # `docs/` — índice
 
-Diez documentos, ~7.900 líneas. Este índice existe para que no tengas que abrir
-un plan de 3.284 líneas para averiguar de qué iba.
+Este índice existe para que no tengas que abrir un plan de 3.284 líneas para
+averiguar de qué iba. No lleva recuento de documentos a propósito: el que tenía
+("diez") se quedó atrás en cuanto entró el siguiente, y nada lo comprobaba.
 
 **Todo lo que hay aquí es histórico.** Son diseños y planes de trabajos que
 ya están en `main`: describen el repo en el momento en que se escribieron, no el
@@ -25,10 +26,11 @@ mueven ni se renombran**: un trailer roto no lo detecta ningún test.
 | `2026-08-08-ruff-design.md` | `Error running flake8: ENOENT` al abrir cualquier `.py`: un linter declarado en nvim que ningún instalador instalaba | `config/nvim/lua/plugins/lsp.lua`, `Brewfile`, `lib/binaries.sh` |
 | `2026-08-09-preset-agent-design.md` | Los cuatro presets asumían una persona delante de una terminal: en una caja de agente casi toda la instalación se gastaba en configs que una zsh no interactiva nunca lee | `install.sh`, `lib/symlinks.sh`, `lib/packages.sh`, sección **`--agent`** de `CLAUDE.md` |
 | `2026-08-09-web-escaparate-design.md` | El repo solo se explica en 554 líneas de README: nada que enseñe cómo se ve el entorno ni que deje navegar las ~130 herramientas repartidas entre cuatro Brewfiles y dos ficheros de `lib/` | `web/`, sección **`web/`** de `CLAUDE.md` |
+| `2026-08-24-gcx-adc-design.md` | `gcx use` cambiaba cuenta y proyecto del CLI pero no las Application Default Credentials: OpenTofu y los SDKs seguían autenticando con la cuenta anterior | `config/zsh/gcp.zsh` (`gcx adc`, `gcx who`), sección **gcx** de `CLAUDE.md` |
 
 ## `plans/` — implementación de esos diseños
 
-Mismo prefijo de fecha que su spec. Los cuatro están **completados y en `main`**;
+Mismo prefijo de fecha que su spec. Todos están **completados y en `main`**;
 cada uno lo dice en un banner en su primera línea, con el PR o el rango de
 commits donde aterrizó. No son listas de tareas pendientes.
 
@@ -38,6 +40,9 @@ commits donde aterrizó. No son listas de tareas pendientes.
 | `2026-08-08-arnes-trazabilidad.md` | 1873 | arnes-trazabilidad | PR #6, que se estrenó a sí mismo |
 | `2026-08-08-ruff.md` | 445 | ruff | PR #11, endurecido después en #15 y #16 |
 | `2026-08-09-web-escaparate.md` | 3284 | web-escaparate | PR #37 |
+| `2026-08-24-gcx-adc.md` | 673 | gcx-adc | PR #42 |
+
+`preset-agent` no tiene plan: se implementó directamente desde su spec.
 
 ## `reports/` — trabajos que no dejaron código
 
@@ -52,5 +57,5 @@ ninguno, y en este repo hay precedente: es la misma razón por la que los mensaj
 de estado leen de la herramienta en vez de repetir un `echo`.
 
 Cuando un plan se complete, ponle el banner de estado en la primera línea
-—`> **Estado: COMPLETADO.**` más el PR— igual que los tres de arriba. Es lo que
+—`> **Estado: COMPLETADO.**` más el PR— igual que los de arriba. Es lo que
 distingue historia de trabajo pendiente para quien lo abra dentro de un año.

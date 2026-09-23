@@ -73,6 +73,14 @@
       "fuente": "lib/packages.sh"
     },
     {
+      "clave": "apt:gcc",
+      "nombre": "gcc",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
       "clave": "apt:gh",
       "nombre": "gh",
       "tipo": "apt",
@@ -107,6 +115,14 @@
     {
       "clave": "apt:jq",
       "nombre": "jq",
+      "tipo": "apt",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/packages.sh"
+    },
+    {
+      "clave": "apt:make",
+      "nombre": "make",
       "tipo": "apt",
       "modulo": "base",
       "plataforma": "linux",
@@ -1329,6 +1345,14 @@
       "fuente": "lib/binaries.sh"
     },
     {
+      "clave": "github:stylua",
+      "nombre": "stylua",
+      "tipo": "github",
+      "modulo": "base",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh"
+    },
+    {
       "clave": "github:termshark",
       "nombre": "termshark",
       "tipo": "github",
@@ -1349,6 +1373,15 @@
       "nombre": "tofu",
       "tipo": "github",
       "modulo": "cloud",
+      "plataforma": "linux",
+      "fuente": "lib/binaries.sh",
+      "repo": "opentofu/opentofu"
+    },
+    {
+      "clave": "github:tree-sitter",
+      "nombre": "tree-sitter",
+      "tipo": "github",
+      "modulo": "base",
       "plataforma": "linux",
       "fuente": "lib/binaries.sh"
     },
@@ -1661,11 +1694,11 @@
     }
   ],
   "conteos": {
-    "lib/packages.sh": 27,
+    "lib/packages.sh": 29,
     "Brewfile": 73,
     "Brewfile.cloud": 9,
     "Brewfile.k8s": 15,
     "Brewfile.gui": 32,
-    "lib/binaries.sh": 31
+    "lib/binaries.sh": 33
   }
 }

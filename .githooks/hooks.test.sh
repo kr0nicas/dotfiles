@@ -84,6 +84,8 @@ assert_eq "0" "$(check_rc "Merge branch 'feat/x'")" "exime un merge de rama real
 assert_eq "1" "$(check_rc 'Merge esto no es un merge de verdad')" \
     "«Merge » suelto ya no es un bypass total de las reglas"
 assert_eq "0" "$(check_rc 'Revert "feat(iterm2): perfil dinámico"')" "exime los reverts"
+assert_eq "1" "$(check_rc 'Revert algo escrito a mano')" \
+    '«Revert » suelto no es un bypass: git siempre genera Revert "…"'
 assert_eq "0" "$(check_rc 'fixup! feat(iterm2): perfil dinámico')" "exime los fixup!"
 assert_eq "0" "$(check_rc 'squash! feat(iterm2): perfil dinámico')" "exime los squash!"
 
@@ -281,6 +283,14 @@ assert_eq "0" "$(printf '' | check_push_stdin >/dev/null 2>&1; echo $?)" \
     "stdin vacío no bloquea"
 assert_eq "1" "$(printf 'refs/heads/a 1 refs/heads/x 0\nrefs/heads/b 2 refs/heads/main 0\n' | check_push_stdin >/dev/null 2>&1; echo $?)" \
     "evalúa todas las refs, no solo la primera"
+
+# ci.yml y pre-push tienen que correr las mismas suites: si divergen, lo que
+# falla en una solo se ve en la otra, que es justo el reparto que el hook
+# existe para evitar.
+ci_suites="$(awk '/- name: Suite de tests/{f=1; next} f && /- name:|^  [a-z]/{f=0} f && /^ +(bash|zsh) /{sub(/^ +/, ""); print}' \
+    "$HOOKS_DIR/../.github/workflows/ci.yml" | sort)"
+push_suites="$(printf '%s\n' "${PUSH_SUITES[@]}" | sort)"
+assert_eq "$ci_suites" "$push_suites" "pre-push corre las mismas suites que ci.yml"
 
 printf '\n%s/%s tests pasaron\n' "$((TESTS_RUN - TESTS_FAILED))" "$TESTS_RUN"
 [ "$TESTS_FAILED" -eq 0 ]

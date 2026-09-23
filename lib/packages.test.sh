@@ -140,5 +140,43 @@ assert_contains "$(decide "IS_MAC=0; DRY_RUN=0; $SIN_SUDO")" "unzip" \
 assert_eq "" "$(decide "IS_MAC=0; DRY_RUN=0; $SIN_SUDO" | grep '^CORRIÓ$')" \
     "y de verdad no llama a phase_packages"
 
+printf '\nnvim_too_old\n'
+
+old() { if nvim_too_old "$@"; then echo sí; else echo no; fi; }
+
+assert_eq "sí" "$(old 0.9)"   "0.9 es anterior a 0.11 (bc decía que no: 0.9 > 0.10 como decimal)"
+assert_eq "sí" "$(old 0.10)"  "0.10 es anterior a 0.11: vim.lsp.enable() no existe"
+assert_eq "no" "$(old 0.11)"  "0.11 basta"
+assert_eq "no" "$(old 0.12.5)" "acepta el parche y 0.12 basta"
+assert_eq "no" "$(old 1.0)"   "un mayor superior basta aunque el menor sea 0"
+assert_eq "no" "$(old '')"    "sin versión legible no fuerza una reinstalación"
+
+printf '\napt_install\n'
+
+# sudo sombreado: el lote falla si contiene "roto", y cada paquete suelto que
+# no sea "roto" se instala. Deja en $APT_LOG cada llamada.
+APT_LOG=$(mktemp)
+apt_con_stub() {
+    (
+        sudo() { shift 4; echo "$*" >> "$APT_LOG"; [[ " $* " != *" roto "* ]]; }
+        warn() { printf 'WARN %s\n' "$*"; }
+        apt_install "$@"
+    )
+}
+
+: > "$APT_LOG"
+assert_eq "" "$(apt_con_stub jq unzip)" "si el lote funciona no avisa de nada"
+assert_eq "1" "$(wc -l < "$APT_LOG" | tr -d ' ')" "y lo instala en una sola llamada"
+
+: > "$APT_LOG"
+salida=$(apt_con_stub jq roto unzip)
+assert_contains "$salida" "WARN apt no pudo instalar: roto" \
+    "un paquete que falta se nombra en el aviso"
+assert_contains "$(cat "$APT_LOG")" "-qq unzip" \
+    "y no se lleva por delante a los que van detrás de él"
+assert_eq "0" "$(apt_con_stub roto >/dev/null; echo $?)" \
+    "devuelve 0 aunque falle: bajo set -e no debe abortar el instalador"
+rm -f "$APT_LOG"
+
 printf '\n%d/%d tests pasaron\n' "$((TESTS_RUN - TESTS_FAILED))" "$TESTS_RUN"
 [ "$TESTS_FAILED" -eq 0 ] || exit 1
