@@ -3,6 +3,16 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-23 · fix/claude-iterm-hooks
+
+### Fixes
+
+- **claude**: versionar los hooks de iterm con guarda (`affe9eb`)
+
+### Documentación
+
+- **claude**: corregir la idea de un settings.local.json de usuario (`f8dd222`)
+
 ## 2026-09-23 · chore/claude-canal-latest
 
 ### Mantenimiento
