@@ -26,6 +26,18 @@ lint_staged() {
         [ -f "$f" ] || continue   # borrado o renombrado: nada que mirar
 
         case "$f" in
+            # Los tests de lib/ se analizan sueltos, como en ci.yml: sourcean
+            # su lib/ con -x, así que no dan el SC2034 en cascada de abajo.
+            # Sin esta rama caían en la siguiente, que solo analiza install.sh,
+            # y un SC2153 en un test pasaba el commit y rompía el CI.
+            lib/*.test.sh)
+                if has shellcheck; then
+                    shellcheck -x -S info "$f" \
+                        || { hook_err "shellcheck falló: $f"; rc=1; }
+                else
+                    hook_warn "shellcheck no está instalado; no se analizó $f"
+                fi
+                ;;
             # install.sh arrastra lib/ vía -x. Analizar los lib/ sueltos da
             # SC2034 en cascada por las globales que define install.sh.
             install.sh|lib/*.sh)

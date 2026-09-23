@@ -78,6 +78,8 @@ acaben conviviendo como dos ámbitos distintos. El mensaje de error indica el ar
 donde añadir uno nuevo, para que ampliar la lista cueste menos que saltarse la regla.
 
 Se saltan la validación: merge commits, reverts generados por git, y `fixup!`/`squash!`.
+El revert se reconoce por la forma exacta que genera git, `Revert "…"` con comillas:
+un `Revert algo` escrito a mano no es un bypass (2026-09-23).
 
 ### 2. `.githooks/` — tres puertas
 
@@ -85,13 +87,19 @@ Se saltan la validación: merge commits, reverts generados por git, y `fixup!`/`
 |---|---|---|
 | `commit-msg` | La regla de arriba | ~10 ms |
 | `pre-commit` | Lint de lo staged + barrido de secretos | ~0.3 s |
-| `pre-push` | Suite `gcx` completa + guardia de `main` | ~2 s |
+| `pre-push` | Las mismas suites que `ci.yml` + guardia de `main` | ~6 s |
+
+Hasta 2026-09-23 `pre-push` corría solo las suites de `gcx` y del arnés, así que un fallo en
+las otras aparecía por primera vez en el CI. Ahora recorre `PUSH_SUITES`, y un test de
+`hooks.test.sh` exige que esa lista sea idéntica a la del paso "Suite de tests" de `ci.yml`.
 
 `pre-commit` despacha por extensión sobre el índice, no sobre el repo entero:
 
 | Patrón staged | Comprobación |
 |---|---|
-| `install.sh`, `lib/*.sh`, `scripts/*.sh` | `shellcheck -x -S warning install.sh` |
+| `lib/*.test.sh` | `shellcheck -x -S info <archivo>`, como en `ci.yml` |
+| `install.sh`, `lib/*.sh` | `shellcheck -x -S info install.sh` |
+| `scripts/*.sh`, hooks | `shellcheck -x -S info <archivo>` |
 | `zshrc`, `config/zsh/*.zsh` | `zsh -n` |
 | `*.json` | `python3 -m json.tool` |
 | `*.lua` | `luajit -bl … /dev/null` |
@@ -276,7 +284,7 @@ Un hook sin tests es un hook que un día bloquea todo y nadie sabe por qué.
 | Falta `python3` para JSON | Avisa y deja pasar |
 | Secreto detectado | Bloquea. No degrada nunca |
 | Push a `main` | Bloquea con instrucción de crear rama |
-| Suite `gcx` falla en pre-push | Bloquea |
+| Cualquier suite falla en pre-push | Bloquea |
 | Emergencia | `--no-verify` en local; admin bypass en GitHub |
 
 El bypass es explícito y deja rastro por diseño. Un arnés sin salida de emergencia se

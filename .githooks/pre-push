@@ -43,22 +43,37 @@ check_push_stdin() {
     return "$rc"
 }
 
+# Las mismas suites que el paso "Suite de tests" de ci.yml, en el mismo
+# formato "<intérprete> <archivo>". Antes el hook corría solo gcx y hooks, así
+# que un fallo en las otras seis aparecía por primera vez en el CI. Un test de
+# hooks.test.sh compara esta lista con la de ci.yml: si añades una suite en un
+# sitio y no en el otro, falla.
+PUSH_SUITES=(
+    "zsh config/zsh/gcp.test.zsh"
+    "zsh config/zsh/ssh.test.zsh"
+    "zsh config/zsh/zshrc.test.zsh"
+    "bash .githooks/hooks.test.sh"
+    "bash lib/packages.test.sh"
+    "bash lib/symlinks.test.sh"
+    "bash lib/verify.test.sh"
+    "bash config/claude/settings.test.sh"
+    "bash scripts/changelog.test.sh"
+)
+
 # run_suites -> 1 si alguna suite falla
 run_suites() {
-    local rc=0
-
-    if has zsh && [ -f config/zsh/gcp.test.zsh ]; then
-        zsh config/zsh/gcp.test.zsh >/dev/null 2>&1 \
-            || { hook_err 'La suite de gcx falla'; rc=1; }
-    else
-        hook_warn 'zsh no está instalado; no se corrió la suite de gcx'
-    fi
-
-    if [ -f .githooks/hooks.test.sh ]; then
-        bash .githooks/hooks.test.sh >/dev/null 2>&1 \
-            || { hook_err 'La suite de los hooks falla'; rc=1; }
-    fi
-
+    local rc=0 suite interp file
+    for suite in "${PUSH_SUITES[@]}"; do
+        interp=${suite%% *}
+        file=${suite#* }
+        [ -f "$file" ] || continue
+        if ! has "$interp"; then
+            hook_warn "$interp no está instalado; no se corrió $file"
+            continue
+        fi
+        "$interp" "$file" >/dev/null 2>&1 \
+            || { hook_err "La suite $file falla (corre: $suite)"; rc=1; }
+    done
     return "$rc"
 }
 
