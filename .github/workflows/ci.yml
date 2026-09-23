@@ -14,7 +14,7 @@ jobs:
     name: Lint y tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Instalar zsh
         run: sudo apt-get update && sudo apt-get install -y zsh
@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           # Por defecto actions/checkout deja el merge commit sintético del PR
@@ -138,7 +138,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # debian:stable-slim y no el runner de ubuntu: el runner ya trae curl,
       # git, unzip y medio SDK, así que da por buenas dependencias que en un VPS
@@ -237,11 +237,42 @@ jobs:
               exit $fail
             '
 
+  # install-smoke instala de verdad, pero solo --vps y solo en Linux. Esto
+  # recorre en dry-run el resto de presets —cada uno cambia qué fases corren y
+  # con qué flags— y el camino de macOS, que ningún otro job ejercita: un
+  # `set -u` con una variable sin definir o un `source` roto en una rama de
+  # preset aborta aquí en vez de en la máquina de alguien. Sin TTY en stdin
+  # para que no se abra el menú interactivo.
+  dry-run:
+    name: Dry-run ${{ matrix.os }} ${{ matrix.preset || '(completo)' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, preset: "--vps" }
+          - { os: ubuntu-latest, preset: "--container" }
+          - { os: ubuntu-latest, preset: "--k8s-node" }
+          - { os: ubuntu-latest, preset: "--agent" }
+          - { os: ubuntu-latest, preset: "--minimal" }
+          - { os: macos-latest,  preset: "" }
+          - { os: macos-latest,  preset: "--agent" }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # check_deps exige zsh, que el runner de Ubuntu no trae.
+      - name: Prerrequisitos
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y -qq zsh >/dev/null
+
+      - name: install.sh --dry-run ${{ matrix.preset }}
+        run: ./install.sh --dry-run ${{ matrix.preset }} </dev/null
+
   changelog-drift:
     name: CHANGELOG al día
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           # ref es obligatorio, no cosmético: por defecto actions/checkout deja
