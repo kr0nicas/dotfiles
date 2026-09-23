@@ -25,12 +25,18 @@ Cross-platform dotfiles for Jorge Ochoa (kr0nicas) — SRE 2026 setup targeting 
 brew bundle --file=~/dotfiles/Brewfile   # Install/sync base macOS packages (cloud/k8s/gui in Brewfile.{cloud,k8s,gui})
 source ~/.zshrc                          # Reload shell after config changes
 
-zsh config/zsh/gcp.test.zsh              # Test suite del switcher gcx (91 tests, corre sin gcloud instalado)
-zsh config/zsh/ssh.test.zsh              # Test suite de _ssh_target (13 tests, no abre ninguna conexión)
-zsh config/zsh/zshrc.test.zsh            # Test suite del zshrc como archivo (4 tests: colisiones alias/función)
-bash lib/symlinks.test.sh                # Grupos de symlinks y preset --agent (27 tests, no toca el HOME)
-bash lib/packages.test.sh                # brew_untrusted_taps y packages_can_elevate (15 tests, sin brew ni apt)
-bash scripts/changelog.test.sh           # base_ref de changelog.sh (5 tests, repos desechables en un temporal)
+# Las suites. pre-push corre todas (lista PUSH_SUITES, idéntica a la de ci.yml
+# por test). Sin recuentos aquí a propósito: se desfasaban en cada PR.
+zsh config/zsh/gcp.test.zsh              # Switcher gcx; corre sin gcloud instalado
+zsh config/zsh/ssh.test.zsh              # _ssh_target; no abre ninguna conexión
+zsh config/zsh/zshrc.test.zsh            # zshrc como archivo: colisiones alias/función
+bash lib/symlinks.test.sh                # Grupos de symlinks y preset --agent; no toca el HOME
+bash lib/packages.test.sh                # Helpers de packages.sh (taps, sudo, apt_install, nvim); sin brew ni apt
+bash lib/verify.test.sh                  # Qué filas lleva el resumen final según preset y plataforma
+bash config/claude/settings.test.sh      # Guarda del hook de rtk con un PATH sin rtk
+bash .githooks/hooks.test.sh             # Arnés de hooks, incluida la paridad pre-push ↔ ci.yml
+bash scripts/changelog.test.sh           # base_ref de changelog.sh; repos desechables en un temporal
+(cd web && npm test)                     # Extractores y guardia del catálogo web
 zsh -n zshrc && zsh -n config/zsh/gcp.zsh  # Chequeo de sintaxis zsh (shellcheck NO sirve: no soporta zsh)
 ```
 
@@ -83,7 +89,7 @@ El trailer `Spec:` apunta a `docs/superpowers/`, que **sí está versionado**, n
 
 | Ruta | Versionado | Qué es |
 |---|---|---|
-| `docs/README.md` | Sí | **Índice de los siete documentos**: qué resuelve cada uno y dónde vive hoy. Empieza por aquí en vez de abrir un plan de 1.873 líneas |
+| `docs/README.md` | Sí | **Índice de los documentos**: qué resuelve cada uno y dónde vive hoy. Empieza por aquí en vez de abrir un plan de 1.873 líneas |
 | `docs/superpowers/specs/` | Sí | Diseños aprobados, uno por trabajo. `AAAA-MM-DD-<tema>-design.md` |
 | `docs/superpowers/plans/` | Sí | El plan de implementación de ese diseño, mismo prefijo de fecha |
 | `docs/reports/` | Sí | Informes puntuales de trabajos que no dejaron código |
@@ -251,7 +257,7 @@ El dispatcher acepta además `project` como sinónimo de `p`, y `--help`/`help` 
 - **ADC por cuenta**: `gcloud config configurations activate` no toca las Application Default Credentials, así que `gcx use` instala la copia guardada en `~/.config/gcloud/adc/<cuenta>.json` (700/600, fuera del repo y de la caché) y parchea `quota_project_id` con `jq` según el proyecto de la config — el quota es de la config, no de la cuenta: itproject y kelova comparten ADC pero no quota. `gcx adc` emite y guarda (interactivo, una vez por cuenta). `gcx who` muestra el quota de la ADC viva y avisa en desajuste. Sin `jq` degradan a no-op el parche del quota y su lectura en `who`; el intercambio de la credencial en sí no depende de `jq`. Spec: `docs/superpowers/specs/2026-08-24-gcx-adc-design.md`.
 - **`_gcp_config_table` es fuente única** de la tabla de configuraciones: la usan el picker y `gcx -h`. No dupliques su bloque `awk`.
 - **Dependencia de `column`**: en Debian/Ubuntu viene en `bsdextrautils`, ya incluido en el bloque apt de `install.sh`. Sin él, los pickers y `gcx -h` fallan en los presets `--vps` y `--container`.
-- **Tests**: `config/zsh/gcp.test.zsh`, 91 tests con arnés propio (`assert_eq`, `assert_contains`). Corren **sin gcloud instalado** — los que necesitan `gcloud` o `fzf` usan stubs eliminados con `unfunction` al cerrar su bloque. Mantén esa propiedad: la suite debe pasar en un contenedor sin SDK.
+- **Tests**: `config/zsh/gcp.test.zsh`, con arnés propio (`assert_eq`, `assert_contains`). Corren **sin gcloud instalado** — los que necesitan `gcloud` o `fzf` usan stubs eliminados con `unfunction` al cerrar su bloque. Mantén esa propiedad: la suite debe pasar en un contenedor sin SDK.
 
 ### zshrc load order
 
@@ -337,6 +343,8 @@ El único ruido que añade `info` es SC2016 —comillas simples que no expanden�
 - **`jenv` + `openjdk@17`** — only the pinned version is in Brewfile. Add explicit `openjdk@XX` entries if additional Java versions are needed; do not use the unversioned `openjdk` formula.
 - **Nerd Font por plataforma** — macOS/Linux usan **Hack** (`Brewfile` instala `font-hack-nerd-font`); WSL2 usa **JetBrainsMono**, porque ahí renderiza Windows y es lo que instala `install-fonts-windows.ps1`. `wezterm.lua` elige con `font_with_fallback` según `target_triple`; `config/iterm2/dotfiles.json` y la cabecera de `starship.toml` son macOS-only y fijan Hack. Si cambias la fuente de un lado, cambia también el `.ps1` o el Brewfile del otro. Si un terminal muestra `?` en vez de iconos, la causa es siempre la fuente del perfil, no la locale ni `eza`.
 - **El perfil de iTerm2 usa el nombre PostScript de la fuente**, no el visible: `"HackNFM-Regular 14"`, no `"Hack Nerd Font Mono 14"`. Con el nombre visible iTerm cae en silencio a la fuente por defecto y vuelven los `?`. Sácalo de la tabla `name` del `.ttf` (record 6), no lo adivines. iTerm tampoco deja marcar un dynamic profile como predeterminado desde el JSON: es un paso manual una vez por máquina.
+- **El perfil dinámico de iTerm lleva `"Rewritable": false` y tiene que seguir así.** Con `true`, iTerm escribe los cambios de la UI de vuelta en el archivo —a través del symlink, o sea, en el repo— y lo hizo dejándolo en cuatro claves, sin fuente ni colores. Si el diff de `config/iterm2/dotfiles.json` aparece de la nada, es esto: `git restore`, no commit.
+- **La integración de iTerm con Claude Code reemplaza el symlink `~/.claude/settings.json` por un archivo normal** al instalar sus hooks de `cc-status`. Desde ese momento la máquina y el repo divergen en silencio, y cualquier sesión de Claude que escriba en settings (el bloque `autoMode` de otro proyecto, por ejemplo) lo hace en el global. Comprueba con `readlink ~/.claude/settings.json`; si no apunta al repo, mueve los hooks de `cc-status` a `~/.claude/settings.local.json` y vuelve a enlazar. **El repo es público**: nada específico de otro proyecto va en `config/claude/settings.json`.
 - **`shellcheck` no vale para zsh** — está instalado (lo usa nvim-lint para `.sh`), pero no soporta zsh. Para `zshrc` y `config/zsh/*.zsh` usa `zsh -n`.
 - **`zsh -n` tampoco detecta las colisiones alias/función, y son las que más duelen.** `zsh -n zshrc` valida el archivo *en el vacío*; lo que rompe es el **estado de la sesión que lo carga**. Si esa sesión ya tiene un alias con el nombre de una función que el zshrc define, zsh expande el alias al parsear la definición, falla con `defining function based on alias` y **aborta el parseo del archivo entero**: se pierde en silencio todo lo que venga después. Pasó con `dots` —que fue alias antes de ser función— y se llevaba por delante zoxide, el sessionizer `t`, `sp`, el wrapper `ssh()` y los aliases de kubectl, con dos líneas de error como único síntoma. La defensa es un `unalias <nombre> 2>/dev/null` justo antes de la definición; **si conviertes un alias en función, ponlo, porque toda sesión ya abierta y todo snapshot de shell cacheado siguen teniendo el alias**. Lo cubre `config/zsh/zshrc.test.zsh`, que sourcea la región real extraída del `zshrc` — no la evalúa: `eval` parsea la cadena entera de una vez y el test fallaría contra un zshrc correcto.
 - **Estado leído, nunca hardcodeado** — cualquier comando que reporte estado de una herramienta externa (cuenta de gcloud, contexto de kubectl, etc.) debe leerlo de la herramienta, no repetirlo en un `echo`. Los aliases de GCP se desincronizaron precisamente así; ver la sección `gcx`.

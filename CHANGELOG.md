@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-23 · docs/audit-recuentos
+
+### Documentación
+
+- **repo**: quitar recuentos que se desfasan e indexar gcx adc (`95176c4`)
+
 ## 2026-09-23 · ci/hardening
 
 ### Fixes
