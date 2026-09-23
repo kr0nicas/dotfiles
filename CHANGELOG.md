@@ -3,6 +3,18 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-23 · fix/install-linux
+
+### Fixes
+
+- **lib**: arreglar nvim y apt en linux, que fallaban en silencio (`7a446af`)
+- **lib**: verificar checksums y no abortar el instalador por la red (`8b1637b`)
+- **lib**: no marcar como fallo lo que el preset no instala (`d934776`)
+
+### Mantenimiento
+
+- **web**: regenerar el catálogo con lo nuevo de linux (`e0a075d`)
+
 ## 2026-09-02 · chore/nvim-lockfile
 
 ### Mantenimiento

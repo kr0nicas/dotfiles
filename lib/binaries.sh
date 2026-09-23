@@ -89,8 +89,13 @@ phase_binaries() {
         gh_checksums() {
             local repo=$1 asset=${2:-} response url
             response=$(_gh_api "https://api.github.com/repos/${repo}/releases/latest") || return 1
+            # Anclado al final: opentofu publica junto a tofu_X_SHA256SUMS sus
+            # .sig, .pem y .gpgsig, y sin el `$` cualquiera de ellos casaba
+            # según el orden de la API. checksums.sha256 es el nombre de k9s,
+            # que antes no casaba y se instalaba con un falso "no publica
+            # checksums".
             url=$(gh_asset_urls "$response" \
-                | grep -iE 'checksums?\.txt|sha256sums?|SHA256SUMS' | head -1)
+                | grep -iE '(checksums?\.(txt|sha256)|sha256sums?(\.txt)?)$' | head -1)
             # Algunos proyectos (ruff) no publican un archivo consolidado sino un
             # .sha256 por asset. Sin este fallback caeríamos en el warning de "no
             # publica checksums", que además de falso deja el binario sin verificar.
@@ -227,7 +232,7 @@ phase_binaries() {
             "gh_latest_tar gitleaks/gitleaks 'linux_${X64_ARCH}.tar.gz\$' $LOCAL_BIN gitleaks"
 
         install_if_missing "sops" \
-            "gh_latest_bin getsops/sops 'linux.${ARCH}' $LOCAL_BIN/sops"
+            "gh_latest_bin getsops/sops 'linux\.${ARCH}\$' $LOCAL_BIN/sops"
 
         install_if_missing "dust" \
             "gh_latest_tar bootandy/dust '${ARCH_TYPE}-unknown-linux-gnu.tar.gz' $LOCAL_BIN '--strip-components=1 --wildcards */dust'"
@@ -273,6 +278,21 @@ phase_binaries() {
         # Python por convención. `uv tool install` lo deja aislado en su propio
         # venv y enlaza el ejecutable en ~/.local/bin, sin sudo.
         install_if_missing "yamllint" "uv tool install yamllint"
+
+        # tree-sitter y stylua: los otros dos que nvim invoca y que en macOS
+        # pone el Brewfile base. nvim-treesitter (rama main) compila los
+        # parsers con la CLI de tree-sitter, y sin ella no instala ninguno;
+        # conform formatea Lua con stylua. Ninguno publica checksums.
+        #
+        # X64_ARCH para tree-sitter (linux-x64 / linux-arm64) y ARCH_TYPE para
+        # stylua (linux-x86_64 / linux-aarch64): dos convenciones distintas,
+        # comprobadas contra el release real. Los dos zips traen el binario en
+        # la raíz con modo 0755.
+        install_if_missing "tree-sitter" \
+            "gh_latest_zip tree-sitter/tree-sitter 'tree-sitter-cli-linux-${X64_ARCH}\.zip\$' $LOCAL_BIN"
+
+        install_if_missing "stylua" \
+            "gh_latest_zip JohnnyMorganz/StyLua 'stylua-linux-${ARCH_TYPE}\.zip\$' $LOCAL_BIN"
 
         # golangci-lint. ARCH (amd64/arm64), la convención de Go, como tflint.
         #
@@ -359,7 +379,7 @@ phase_binaries() {
         # --- K8s tools (gated por --no-k8s / --minimal) ---
         if [[ $INSTALL_K8S -eq 1 ]]; then
             install_if_missing "k9s" \
-                "gh_latest_tar derailed/k9s 'Linux_${ARCH}.tar.gz' $LOCAL_BIN k9s"
+                "gh_latest_tar derailed/k9s 'Linux_${ARCH}.tar.gz\$' $LOCAL_BIN k9s"
 
             install_if_missing "stern" \
                 "gh_latest_tar stern/stern 'linux_${ARCH}.tar.gz' $LOCAL_BIN stern"
@@ -379,17 +399,53 @@ phase_binaries() {
             warn "Skipping k9s/stern/kubeshark/dive (--no-k8s)"
         fi
 
+        # jless no publica checksums ni build para arm64 (solo
+        # x86_64-unknown-linux-gnu), así que en ARM no hay nada que bajar. El
+        # temporal es de mktemp y no una ruta fija en /tmp, que otro usuario de
+        # la máquina podría haber dejado preparada.
         install_jless() {
-            local url
+            local url tmp
             url=$(gh_latest_url PaulJuliusMartinez/jless "${GH_ARCH}-unknown-linux-gnu.zip")
-            if [[ -n "$url" ]]; then
-                curl -fsSL "$url" -o /tmp/jless.zip && unzip -qo /tmp/jless.zip -d "$LOCAL_BIN" && rm -f /tmp/jless.zip
-                chmod +x "$LOCAL_BIN/jless"
-            else
-                return 1
-            fi
+            [[ -n "$url" ]] || return 1
+            tmp=$(mktemp -d) || return 1
+            curl -fsSL "$url" -o "$tmp/jless.zip" \
+                && unzip -qo "$tmp/jless.zip" -d "$LOCAL_BIN" \
+                && chmod +x "$LOCAL_BIN/jless"
+            local rc=$?
+            rm -rf "$tmp"
+            return $rc
         }
         install_if_missing "jless" "install_jless"
+
+        # kubectl no sale de GitHub, así que no pasa por gh_latest_*: dl.k8s.io
+        # publica un .sha256 por binario que solo trae el hash, y se le pone el
+        # nombre detrás para que verify_sha256 lo lea como una línea de sums.
+        #
+        # Todo va dentro de la función y detrás de un `||` a propósito. Antes la
+        # versión se leía con `KUBECTL_VER=$(curl …)` suelto, y bajo `set -e` una
+        # asignación cuyo curl falla termina el script: un corte de red abortaba
+        # el instalador entero y el `|| warn` de debajo nunca llegaba a correr.
+        install_kubectl() {
+            local ver base tmp sum rc
+            ver=$(curl -fsSL https://dl.k8s.io/release/stable.txt) || return 1
+            base="https://dl.k8s.io/release/${ver}/bin/linux/${ARCH}/kubectl"
+            tmp=$(mktemp -d) || return 1
+            if ! curl -fsSL -o "$tmp/kubectl" "$base" || ! sum=$(curl -fsSL "${base}.sha256"); then
+                rm -rf "$tmp"
+                return 1
+            fi
+            verify_sha256 "$tmp/kubectl" "${sum%% *}  kubectl" && rc=0 || rc=$?
+            if [[ $rc -eq 1 ]]; then
+                rm -rf "$tmp"
+                err "CHECKSUM NO COINCIDE en kubectl ${ver}. Descarga corrupta o manipulada — abortando."
+            fi
+            [[ $rc -eq 0 ]] && ok "checksum verificado: kubectl ${ver}"
+            install -m 0755 "$tmp/kubectl" "$LOCAL_BIN/kubectl"
+            rc=$?
+            rm -rf "$tmp"
+            [[ $rc -eq 0 ]] && ok "kubectl ${ver} instalado"
+            return $rc
+        }
 
         # --- K8s core (gated por --no-k8s / --minimal) ---
         if [[ $INSTALL_K8S -eq 1 ]]; then
@@ -397,11 +453,7 @@ phase_binaries() {
             if ! command -v kubectl >/dev/null 2>&1; then
                 log "Instalando kubectl..."
                 if [[ $DRY_RUN -eq 0 ]]; then
-                    KUBECTL_VER=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
-                    curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/${ARCH}/kubectl" \
-                        -o "$LOCAL_BIN/kubectl" && chmod +x "$LOCAL_BIN/kubectl" \
-                        && ok "kubectl ${KUBECTL_VER} instalado" \
-                        || warn "kubectl no pudo instalarse, continúa manualmente."
+                    install_kubectl || warn "kubectl no pudo instalarse, continúa manualmente."
                 else
                     warn "DRY-RUN: kubectl install omitido"
                 fi
@@ -457,11 +509,13 @@ phase_binaries() {
             if ! command -v tofu >/dev/null 2>&1; then
                 log "Instalando OpenTofu..."
                 if [[ $DRY_RUN -eq 0 ]]; then
-                    TOFU_VER=$(curl -fsSL https://api.github.com/repos/opentofu/opentofu/releases/latest \
-                        | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
-                    TOFU_URL="https://github.com/opentofu/opentofu/releases/download/v${TOFU_VER}/tofu_${TOFU_VER}_linux_${ARCH}.tar.gz"
-                    curl -fsSL "$TOFU_URL" | tar -xz -C "$LOCAL_BIN" tofu \
-                        && ok "OpenTofu v${TOFU_VER} instalado" \
+                    # Por gh_latest_tar como el resto: usa GH_TOKEN, verifica
+                    # contra tofu_X_SHA256SUMS y un fallo de red no aborta. Antes
+                    # era una asignación con `curl` suelto a la API anónima
+                    # —bajo `set -e`, un rate-limit terminaba el instalador— y
+                    # un `curl | tar` sin nada que comprobar.
+                    gh_latest_tar opentofu/opentofu "tofu_.*_linux_${ARCH}\.tar\.gz\$" "$LOCAL_BIN" tofu \
+                        && ok "OpenTofu instalado ($("$LOCAL_BIN/tofu" version | head -1))" \
                         || warn "OpenTofu no pudo instalarse, continúa manualmente."
                 else
                     warn "DRY-RUN: OpenTofu install omitido"

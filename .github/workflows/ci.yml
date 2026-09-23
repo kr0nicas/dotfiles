@@ -68,7 +68,7 @@ jobs:
             .githooks/lib.sh .githooks/hooks.test.sh
           # -x también aquí: sourcean su lib/ para probar sus funciones, y sin
           # seguir ese source shellcheck no las ve definidas.
-          shellcheck -x -S info lib/packages.test.sh lib/symlinks.test.sh
+          shellcheck -x -S info lib/packages.test.sh lib/symlinks.test.sh lib/verify.test.sh
 
       # Las suites corren sin gcloud, sin fzf y sin shellcheck (usan stubs y
       # degradación): es intencional, para que valgan igual en un runner
@@ -81,6 +81,7 @@ jobs:
           bash .githooks/hooks.test.sh
           bash lib/packages.test.sh
           bash lib/symlinks.test.sh
+          bash lib/verify.test.sh
           bash config/claude/settings.test.sh
           bash scripts/changelog.test.sh
 
@@ -182,7 +183,7 @@ jobs:
               for t in zsh tmux git curl jq rg fd direnv btop zstd unzip \
                        fzf starship zoxide uv fnm \
                        lazygit delta trivy sops dust curlie jless \
-                       ruff shellcheck yamllint golangci-lint \
+                       ruff shellcheck yamllint golangci-lint tree-sitter stylua gcc make \
                        gitleaks faketime psql \
                        mtr nmap socat iperf3 tshark \
                        trip step bandwhich termshark oha doggo lnav sshuttle \

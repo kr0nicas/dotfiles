@@ -37,8 +37,30 @@ phase_runtimes() {
         log "Instalando fzf v$FZF_VERSION (actual: ${CURRENT_FZF:-ninguna})..."
         FZF_URL="https://github.com/junegunn/fzf/releases/download/v${FZF_VERSION}/fzf-${FZF_VERSION}-${OS_TYPE}_${ARCH}.tar.gz"
         if [[ $DRY_RUN -eq 0 ]]; then
-            curl -fsSL "$FZF_URL" | tar -xz -C "$LOCAL_BIN"
-            ok "fzf v$FZF_VERSION instalado en $LOCAL_BIN"
+            # Descarga, verifica y solo entonces extrae, como gh_latest_tar. Las
+            # sums se piden al release de la versión fijada y no al latest: el
+            # de latest no traería la línea de este archivo. Un fallo de red
+            # avisa y sigue en vez de abortar, igual que el resto de binarios.
+            local fzf_tmp fzf_file fzf_sums fzf_rc
+            fzf_tmp=$(mktemp -d)
+            fzf_file="$fzf_tmp/$(basename "$FZF_URL")"
+            if curl -fsSL -o "$fzf_file" "$FZF_URL"; then
+                if fzf_sums=$(curl -fsSL "https://github.com/junegunn/fzf/releases/download/v${FZF_VERSION}/fzf_${FZF_VERSION}_checksums.txt"); then
+                    verify_sha256 "$fzf_file" "$fzf_sums" && fzf_rc=0 || fzf_rc=$?
+                    case $fzf_rc in
+                        0) ok "checksum verificado: $(basename "$fzf_file")" ;;
+                        1) rm -rf "$fzf_tmp"
+                           err "CHECKSUM NO COINCIDE en $(basename "$fzf_file"). Descarga corrupta o manipulada — abortando." ;;
+                        *) warn "fzf publica checksums pero $(basename "$fzf_file") no aparece; instalado sin verificar" ;;
+                    esac
+                else
+                    warn "No se pudieron bajar los checksums de fzf; instalado sin verificar"
+                fi
+                tar -xz -C "$LOCAL_BIN" -f "$fzf_file" && ok "fzf v$FZF_VERSION instalado en $LOCAL_BIN"
+            else
+                warn "fzf v$FZF_VERSION no pudo descargarse ($FZF_URL)"
+            fi
+            rm -rf "$fzf_tmp"
         else
             warn "DRY-RUN: fzf install omitido ($FZF_URL)"
         fi
