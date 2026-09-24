@@ -94,8 +94,8 @@ $FAKE_HOME/.claude/statusline.sh
 $FAKE_HOME/.claude/CLAUDE.md" "$(dests symlinks_claude)" \
     "enlaza los tres archivos de ~/.claude y ninguno más"
 
-assert_contains "$(run_group symlinks_claude)" "sembraría ~/.claude/settings.local.json" \
-    "siembra settings.local.json cuando no existe"
+assert_eq "" "$(run_group symlinks_claude | grep 'settings.local')" \
+    "no siembra ~/.claude/settings.local.json: Claude Code no lo lee como capa de usuario"
 
 printf '\nphase_symlinks_agent (preset --agent)\n'
 

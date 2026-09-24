@@ -83,15 +83,12 @@ symlinks_claude() {
         safe_link "$DOTFILES_DIR/config/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
         safe_link "$DOTFILES_DIR/config/claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
 
-        # settings.local.json: overrides por máquina (no versionado). Sembrar desde example si falta.
-        if [[ ! -e "$HOME/.claude/settings.local.json" ]]; then
-            if [[ $DRY_RUN -eq 0 ]]; then
-                cp "$DOTFILES_DIR/config/claude/settings.local.json.example" "$HOME/.claude/settings.local.json"
-                ok "Sembrado: ~/.claude/settings.local.json (edítalo para overrides locales)"
-            else
-                warn "DRY-RUN: sembraría ~/.claude/settings.local.json"
-            fi
-        fi
+        # Aquí se sembraba ~/.claude/settings.local.json como sitio para los
+        # overrides de cada máquina, pero Claude Code no tiene esa capa de
+        # usuario: solo lo lee como settings local del proyecto ~. Lo que se
+        # ponía ahí no aplicaba en ningún otro directorio, y así estuvieron
+        # inactivos los hooks de iTerm. Lo de máquina va en settings.json con
+        # guarda; lo de un proyecto, en su .claude/settings.local.json.
     fi
 }
 
