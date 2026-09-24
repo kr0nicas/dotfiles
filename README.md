@@ -317,7 +317,7 @@ Si ves `?` en lugar de iconos en `ls`/prompt, es que la ventana sigue con el per
 - `config/claude/settings.json` → symlinked a `~/.claude/settings.json`. Statusline custom, plugins habilitados (superpowers, frontend-design, code-review), marketplaces extra.
 - `config/claude/statusline.sh` → statusline portable (Mac + Linux + WSL).
 - `config/claude/CLAUDE.md` → symlinked a `~/.claude/CLAUDE.md`. Instrucciones globales de usuario: solo los comandos propios (`gcx`, `dots`, `t`, `sp`, `cn`) y las reglas que Claude no puede deducir. Deliberadamente corto — se carga en cada sesion de cada proyecto.
-- `config/claude/settings.local.json.example` → plantilla para overrides locales por maquina (no commiteada, sembrada en primer install).
+- `config/claude/settings.local.json.example` → se siembra en `~/.claude/settings.local.json` en el primer install. **Ojo:** Claude Code no lee ese archivo como capa de usuario, solo como settings local cuando se trabaja en `~`; lo que deba aplicar en todas partes va en `settings.json` con guarda.
 - `install.sh` ancla `claude` al build nativo (`~/.local/bin/claude`) para evitar que fnm/npm rompa el `PATH` al cambiar de version de Node.
 
 ---

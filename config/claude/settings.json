@@ -12,6 +12,104 @@
             "command": "if command -v rtk >/dev/null 2>&1; then exec rtk hook claude; fi"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; if [ -x \"$f\" ]; then exec \"$f\"; fi"
+          }
+        ]
       }
     ]
   },

@@ -76,6 +76,58 @@ assert_eq "0" "$codigo" \
 assert_eq "" "$salida" \
     "no imprime nada sin rtk"
 
+printf '\nhooks de iTerm (cc-status)\n'
+
+# La integración de iTerm con Claude Code instala `cc-status` y registra un hook
+# por evento. Solo existe en un Mac con iTerm, pero este archivo se symlinkea en
+# todas partes, así que los hooks van guardados como el de rtk. Se registraban
+# en ~/.claude/settings.local.json, que Claude Code NO lee a nivel de usuario:
+# ahí estuvieron inactivos sin que nada lo dijera.
+EVENTOS="SessionStart UserPromptSubmit PreToolUse PostToolUse PermissionRequest Notification Stop StopFailure SubagentStop SessionEnd"
+
+cc_cmd() {
+    python3 -c '
+import json, sys
+with open(sys.argv[1]) as f:
+    d = json.load(f)
+for grupo in d.get("hooks", {}).get(sys.argv[2], []):
+    for h in grupo.get("hooks", []):
+        if "cc-status" in h.get("command", ""):
+            print(h["command"])
+            sys.exit(0)
+' "$SETTINGS" "$1"
+}
+
+faltan=""
+for e in $EVENTOS; do
+    [ -n "$(cc_cmd "$e")" ] || faltan="$faltan $e"
+done
+assert_eq "" "$faltan" "los diez eventos declaran el hook de cc-status"
+
+CC_CMD=$(cc_cmd SessionStart)
+assert_eq "" "$(printf '%s' "$CC_CMD" | grep -o '/Users/[^/]*' | head -1)" \
+    "no lleva una ruta absoluta de una máquina concreta"
+
+FAKE_HOME=$(mktemp -d)
+trap 'rm -rf "$FAKE_HOME"' EXIT
+
+salida=$(env HOME="$FAKE_HOME" sh -c "$CC_CMD" 2>&1 </dev/null)
+codigo=$?
+assert_eq "0" "$codigo" "sin cc-status sale 0, en vez de un error de hook en cada evento"
+assert_eq "" "$salida" "sin cc-status no imprime nada"
+
+# Con cc-status presente tiene que ejecutarlo, pasarle el JSON del evento por
+# stdin y devolver su código de salida (exec): un hook puede querer bloquear.
+mkdir -p "$FAKE_HOME/.config/iterm2"
+# shellcheck disable=SC2016  # $HOME lo expande el stub al ejecutarse, no el test
+printf '#!/bin/sh\ncat > "$HOME/recibido"\nexit 3\n' > "$FAKE_HOME/.config/iterm2/cc-status"
+chmod +x "$FAKE_HOME/.config/iterm2/cc-status"
+printf '{"hook_event_name":"Stop"}' | env HOME="$FAKE_HOME" sh -c "$CC_CMD" >/dev/null 2>&1
+codigo=$?
+assert_eq "3" "$codigo" "con cc-status lo ejecuta y conserva su código de salida"
+assert_eq '{"hook_event_name":"Stop"}' "$(cat "$FAKE_HOME/recibido" 2>/dev/null)" \
+    "y le llega el JSON del evento por stdin"
+
 printf '\n'
 if [ "$TESTS_FAILED" -gt 0 ]; then
     printf '%s/%s tests pasaron — %s fallaron\n' \
