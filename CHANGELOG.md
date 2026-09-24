@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-09-24 · chore/claude-sin-local-sembrado
+
+### Mantenimiento
+
+- **claude**: dejar de sembrar un settings.local.json que no se lee (`b86e3ce`)
+
 ## 2026-09-23 · fix/claude-iterm-hooks
 
 ### Fixes
