@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-10-02 · fix/git-quitar-include-macos
+
+### Fixes
+
+- **git**: quitar include de un .gitconfig.macos que no existe (`eab2b69`)
+
 ## 2026-09-24 · chore/claude-sin-local-sembrado
 
 ### Mantenimiento
