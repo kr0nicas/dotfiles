@@ -3,6 +3,13 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-10-16 · feat/claude-security-rules
+
+### Features
+
+- **claude**: reglas de revisión y seguridad adaptadas de ECC (`0906623`)
+- **install**: enlazar config/claude/rules en ~/.claude/rules (`43d9039`)
+
 ## 2026-10-02 · fix/git-quitar-include-macos
 
 ### Fixes
