@@ -143,7 +143,7 @@ Convenciones que hay que respetar al tocar esto:
 
 Los otros cuatro presets (`--vps`, `--container`, `--k8s-node`, `--minimal`) eligen **módulos**; `--agent` es el único que además cambia **qué fases corren**, porque el consumidor de la caja no es una persona. La tool Bash de Claude Code es una zsh **no interactiva que no sourcea `zshrc`**: ahí no existe `gcx`, no se renderiza el prompt de starship, no hay keybindings de fzf ni autosuggestions, y sin terminal delante no hay tmux, nvim, wezterm ni perfil de iTerm2. `starship` aparece en el PATH, pero solo porque vive en `/usr/local/bin` — no porque se dibuje nada.
 
-`--agent` = `phase_detect` + `phase_packages_if_possible` + `phase_runtimes` + `phase_binaries` + `phase_symlinks_agent` + `phase_repo` + `phase_verify`. No corre `phase_editors` y de los symlinks solo enlaza los tres de `~/.claude/`. No toca `INSTALL_CLOUD` ni `INSTALL_K8S` —son ortogonales a quién usa la caja, y `--agent --no-k8s` compone— pero sí apaga `INSTALL_GUI`.
+`--agent` = `phase_detect` + `phase_packages_if_possible` + `phase_runtimes` + `phase_binaries` + `phase_symlinks_agent` + `phase_repo` + `phase_verify`. No corre `phase_editors` y de los symlinks solo enlaza los de `~/.claude/`. No toca `INSTALL_CLOUD` ni `INSTALL_K8S` —son ortogonales a quién usa la caja, y `--agent --no-k8s` compone— pero sí apaga `INSTALL_GUI`.
 
 - **`phase_packages` se incluye, y no es negociable por comodidad: `rg`, `fd`, `bat`, `jq`, `yq`, `unzip` y `zstd` NO están en `lib/binaries.sh`.** Salen de esa fase (apt en Linux, Brewfile en macOS), y son justo lo que más usa un agente. En macOS es además la **única** fuente de binarios del repo, porque `phase_binaries` es solo Linux. Si vas a razonar sobre qué se puede omitir de un preset, mira de qué fase sale cada herramienta antes de opinar.
 - **`phase_packages_if_possible` es el envoltorio, y `phase_packages` no se toca.** El bloque de Debian es todo `sudo apt` y su `apt update` no lleva `|| true`: sin root muere ahí y se lleva el instalador entero bajo `set -e`. El envoltorio corre la fase si es macOS (brew no usa sudo), si es `--dry-run` (para que el oráculo no dependa de tener sudo en esta máquina) o si `packages_can_elevate`; si no, avisa y enumera lo que debe traer la imagen base. Degradar `phase_packages` en sí habría hecho que un apt roto dejara de ser ruidoso en `--vps`.
@@ -168,6 +168,7 @@ All config lives in `~/dotfiles/` and is symlinked into place:
 ~/.claude/settings.json     -> ~/dotfiles/config/claude/settings.json
 ~/.claude/statusline.sh     -> ~/dotfiles/config/claude/statusline.sh
 ~/.claude/CLAUDE.md         -> ~/dotfiles/config/claude/CLAUDE.md   (instrucciones globales de usuario)
+~/.claude/rules/<regla>.md  -> ~/dotfiles/config/claude/rules/<regla>.md  (una por archivo; con `paths:` solo cargan al tocar ese lenguaje)
 ~/.config/wezterm/wezterm.lua -> ~/dotfiles/config/wezterm/wezterm.lua
 ~/Library/Application Support/iTerm2/DynamicProfiles/dotfiles.json -> ~/dotfiles/config/iterm2/dotfiles.json  (solo macOS)
 ~/.ssh/colors.conf          -> ~/dotfiles/config/ssh/colors.conf

@@ -42,3 +42,40 @@ git add -A && git commit -m '<tipo>(<ámbito>): <asunto>'
 ./scripts/changelog.sh                          # si existe; SIEMPRE en commit aparte
 git push -u origin HEAD && gh pr create --fill
 ```
+
+## Revisión y seguridad (extracto adaptado de ECC)
+
+### Severidad en revisiones de código
+
+| Nivel | Significa | Acción |
+|---|---|---|
+| CRITICAL | Vulnerabilidad o riesgo de pérdida de datos | Bloquea: corregir antes de commit |
+| HIGH | Bug o problema de calidad significativo | Avisar: corregir antes de merge |
+| MEDIUM | Mantenibilidad | Informar |
+| LOW | Estilo | Opcional |
+
+Aprobar solo sin CRITICAL ni HIGH.
+
+### Disparadores de revisión de seguridad
+
+Para y usa el agente `security-reviewer` (y la skill `app-security-review`) antes de
+commitear si el cambio toca: autenticación o autorización, entrada de usuario,
+consultas a base de datos, sistema de archivos, llamadas a APIs externas,
+criptografía, pagos, secretos o configuración de despliegue.
+
+Checklist mínimo antes de cualquier commit con esos cambios:
+- Sin secretos hardcodeados; `gitleaks detect --redact` limpio.
+- Toda entrada externa validada con esquema en la frontera del sistema.
+- Consultas parametrizadas, nunca concatenadas.
+- Authz comprobada en cada operación sensible, no solo en la ruta.
+- Mensajes de error y logs sin datos sensibles.
+- Dependencias auditadas con el escáner del lenguaje (ver reglas por lenguaje).
+
+### Contrato de delegación a subagentes
+
+- El mensaje final ES el entregable. Nunca terminar el turno con "esperando a
+  los agentes": un agente lanzado no es una tarea terminada y sus resultados se
+  pierden si el padre ya terminó.
+- Quien delega recoge: esperar, integrar y devolver. Nada de lanzar y olvidar.
+- Descomponer solo cuando el trabajo no cabe en un contexto. No re-delegar una
+  tarea ya dimensionada para un solo agente.

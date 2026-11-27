@@ -74,7 +74,7 @@ symlinks_ssh() {
     fi
 }
 
-# Claude Code settings + statusline + CLAUDE.md global.
+# Claude Code settings + statusline + CLAUDE.md global + rules/ por lenguaje.
 # Es el único grupo que pide el preset --agent.
 symlinks_claude() {
     if [[ -f "$DOTFILES_DIR/config/claude/settings.json" ]]; then
@@ -82,6 +82,19 @@ symlinks_claude() {
         safe_link "$DOTFILES_DIR/config/claude/settings.json" "$HOME/.claude/settings.json"
         safe_link "$DOTFILES_DIR/config/claude/statusline.sh"  "$HOME/.claude/statusline.sh"
         safe_link "$DOTFILES_DIR/config/claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
+
+        # Reglas con frontmatter `paths:`: Claude Code las carga solo al tocar
+        # archivos que casan con ese glob, así que no cuestan contexto en las
+        # sesiones que no los tocan. Se enlazan una a una y no el directorio,
+        # igual que el resto del grupo, para que safe_link respalde lo que ya
+        # hubiera en ~/.claude/rules/ en vez de pisarlo. El glob sin coincidencias
+        # se deja pasar: el directorio puede estar vacío en un checkout parcial.
+        safe_mkdir "$HOME/.claude/rules"
+        local rule
+        for rule in "$DOTFILES_DIR"/config/claude/rules/*.md; do
+            [[ -f "$rule" ]] || continue
+            safe_link "$rule" "$HOME/.claude/rules/${rule##*/}"
+        done
 
         # Aquí se sembraba ~/.claude/settings.local.json como sitio para los
         # overrides de cada máquina, pero Claude Code no tiene esa capa de
@@ -218,7 +231,7 @@ phase_symlinks() {
 # iTerm2 necesitan una terminal delante. Enlazarlos en una caja de agente no
 # rompe nada, pero tampoco lo lee nadie.
 #
-# ~/.config no se crea aquí: los tres destinos cuelgan de ~/.claude.
+# ~/.config no se crea aquí: todos los destinos cuelgan de ~/.claude.
 phase_symlinks_agent() {
     section "Sincronizando Symlinks (solo ~/.claude)"
 
