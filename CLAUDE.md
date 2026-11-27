@@ -135,7 +135,7 @@ Convenciones que hay que respetar al tocar esto:
 - **`DOTFILES_DIR` se deriva de `SCRIPT_DIR`**, nunca de `$HOME/dotfiles`. Antes estaba fijo y clonar en otra ruta rompía todos los symlinks.
 - **Las fases comparten globales a propósito.** `phase_detect` fija `IS_MAC`, `ARCH_TYPE`, `GH_ARCH` y los consumen las fases siguientes. No añadas `local` a esas asignaciones.
 - **Los `source` en `install.sh` son explícitos, no un bucle**, para que `shellcheck -x` siga cada uno y analice el conjunto. Con un `source` construido por variable, shellcheck ve cada archivo aislado y reporta SC2034 en cascada.
-- **`shellcheck -x -S warning install.sh`** es lo que exige el CI, y cubre todo `lib/`. No analices los `lib/` sueltos: darán falsos positivos.
+- **`shellcheck -x -S info install.sh`** es lo que exige el CI, y cubre todo `lib/`. No analices los `lib/` sueltos: darán falsos positivos.
 - **Nada de `cd` suelto dentro de una fase.** Envuélvelo en un subshell; si no, un `cd` fallido deja las fases siguientes en el directorio equivocado.
 - **Equivalencia al refactorizar**: `./install.sh --dry-run [flags]` es determinista. Captura la salida antes y después y compárala — es el oráculo que prueba que no cambiaste comportamiento.
 

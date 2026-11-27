@@ -58,7 +58,7 @@ Aprobar solo sin CRITICAL ni HIGH.
 
 ### Disparadores de revisión de seguridad
 
-Para y usa el agente `security-reviewer` (y la skill `app-security-review`) antes de
+Para y corre la skill `security-review` (integrada en Claude Code) antes de
 commitear si el cambio toca: autenticación o autorización, entrada de usuario,
 consultas a base de datos, sistema de archivos, llamadas a APIs externas,
 criptografía, pagos, secretos o configuración de despliegue.
