@@ -58,6 +58,7 @@ PUSH_SUITES=(
     "bash lib/verify.test.sh"
     "bash config/claude/settings.test.sh"
     "bash scripts/changelog.test.sh"
+    "bash scripts/dependabot-listo.test.sh"
 )
 
 # run_suites -> 1 si alguna suite falla
