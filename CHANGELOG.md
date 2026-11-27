@@ -3,11 +3,17 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
-## 2026-11-27 · dependabot/github_actions/actions/setup-node-7.1.0
+## 2026-11-27 · fix/repo-suites-sin-git-dir
 
-### Mantenimiento
+### Fixes
 
-- **deps**: bump actions/setup-node from 7.0.0 to 7.1.0 (`528d0f1`)
+- **repo**: quitar el entorno de git a las suites de pre-push (`9c3ac81`)
+
+## 2026-11-27 · feat/scripts-dependabot-listo
+
+### Features
+
+- **scripts**: preparar PRs de dependabot con dependabot-listo.sh (`7a22f41`)
 
 ## 2026-11-27 · docs/claude-referencias-vigentes
 

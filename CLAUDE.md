@@ -36,6 +36,7 @@ bash lib/verify.test.sh                  # Qué filas lleva el resumen final seg
 bash config/claude/settings.test.sh      # Guarda del hook de rtk con un PATH sin rtk
 bash .githooks/hooks.test.sh             # Arnés de hooks, incluida la paridad pre-push ↔ ci.yml
 bash scripts/changelog.test.sh           # base_ref de changelog.sh; repos desechables en un temporal
+bash scripts/dependabot-listo.test.sh    # dependabot-listo.sh con un gh falso; repos desechables
 (cd web && npm test)                     # Extractores y guardia del catálogo web
 zsh -n zshrc && zsh -n config/zsh/gcp.zsh  # Chequeo de sintaxis zsh (shellcheck NO sirve: no soporta zsh)
 ```
@@ -61,6 +62,8 @@ Nunca se commitea directo a `main`: está protegido en GitHub y `pre-push` lo re
 4. **Regenerar el CHANGELOG** con `./scripts/changelog.sh` como último paso antes del push final. El CI falla si difiere. Va **siempre en su propio commit**, que no toca nada más — de lo contrario el archivo es insatisfacible: el commit que lo regenera se excluye de su propio listado, así que mezclarlo con otro cambio deja el CHANGELOG desactualizado en el momento en que se genera.
 
 **La base del CHANGELOG es `origin/main`, no el `main` local, y el orden no es cosmético.** `git fetch` actualiza `origin/main` pero **no** la rama `main` local, así que basta con que alguien mergee otra PR para que tu `main` se quede atrás. Con la rama local como base, el rango `base..HEAD` incluye commits que ya están integrados y los lista como trabajo de tu rama. En CI eso no pasaba —`actions/checkout` no crea la rama local, así que ya usaba `origin/main`— y el reparto era el peor posible: **verde en local, rojo en CI, y el diff no delata la causa**. Se cobró la PR #37. Preferir el remoto hace que las dos salidas coincidan por construcción; lo fija `scripts/changelog.test.sh`, cuyo test central es que la salida sea idéntica con y sin rama `main` local. Si un repo no tiene remoto, cae a la local y sigue funcionando.
+
+**Las PRs de Dependabot nacen en rojo y se desbloquean con `./scripts/dependabot-listo.sh <PR>`.** Dependabot no corre `changelog.sh`, así que «CHANGELOG al día» les falla siempre. El script integra `origin/main` en la rama y le añade el commit de CHANGELOG, sin forzar el push; después se mergea como cualquier otra. **No eximas a Dependabot del job**: el mismo check corre en cada push a `main`, y `main` quedaría en rojo tras cada merge hasta que otra PR regenerase el archivo. Con varias PRs abiertas, de una en una: cada merge deja atrasado el CHANGELOG de las demás, y hay que volver a pasarles el script.
 
 Convención de commits, validada por `.githooks/commit-msg`:
 
@@ -322,6 +325,8 @@ Lo que no cuelga de `install.sh` y solo se descubre con un `ls`:
 |---|---|
 | `scripts/changelog.sh` | Regenera `CHANGELOG.md` desde el historial: merge commits si la feature ya está en `main`, `origin/main..HEAD` si sigue en rama. `--check` no escribe y sale 1 si difiere — es lo que corre el CI |
 | `scripts/changelog.test.sh` | Tests de `base_ref`. Monta repos desechables con su propio origin bare; no toca el repo real ni la red |
+| `scripts/dependabot-listo.sh` | `<PR>` — deja una PR de Dependabot lista para mergear: le integra `main` y le añade el commit de CHANGELOG. Worktree temporal, sin `--force`, no mergea |
+| `scripts/dependabot-listo.test.sh` | Tests del anterior, con un `gh` falso en el PATH y repos desechables |
 | `scripts/github-topics-manager.sh` | Pone topics a un repo de GitHub vía `gh api`. `-l` lista repos, `-v <repo>` muestra los topics actuales |
 | `scripts/github-topics-manager.README.md` | Manual del anterior: reglas de validación de GitHub y catálogos de topics sugeridos por categoría |
 | `CHEAT_CODES.md` | Chuleta personal de ~480 líneas: atajos y aliases de shell, nvim, k8s, terraform, cloud CLIs, seguridad y tmux. Documentación pura, ningún programa la lee |
@@ -330,6 +335,8 @@ Lo que no cuelga de `install.sh` y solo se descubre con un `ls`:
 **El nivel de shellcheck es `info`, no `warning` — no lo bajes.** Una variable mal escrita es SC2153, que shellcheck clasifica como *info*, así que a nivel `warning` pasaba entera: `github-topics-manager.sh` vivió así desde su primer commit, leyendo `VALID_TOPIPS` donde el array era `VALID_TOPICS`, mandando `{"names":[""]}` a la API con el CI en verde. `ci.yml` y `.githooks/pre-commit` corren ahora `-S info`, así que ese fallo aborta el commit en vez de llegar a producción.
 
 El único ruido que añade `info` es SC2016 —comillas simples que no expanden— y está desactivado en los dos únicos sitios donde es correcto: `scripts/changelog.sh` a nivel de archivo, porque no hace más que emitir markdown con backticks literales, y `.githooks/hooks.test.sh`, donde el `printf` escribe un stub cuyas variables las expande el stub, no el test. **Si te sale un SC2016 nuevo, mira si es real antes de copiar el `disable`**: la mayoría de las veces sí querías expandir.
+
+**Una suite que monta repos de git se limpia antes el entorno, y `pre-push` se lo limpia a todas.** Cuando un push sale de un worktree enlazado, git exporta `GIT_DIR` al hook, y con él puesto el `git init` de una suite no crea un repo desechable: reconfigura el real. Pasó con `dependabot-listo.sh`, que empuja desde un worktree: el repo quedó con `core.bare=true` y `core.hooksPath=/dev/null`, `main` en un commit de prueba y una rama de prueba publicada en GitHub. Desde el checkout principal git no exporta `GIT_DIR`, así que el fallo es invisible hasta que alguien usa un worktree. `run_suites` lanza cada suite con `sin_entorno_git`, y las suites que hacen `git init` empiezan con el mismo `unset` sobre `git rev-parse --local-env-vars`; `hooks.test.sh` falla si una suite nueva crea repos sin esa guarda.
 
 **El hook y el CI tienen que invocar shellcheck igual, `-x` incluido.** `.githooks/pre-commit` analiza archivo por archivo y `ci.yml` los pasa todos en una invocación, y esa diferencia es invisible a nivel `warning` pero no a nivel `info`: un `. lib.sh` cuyo destino no va como input es SC1091, de nivel info. Con el hook sin `-x` los commits fallaban contra un CI verde — el peor reparto posible, porque el que rompe no es el que se entera. Ambos llevan ahora `-x`, que hace que shellcheck siga los `# shellcheck source=` de las cabeceras. Hay dos tests en `hooks.test.sh` que fijan el nivel y el `-x`; si cambias la invocación, fallan.
 

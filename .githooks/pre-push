@@ -58,7 +58,31 @@ PUSH_SUITES=(
     "bash lib/verify.test.sh"
     "bash config/claude/settings.test.sh"
     "bash scripts/changelog.test.sh"
+    "bash scripts/dependabot-listo.test.sh"
 )
+
+# sin_entorno_git <cmd...> — corre el comando sin las variables GIT_* que git
+# exporta a sus hooks.
+#
+# En un worktree enlazado git exporta GIT_DIR al hook, y toda suite que monta
+# repos desechables lo hereda: su `git init`, su `git config` y su `git push`
+# dejan de mirar el temporal y operan sobre ESTE repo. Pasó al empujar desde un
+# worktree: el repo real quedó con core.bare=true, core.hooksPath=/dev/null,
+# main apuntando a un commit de prueba y una rama de prueba publicada en
+# GitHub. Desde el checkout principal git no exporta GIT_DIR, por eso nunca
+# se había visto.
+#
+# La lista sale de git, no de aquí: es la que él mismo considera «local a un
+# repo» y crece con las versiones.
+sin_entorno_git() {
+    (
+        local v
+        while read -r v; do
+            unset "$v"
+        done < <(git rev-parse --local-env-vars 2>/dev/null)
+        "$@"
+    )
+}
 
 # run_suites -> 1 si alguna suite falla
 run_suites() {
@@ -71,7 +95,7 @@ run_suites() {
             hook_warn "$interp no está instalado; no se corrió $file"
             continue
         fi
-        "$interp" "$file" >/dev/null 2>&1 \
+        sin_entorno_git "$interp" "$file" >/dev/null 2>&1 \
             || { hook_err "La suite $file falla (corre: $suite)"; rc=1; }
     done
     return "$rc"
