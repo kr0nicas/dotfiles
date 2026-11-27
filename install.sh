@@ -141,7 +141,7 @@ if [[ $INSTALL_AGENT -eq 0 ]]; then
 fi
 
 if [[ $INSTALL_AGENT -eq 1 ]]; then
-    phase_symlinks_agent   # SOLO ~/.claude (settings, statusline, CLAUDE.md)
+    phase_symlinks_agent   # SOLO ~/.claude (settings, statusline, CLAUDE.md, rules/)
 else
     phase_symlinks         # symlinks de dotfiles
 fi

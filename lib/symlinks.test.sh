@@ -89,10 +89,22 @@ dests() { run_group "$@" | sed -n 's/^DRY-RUN: ln -sf .* → //p'; }
 
 printf '\nsymlinks_claude\n'
 
-assert_eq "$FAKE_HOME/.claude/settings.json
-$FAKE_HOME/.claude/statusline.sh
-$FAKE_HOME/.claude/CLAUDE.md" "$(dests symlinks_claude)" \
-    "enlaza los tres archivos de ~/.claude y ninguno más"
+# Las rules se derivan del directorio, no se escriben a mano: añadir una regla
+# no debe exigir tocar este test, pero enlazar algo que no esté ahí, sí.
+esperado_claude() {
+    printf '%s\n' "$FAKE_HOME/.claude/settings.json" \
+                   "$FAKE_HOME/.claude/statusline.sh" \
+                   "$FAKE_HOME/.claude/CLAUDE.md"
+    local rule
+    for rule in "$DOTFILES_DIR"/config/claude/rules/*.md; do
+        [ -f "$rule" ] && printf '%s\n' "$FAKE_HOME/.claude/rules/${rule##*/}"
+    done
+}
+assert_eq "$(esperado_claude)" "$(dests symlinks_claude)" \
+    "enlaza los tres archivos de ~/.claude más las rules/*.md y nada más"
+
+assert_contains "$(dests symlinks_claude)" "$FAKE_HOME/.claude/rules/" \
+    "el bucle de rules enlaza al menos una regla (si falla, el directorio está vacío)"
 
 assert_eq "" "$(run_group symlinks_claude | grep 'settings.local')" \
     "no siembra ~/.claude/settings.local.json: Claude Code no lo lee como capa de usuario"

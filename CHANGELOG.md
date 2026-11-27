@@ -3,6 +3,31 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-11-27 · docs/claude-referencias-vigentes
+
+### Documentación
+
+- **claude**: apuntar a referencias que existen (`05565d3`)
+
+## 2026-11-27 · chore/claude-tui-fullscreen
+
+### Mantenimiento
+
+- **claude**: fijar la interfaz a pantalla completa (`4d9618c`)
+
+## 2026-11-27 · feat/claude-security-rules
+
+### Features
+
+- **claude**: reglas de revisión y seguridad adaptadas de ECC (`0906623`)
+- **install**: enlazar config/claude/rules en ~/.claude/rules (`43d9039`)
+
+## 2026-11-12 · perf/claude-statusline-una-llamada
+
+### Rendimiento
+
+- **claude**: statusline con una sola llamada a jq y a git (`0f9e3c0`)
+
 ## 2026-10-02 · fix/git-quitar-include-macos
 
 ### Fixes
