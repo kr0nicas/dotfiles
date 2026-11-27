@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-11-27 · docs/claude-referencias-vigentes
+
+### Documentación
+
+- **claude**: apuntar a referencias que existen (`05565d3`)
+
 ## 2026-11-27 · chore/claude-tui-fullscreen
 
 ### Mantenimiento
