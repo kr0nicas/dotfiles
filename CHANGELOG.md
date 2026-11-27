@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-11-27 · chore/claude-tui-fullscreen
+
+### Mantenimiento
+
+- **claude**: fijar la interfaz a pantalla completa (`4d9618c`)
+
 ## 2026-11-27 · feat/claude-security-rules
 
 ### Features
