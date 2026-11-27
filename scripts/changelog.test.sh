@@ -5,6 +5,14 @@
 # Cada test monta un repo de git desechable en un temporal, con su propio
 # «origin» bare. Nada de esto toca ~/dotfiles ni consulta a GitHub.
 
+# Sin el entorno de git del llamador. Si esta suite corre desde un hook en un
+# worktree enlazado hereda GIT_DIR, y cada `git init` de abajo dejaría de crear
+# un repo desechable para reconfigurar el repo real. pre-push ya lo limpia;
+# esto cubre cualquier otra forma de llegar aquí con GIT_DIR puesto.
+while read -r _var_git; do
+    unset "$_var_git"
+done < <(git rev-parse --local-env-vars 2>/dev/null)
+
 TESTS_RUN=0
 TESTS_FAILED=0
 

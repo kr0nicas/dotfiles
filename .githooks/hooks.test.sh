@@ -5,6 +5,13 @@
 # Los hooks se sourcean, no se ejecutan: cada uno solo dispara su lógica
 # cuando git lo invoca (guarda BASH_SOURCE == 0 al final del archivo).
 
+# Sin el entorno de git del llamador: esta suite corre dentro de pre-push, y en
+# un worktree enlazado hereda GIT_DIR. Con él puesto, los `git init` de abajo
+# reconfigurarían el repo real en vez de crear uno desechable.
+while read -r _var_git; do
+    unset "$_var_git"
+done < <(git rev-parse --local-env-vars 2>/dev/null)
+
 TESTS_RUN=0
 TESTS_FAILED=0
 
@@ -283,6 +290,42 @@ assert_eq "0" "$(printf '' | check_push_stdin >/dev/null 2>&1; echo $?)" \
     "stdin vacío no bloquea"
 assert_eq "1" "$(printf 'refs/heads/a 1 refs/heads/x 0\nrefs/heads/b 2 refs/heads/main 0\n' | check_push_stdin >/dev/null 2>&1; echo $?)" \
     "evalúa todas las refs, no solo la primera"
+
+# git exporta GIT_DIR a los hooks cuando el push sale de un worktree enlazado.
+# Si llega a una suite que monta repos desechables, esa suite opera sobre el
+# repo real: pasó, y dejó core.bare=true y una rama de prueba en GitHub.
+# Comillas simples obligatorias aquí y en el printf de más abajo: las variables
+# las tiene que expandir el sh hijo, que es donde se mide, no este script.
+# shellcheck disable=SC2016
+assert_eq "limpio" \
+    "$(GIT_DIR=/no/existe GIT_WORK_TREE=/tampoco sin_entorno_git sh -c 'printf %s "${GIT_DIR:-limpio}${GIT_WORK_TREE:-}"')" \
+    "sin_entorno_git quita GIT_DIR y GIT_WORK_TREE"
+assert_eq "7" "$(sin_entorno_git sh -c 'exit 7' >/dev/null 2>&1; echo $?)" \
+    "y conserva el código de salida del comando"
+
+ENV_TMP="${TMPDIR:-/tmp}/hooks-test-env-$$"
+mkdir -p "$ENV_TMP"
+# shellcheck disable=SC2016
+printf 'printf %%s "${GIT_DIR:-limpio}" > "%s/visto"\n' "$ENV_TMP" > "$ENV_TMP/suite.sh"
+PUSH_SUITES_REALES=("${PUSH_SUITES[@]}")
+PUSH_SUITES=("bash $ENV_TMP/suite.sh")
+GIT_DIR=/no/existe run_suites >/dev/null 2>&1
+PUSH_SUITES=("${PUSH_SUITES_REALES[@]}")
+assert_eq "limpio" "$(cat "$ENV_TMP/visto" 2>/dev/null)" \
+    "run_suites no deja que GIT_DIR llegue a las suites"
+rm -rf "$ENV_TMP"
+
+# Segunda barrera: una suite que crea repos se limpia el entorno ella misma,
+# para no depender de que quien la lance sea pre-push.
+sin_guarda=""
+for f in "$HOOKS_DIR"/hooks.test.sh "$HOOKS_DIR"/../scripts/*.test.sh \
+         "$HOOKS_DIR"/../lib/*.test.sh "$HOOKS_DIR"/../config/claude/*.test.sh; do
+    [ -f "$f" ] || continue
+    if grep -Eq '^[^#]*\b(git|g) init\b' "$f" && ! grep -q -- '--local-env-vars' "$f"; then
+        sin_guarda="$sin_guarda ${f##*/}"
+    fi
+done
+assert_eq "" "$sin_guarda" "toda suite que hace git init limpia antes el entorno de git"
 
 # ci.yml y pre-push tienen que correr las mismas suites: si divergen, lo que
 # falla en una solo se ve en la otra, que es justo el reparto que el hook
