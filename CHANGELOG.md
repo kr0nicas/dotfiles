@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-11-27 · feat/scripts-dependabot-listo
+
+### Features
+
+- **scripts**: preparar PRs de dependabot con dependabot-listo.sh (`7a22f41`)
+
 ## 2026-11-27 · docs/claude-referencias-vigentes
 
 ### Documentación
