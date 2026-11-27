@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-11-27 · dependabot/github_actions/actions/setup-node-7.1.0
+
+### Mantenimiento
+
+- **deps**: bump actions/setup-node from 7.0.0 to 7.1.0 (`528d0f1`)
+
 ## 2026-11-27 · fix/repo-suites-sin-git-dir
 
 ### Fixes
