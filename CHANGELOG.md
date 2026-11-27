@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-11-12 · perf/claude-statusline-una-llamada
+
+### Rendimiento
+
+- **claude**: statusline con una sola llamada a jq y a git (`0f9e3c0`)
+
 ## 2026-10-02 · fix/git-quitar-include-macos
 
 ### Fixes
