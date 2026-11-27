@@ -3,12 +3,11 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
-## 2026-10-16 · feat/claude-security-rules
+## 2026-11-12 · perf/claude-statusline-una-llamada
 
-### Features
+### Rendimiento
 
-- **claude**: reglas de revisión y seguridad adaptadas de ECC (`0906623`)
-- **install**: enlazar config/claude/rules en ~/.claude/rules (`43d9039`)
+- **claude**: statusline con una sola llamada a jq y a git (`0f9e3c0`)
 
 ## 2026-10-02 · fix/git-quitar-include-macos
 
