@@ -93,6 +93,13 @@ Hasta 2026-09-23 `pre-push` corría solo las suites de `gcx` y del arnés, así 
 las otras aparecía por primera vez en el CI. Ahora recorre `PUSH_SUITES`, y un test de
 `hooks.test.sh` exige que esa lista sea idéntica a la del paso "Suite de tests" de `ci.yml`.
 
+Las suites corren a través de `sin_entorno_git`, que les quita las variables que lista
+`git rev-parse --local-env-vars`. Cuando el push sale de un worktree enlazado, git exporta
+`GIT_DIR` al hook; una suite que monta repos desechables lo hereda y su `git init` opera
+sobre el repo real. El 2026-11-27 eso dejó el repo con `core.bare=true`, `main` en un commit
+de prueba y una rama de prueba publicada en GitHub. Como segunda barrera, cada suite que
+hace `git init` se limpia el entorno ella misma, y un test de `hooks.test.sh` lo exige.
+
 `pre-commit` despacha por extensión sobre el índice, no sobre el repo entero:
 
 | Patrón staged | Comprobación |

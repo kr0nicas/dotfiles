@@ -3,6 +3,12 @@
 Generado por `scripts/changelog.sh` desde el historial de git.
 No lo edites a mano: el CI regenera y compara.
 
+## 2026-11-27 · fix/repo-suites-sin-git-dir
+
+### Fixes
+
+- **repo**: quitar el entorno de git a las suites de pre-push (`9c3ac81`)
+
 ## 2026-11-27 · feat/scripts-dependabot-listo
 
 ### Features
